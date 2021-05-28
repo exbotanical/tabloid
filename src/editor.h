@@ -1,7 +1,15 @@
-char readKey(void);
+struct appendBuf;
+
+int readKey(void);
 
 void clearScreen(void);
 
-void reposCursor(void);
+void drawRows(struct appendBuf *abuf);
 
-void drawRows(void);
+void enableRawMode(void);
+
+void disableRawMode(void);
+
+void procKeypress(void);
+
+void initEditor(void);

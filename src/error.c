@@ -12,11 +12,9 @@
  * @param s message
  */
 void panic(const char *s) {
-  // clear screen on error so we don't inundate the user
-  clearScreen();
-
-  // write(STDOUT_FILENO, "\x1b[2J", 4);
-  // write(STDOUT_FILENO, "\x1b[H", 3);
+  // repos cursor on error so we don't inundate the user
+  write(STDOUT_FILENO, "\x1b[2J", 4);
+  write(STDOUT_FILENO, "\x1b[H", 3);
 
   perror(s);
   exit(1);

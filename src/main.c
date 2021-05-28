@@ -1,15 +1,15 @@
 #include "error.h"
-#include "term.h"
 #include "editor.h"
 
 #include <stdio.h>
 
 int main(void) {
   enableRawMode();
+  initEditor();
 
   while (1) {
     clearScreen();
-    procKeyPress();
+    procKeypress();
   }
 
   return 0;
