@@ -5,8 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define ABUF_INIT {NULL, 0}; /**< Initialize an `appendbuf` */
-
 /**
  * @brief Takes a string buffer and appends a next string, reallocating the required memory
  * 

@@ -9,4 +9,4 @@ Navigation
 
 - <up>, <down>, <left>, <right> 
 - PgUp, PgDown (y-axis, jumpto)
-- Home, End (x-axis, jumpto)
+- Home, End (x-axis, jumpto begin / end of word)

@@ -3,9 +3,15 @@
 
 #include <stdio.h>
 
-int main(void) {
+int main(int argc, char *argv[]) {
   enableRawMode();
   initEditor();
+  
+  if (argc >= 2) {
+    editorOpen(argv[1]);
+  }
+
+  setStatusMessage("HELP: C-q -> quit");
 
   while (1) {
     clearScreen();
