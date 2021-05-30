@@ -2,6 +2,7 @@
 
 #include "common.h"
 #include "error.h"
+#include "stream.h"
 #include "viewport.h"
 
 #include <errno.h>
@@ -78,6 +79,9 @@ void procKeypress(void) {
   int c = readKey();
 
   switch (c) {
+		case '\r':
+			break;
+
     case CTRL_KEY('q'):
       // clean
       write(STDOUT_FILENO, "\x1b[2J", 4);
@@ -95,6 +99,11 @@ void procKeypress(void) {
         T.cursx = T.row[T.cursy].size;
       }
       break;
+
+		case BACKSPACE:
+		case CTRL_KEY('h'):
+		case DEL:
+			break;
 
     // pos cursor at top or bottom of viewport
     case PG_U:
@@ -121,5 +130,15 @@ void procKeypress(void) {
     case ARR_L:
       moveCursor(c);
       break;
+
+		// ignore unimplemented escape sequences
+		// ignore C-l, as this editor refreshes after ea keypress
+		case CTRL_KEY('l'):
+		case '\x1b':
+			break;
+
+		default:
+			insertChar(c);
+			break;
   }
 }

@@ -1,43 +1,25 @@
-/* Feature Test Macros */
-#define _DEFAULT_SOURCE // ea. handles `getline` resolution
-#define _BSD_SOURCE
-#define _GNU_SOURCE
-
 #include "editor.h"
 
 #include "common.h"
 #include "buffer.h"
 #include "error.h"
 #include "render.h"
+#include "stream.h"
 #include "viewport.h"
 
 #include <errno.h>
-#include <stdio.h>
+// #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+// #include <string.h>
 #include <termios.h>
 #include <unistd.h>
-
-// `strdup` is not yet a part of Standard C
-// it is standardized in POSIX.1-2008, and may or may not be provided by <string.h>
-#ifndef STRDUP_H
-#define STRDUP_H
-
-char *strdup(const char *s) {
-  size_t size = strlen(s) + 1;
-  char *p = malloc(size);
-  if (p != NULL) {
-    memcpy(p, s, size);
-  }
-  return p;
-}
-
-#endif
 
 struct ttyConfig T;
 
 /***********
+ *
  * Modes
+ *
  ***********/
 
 /**
@@ -83,7 +65,9 @@ void disableRawMode(void) {
 }
 
 /***********
+ *
  * Editor Ctrl
+ *
  ***********/
 
 /**
@@ -108,39 +92,4 @@ void initEditor(void) {
   // row for status bar
   // prevent `drawRows` from rendering a line at the bottom row
   T.screenrows -= 2;
-}
-
-/***********
- * File I/O
- ***********/
-
-/**
- * @brief Open a file in the editor
- *
- * @param filename
- */
-void editorOpen(char *filename) {
-  free(T.filename);
-  T.filename = strdup(filename);
-
-  FILE *fp = fopen(filename, "r");
-  if (!fp) panic("fopen");
-
-  char *line = NULL;
-  size_t linecap = 0; /**< Tracks how much memory has been allocated */
-  ssize_t linelen;
-
-  // -1 at EOF
-  while ((linelen = getline(&line, &linecap, fp)) != -1) {
-    // we know ea. `trow` represents a single line of text, thus there is
-    // no reason to store the newline, carriage return
-    while (linelen > 0 && (line[linelen - 1] == '\n' || line[linelen - 1] == '\r')) {
-      linelen--;
-    }
-
-    appendRow(line, linelen);
-  }
-
-  free(line);
-  fclose(fp);
 }

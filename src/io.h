@@ -1,0 +1,1 @@
+void editorOpen(char *filename);

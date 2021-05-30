@@ -11,7 +11,6 @@
 #include <unistd.h>
 
 #define ABUF_INIT {NULL, 0} /**< Initialize an `appendbuf` */
-#define TAB_SIZE 8
 
 /***********
  * Cursor Ctrl
@@ -215,74 +214,4 @@ void scroll(void) {
   if (T.renderx >= T.coloff + T.screencols) {
     T.coloff = T.renderx - T.screencols + 1;
   }
-}
-
-/***********
- * Viewport Buffers
- ***********/
-
-/**
- * @brief Allocate space for a new row, copy a given string at the end of the row array
- *
- * @param s
- * @param len
- */
-void appendRow(char *s, size_t len) {
-  // num bytes `trow` takes * the num of desired rows
-  T.row = realloc(T.row, sizeof(trow) * (T.numrows + 1));
-
-  // idx of new row to init
-  int at = T.numrows;
-
-  T.row[at].size = len;
-  T.row[at].chars = malloc(len + 1);
-
-  memcpy(T.row[at].chars, s, len);
-  T.row[at].chars[len] = '\0';
-
-  // init tabs
-  T.row[at].rsize = 0;
-  T.row[at].render = NULL;
-  updateRow(&T.row[at]);
-
-  T.numrows++;
-}
-
-/**
- * @brief USes chars str of a `trow` to fill the contents of the render string buffer
- *
- * @param row
- */
-void updateRow(trow *row) {
-  int tabs = 0;
-  int j;
-
-  // iterate chars of the row, counting tabs so as to alloc sufficient mem for `render`
-  // max num chars needed for tabs is 8
-  for (j = 0; j < row->size; j++) {
-    if (row->chars[j] == '\t') tabs++;
-  }
-
-  free(row->render);
-
-  // row->size counts 1 for ea tab as it is, so we multiply by 7
-  // and add to row->size to get max amt of mem needed for the rendered row
-  row->render = malloc(row->size + tabs * (TAB_SIZE - 1) + 1);
-
-  int idx = 0; // contains num of chars copied into row->render
-
-  // after alloc, we check whether the current char is a tab - if it is, we append 1 space
-  // as ea tab must advanced the cursor forward 1 col
-  // we then append spaces until we reach a tab stop i.e. a col divisible by 8
-  for (j = 0; j < row->size; j++) {
-    if (row->chars[j] == '\t') {
-      row->render[idx++] = ' ';
-      while (idx % TAB_SIZE != 0) row->render[idx++] = ' ';
-    } else {
-      row->render[idx++] = row->chars[j];
-    }
-  }
-
-  row->render[idx] = '\0';
-  row->rsize = idx;
 }

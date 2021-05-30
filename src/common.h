@@ -1,6 +1,8 @@
 #include <termios.h>
 #include <time.h>
 
+#define TAB_SIZE 8
+
 struct appendBuf {
   char *buf;
   int len;
@@ -14,6 +16,7 @@ static const char ESCAPE = '\x1b';
 
 /* Mappings */
 enum keybindings {
+	BACKSPACE = 127,
   ARR_U = 1000,
   ARR_D,
   ARR_R,

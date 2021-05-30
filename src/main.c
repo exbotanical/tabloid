@@ -1,5 +1,6 @@
 #include "editor.h"
 #include "error.h"
+#include "io.h"
 #include "keypress.h"
 #include "render.h"
 #include "viewport.h"
