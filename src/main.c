@@ -12,10 +12,10 @@ int main(int argc, char *argv[]) {
   initEditor();
 
   if (argc >= 2) {
-    editorOpen(argv[1]);
+    openFile(argv[1]);
   }
 
-  setStatusMessage("HELP: C-q -> quit");
+  setStatusMessage("HELP: Ctrl-s -> save | Ctrl-c -> quit");
 
   while (1) {
     clearScreen();

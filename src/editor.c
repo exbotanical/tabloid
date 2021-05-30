@@ -84,6 +84,7 @@ void initEditor(void) {
   T.filename = NULL; // will remain null if no file loaded - what we want
   T.statusmsg[0] = '\0'; // default to no message at all
   T.statusmsg_time = 0;
+	T.dirty = 0;
 
   if (getWindowSize(&T.screenrows, &T.screencols) == -1) {
     panic("getWindowSize");

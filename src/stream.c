@@ -36,6 +36,7 @@ void appendRow(char *s, size_t len) {
   updateRow(&T.row[at]);
 
   T.numrows++;
+	T.dirty++;
 }
 
 /**
@@ -102,6 +103,70 @@ void insertCharAtRow(trow *row, int at, int c) {
 	row->chars[at] = c;
 	// ensure `renderx` `rsize` are updated
 	updateRow(row);
+
+	T.dirty++;
+}
+
+/**
+ * @brief Remove a character from a given position of a given row
+ *
+ * @param row
+ * @param at
+ */
+void delCharAtRow(trow *row, int at) {
+	if (at < 0 || at >= row->size) return;
+
+	// overwrite the deleted char w/ the chars that succeed it
+	memmove(&row->chars[at], &row->chars[at + 1], row->size - at);
+	row->size--;
+	updateRow(row);
+	T.dirty++;
+}
+
+/**
+ * @brief Free memory owned by a deleted row
+ *
+ * @param row
+ */
+void freeRow(trow *row) {
+	free(row->render);
+	free(row->chars);
+}
+
+/**
+ * @brief Delete row by overwriting the deleted row struct with rows that succeed it
+ *
+ * @param at
+ */
+void delRow(int at) {
+	if (at <0 || at > T.numrows) return;
+
+	freeRow(&T.row[at]);
+	memmove(
+		&T.row[at],
+		&T.row[at + 1],
+		sizeof(trow) * (T.numrows - at - 1)
+	);
+
+	T.numrows--;
+	T.dirty++;
+}
+
+/**
+ * @brief Append a string to that of another row
+ *
+ * @param row
+ * @param s
+ * @param len
+ */
+void appendStrToRow(trow *row, char *s, size_t len) {
+	row->chars = realloc(row->chars, row->size + len + 1);
+
+	memcpy(&row->chars[row->size], s, len);
+	row->size += len;
+	row->chars[row->size] = '\0';
+	updateRow(row);
+	T.dirty++;
 }
 
 /******************************
@@ -123,4 +188,29 @@ void insertChar(int c) {
 
 	insertCharAtRow(&T.row[T.cursy], T.cursx, c);
 	T.cursx++;
+}
+
+/**
+ * @brief Wrapper, deletes character from a row
+ *
+ */
+void delChar(void) {
+	// if we're past EOF, return
+	if (T.cursy == T.numrows) return;
+	// if we're at line begin, return
+	if (T.cursx == 0 && T.cursy == 0) return;
+
+	// fetch row of cursor pos
+	trow *row = &T.row[T.cursy];
+
+	if (T.cursx > 0) {
+		delCharAtRow(row, T.cursx - 1);
+		T.cursx--;
+	} else {
+		// set cursor to end of contents on prev row
+		T.cursx = T.row[T.cursy - 1].size;
+		appendStrToRow(&T.row[T.cursy - 1], row->chars, row->size);
+		delRow(T.cursy);
+		T.cursy--;
+	}
 }

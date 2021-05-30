@@ -101,9 +101,10 @@ void drawStatusBar(struct appendBuf *abuf) {
   int len = snprintf(
     status,
     sizeof(status),
-    "%.20s - %d lines",
+    "%.20s - %d lines %s",
     T.filename ? T.filename : "[No Name]",
-    T.numrows
+    T.numrows,
+		T.dirty ? "(modified)" : ""
   );
 
   // lineno

@@ -1,1 +1,3 @@
-void editorOpen(char *filename);
+void openFile(char *filename);
+
+void saveToFile(void);

@@ -7,12 +7,15 @@
 
 #include "common.h"
 #include "error.h"
+#include "render.h"
 #include "stream.h"
 
 #include <errno.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 // `strdup` is not yet a part of Standard C
 // it is standardized in POSIX.1-2008, and may or may not be provided by <string.h>
@@ -41,7 +44,7 @@ char *strdup(const char *s) {
  *
  * @param filename
  */
-void editorOpen(char *filename) {
+void openFile(char *filename) {
   free(T.filename);
   T.filename = strdup(filename);
 
@@ -65,6 +68,10 @@ void editorOpen(char *filename) {
 
   free(line);
   fclose(fp);
+
+	// because we invoke `appendRow`, status will be set to 'dirty' by default
+	// mitigate w/ reset
+	T.dirty = 0;
 }
 
 /**
@@ -103,4 +110,38 @@ char *strConvRows(int *buflen) {
 	}
 
 	return buf;
+}
+
+/**
+ * @brief Write editor contents to either an existing or newly created file
+ *
+ * @todo Write to a swapfile first
+ */
+void saveToFile(void) {
+	if (T.filename == NULL) return;
+
+	int len;
+	char *buf = strConvRows(&len);
+
+	int fd = open(T.filename, O_RDWR | O_CREAT, 0644);
+
+	if (fd != -1) {
+		// by manually truncating to the same len as the writable data,
+		// we render the overwrite safer in the case that `write` fails
+		// (as opposed to passing `O_TRUNC` to `open` directly, which clears all data prior to writing)
+		if (ftruncate(fd, len) != -1) {
+			if (write(fd, buf, len) == len) {
+					close(fd);
+					free(buf);
+
+					T.dirty = 0; // reset dirty state
+					setStatusMessage("%d bytes written to disk", len);
+					return;
+			}
+		}
+		close(fd);
+	}
+
+	free(buf);
+	setStatusMessage("Unable to save file; I/O error: %s", strerror(errno));
 }

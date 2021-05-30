@@ -2,6 +2,8 @@
 
 #include "common.h"
 #include "error.h"
+#include "io.h"
+#include "render.h"
 #include "stream.h"
 #include "viewport.h"
 
@@ -77,18 +79,32 @@ int readKey(void) {
  */
 void procKeypress(void) {
   int c = readKey();
+	static int quit_x = CONFIRM_QUIT_X;
 
   switch (c) {
 		case '\r':
 			break;
 
-    case CTRL_KEY('q'):
+    case CTRL_KEY('c'):
+			if (T.dirty && quit_x > 0) {
+				setStatusMessage(
+					"File has unsaved changes - press Ctrl-c %d more times to quit",
+					quit_x
+				);
+
+				quit_x--;
+				return;
+			}
       // clean
       write(STDOUT_FILENO, "\x1b[2J", 4);
       write(STDOUT_FILENO, "\x1b[H", 3);
 
       exit(0);
       break;
+
+		case CTRL_KEY('s'):
+			saveToFile();
+			break;
 
     case HOME:
       T.cursx = 0;
@@ -103,6 +119,9 @@ void procKeypress(void) {
 		case BACKSPACE:
 		case CTRL_KEY('h'):
 		case DEL:
+			// del char to right of cursor
+			if (c == DEL) moveCursor(ARR_R);
+			delChar();
 			break;
 
     // pos cursor at top or bottom of viewport
@@ -141,4 +160,6 @@ void procKeypress(void) {
 			insertChar(c);
 			break;
   }
+
+	quit_x = CONFIRM_QUIT_X;
 }

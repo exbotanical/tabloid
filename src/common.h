@@ -14,6 +14,8 @@ static const char APPVERSION[] = "0.0.1";
 
 static const char ESCAPE = '\x1b';
 
+static const int CONFIRM_QUIT_X = 3;
+
 /* Mappings */
 enum keybindings {
 	BACKSPACE = 127,
@@ -53,6 +55,7 @@ struct ttyConfig {
   char *filename; /**< The current filename, if extant */
   char statusmsg[80];
   time_t statusmsg_time;
+	int dirty; /**< Track file state */
 };
 
 extern struct ttyConfig T;
