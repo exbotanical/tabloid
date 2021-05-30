@@ -156,6 +156,12 @@ void saveToFile(void) {
 	setStatusMessage("Unable to save file; I/O error: %s", strerror(errno));
 }
 
+/**
+ * @brief Prompt user (to save file as _name_)
+ *
+ * @param prompt
+ * @return char*
+ */
 char *promptUser(char *prompt) {
 	size_t bufsize = 128;
 
