@@ -63,13 +63,13 @@ void openFile(char *filename) {
       linelen--;
     }
 
-    appendRow(line, linelen);
+    insertRow(T.numrows, line, linelen);
   }
 
   free(line);
   fclose(fp);
 
-	// because we invoke `appendRow`, status will be set to 'dirty' by default
+	// because we invoke `insertRow`, status will be set to 'dirty' by default
 	// mitigate w/ reset
 	T.dirty = 0;
 }

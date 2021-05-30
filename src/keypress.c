@@ -83,6 +83,7 @@ void procKeypress(void) {
 
   switch (c) {
 		case '\r':
+			insertNewline();
 			break;
 
     case CTRL_KEY('c'):

@@ -17,12 +17,12 @@
  * @param s
  * @param len
  */
-void appendRow(char *s, size_t len) {
+void insertRow(int at, char *s, size_t len) {
+	if (at < 0 || at > T.numrows) return;
   // num bytes `trow` takes * the num of desired rows
   T.row = realloc(T.row, sizeof(trow) * (T.numrows + 1));
-
-  // idx of new row to init
-  int at = T.numrows;
+	// alloc mem at the specified `at` idx for the new row
+	memmove(&T.row[at + 1], &T.row[at], sizeof(trow) * (T.numrows - at));
 
   T.row[at].size = len;
   T.row[at].chars = malloc(len + 1);
@@ -169,6 +169,35 @@ void appendStrToRow(trow *row, char *s, size_t len) {
 	T.dirty++;
 }
 
+/**
+ * @brief Insert a newline, handles ENTER key op
+ *
+ */
+void insertNewline(void) {
+	// begin line, just insert a new row before curr line
+	if (T.cursx == 0) {
+		insertRow(T.cursy, "", 0);
+	} else {
+		// prep to split current line into two rows
+		trow *row = &T.row[T.cursy];
+
+		// contents of curr row to right of cursor
+		insertRow(T.cursy + 1, &row->chars[T.cursx], row->size - T.cursx);
+
+		// reset pointer (`insertRow` calls `realloc` and may move memory, invalidating it)
+		row = &T.row[T.cursy];
+
+		// truncate curr row to size and pos of the cursor
+		row->size = T.cursx;
+		row->chars[row->size] = '\0';
+		updateRow(row);
+	}
+
+	// move to new row begin
+	T.cursy++;
+	T.cursx = 0;
+}
+
 /******************************
 *
 * Input / Character Operations
@@ -183,7 +212,7 @@ void appendStrToRow(trow *row, char *s, size_t len) {
 void insertChar(int c) {
 	// if cursor is line after EOD, append new row prior to inserting
 	if (T.cursy == T.numrows) {
-		appendRow("", 0);
+		insertRow(T.numrows, "", 0);
 	}
 
 	insertCharAtRow(&T.row[T.cursy], T.cursx, c);
