@@ -4,6 +4,10 @@ LDFLAGS=
 OBJFILES=$(wildcard src/*.c)
 TARGET=cnano
 
+SCRIPTSDIR=scripts
+
+DEST=/usr/local/bin
+
 all: $(TARGET)
 
 $(TARGET): $(OBJFILES)
@@ -11,3 +15,9 @@ $(TARGET): $(OBJFILES)
 
 clean:
 	rm -f $(TARGET)
+
+install: $(TARGET)
+	install -m 0777 $(TARGET) $(DEST)/$(TARGET)
+
+check:
+	@$(SCRIPTSDIR)/memcheck.bash $(TARGET)
