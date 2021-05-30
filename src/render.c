@@ -4,8 +4,9 @@
 #include "buffer.h"
 
 #include <stdarg.h>
-#include <string.h>
 #include <stdio.h>
+#include <string.h>
+#include <time.h>
 
 /**
  * @brief Draws vim-like tilde-prepended rows on the screen
@@ -109,7 +110,7 @@ void drawStatusBar(struct appendBuf *abuf) {
   int rlen = snprintf(
     rstatus,
     sizeof(rstatus),
-    "%d%d",
+    "%d/%d",
     // current line
     T.cursy + 1, 
     T.numrows

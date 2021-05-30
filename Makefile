@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-Wall -Wextra -pedantic -std=c17
 LDFLAGS=
-OBJFILES=src/main.c src/error.c src/editor.c src/buffer.c src/render.c
+OBJFILES=src/main.c src/error.c src/editor.c src/buffer.c src/render.c src/viewport.c src/keypress.c
 TARGET=cnano
 
 all: $(TARGET)

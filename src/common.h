@@ -25,8 +25,6 @@ enum keybindings {
   PG_D
 };
 
-/* Tty State */
-
 /**
  * @brief Stateful representation of a row buffer
  * 
