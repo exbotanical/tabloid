@@ -7,9 +7,12 @@
 
 #include "common.h"
 #include "error.h"
+#include "keypress.h"
 #include "render.h"
 #include "stream.h"
+#include "viewport.h"
 
+#include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -118,7 +121,14 @@ char *strConvRows(int *buflen) {
  * @todo Write to a swapfile first
  */
 void saveToFile(void) {
-	if (T.filename == NULL) return;
+	if (T.filename == NULL) {
+		T.filename = promptUser("Save as %s (ESC to cancel)");
+
+		if (T.filename == NULL) {
+			setStatusMessage("Save cancelled");
+			return;
+		}
+	}
 
 	int len;
 	char *buf = strConvRows(&len);
@@ -144,4 +154,44 @@ void saveToFile(void) {
 
 	free(buf);
 	setStatusMessage("Unable to save file; I/O error: %s", strerror(errno));
+}
+
+char *promptUser(char *prompt) {
+	size_t bufsize = 128;
+
+	// store user input
+	char *buf = malloc(bufsize);
+
+	size_t buflen = 0;
+	buf[0] = '\0';
+
+	while (1) {
+		setStatusMessage(prompt, buf);
+		clearScreen();
+
+		int c = readKey();
+
+	// allow backspace in prompt
+		if (c == DEL || c == CTRL_KEY('h') || c == BACKSPACE) {
+			if (buflen != 0) buf[--buflen] = '\0';
+		}	else if (c == '\x1b') { // user hits esc to cancel
+			setStatusMessage("");
+			free(buf);
+			return NULL;
+		} else if (c == '\r') {
+			if (buflen != 0) {
+				setStatusMessage("");
+				return buf;
+			}
+		} else if (!iscntrl(c) && c < 128) {
+			// if `buflen` reaches max cap, double `bufsize`
+			if (buflen == bufsize - 1) {
+				bufsize *= 2;
+				buf = realloc(buf, bufsize);
+			}
+
+			buf[buflen++] = c;
+			buf[buflen] = '\0';
+		}
+	}
 }

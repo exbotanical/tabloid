@@ -11,9 +11,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-/* Local Macros */
-#define CTRL_KEY(k) ((k) & 0x1f) /**< Mandate the ctrl binding that exits the program by setting upper 3 bits to 0 */
-
 /**
  * @brief Wait for keypress from stdin and passthrough
  *

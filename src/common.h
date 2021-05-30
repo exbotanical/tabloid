@@ -2,6 +2,7 @@
 #include <time.h>
 
 #define TAB_SIZE 8
+#define CTRL_KEY(k) ((k) & 0x1f) /**< Mandate the ctrl binding that exits the program by setting upper 3 bits to 0 */
 
 struct appendBuf {
   char *buf;

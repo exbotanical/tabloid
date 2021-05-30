@@ -2,9 +2,15 @@
 
 A light-weight text editor
 
-## Keybindings
+```bash
+make install
 
-Navigation
+cnano file.md
+# OR
+cnano
+```
+
+## Keybindings
 
 - up, down, left, right keys
 - PgUp, PgDown (y-axis, jumpto)
@@ -13,3 +19,4 @@ Navigation
 - C-c x 3 to quit with unsaved changes
 - DEL delete char to right of cursor
 - backspace to delete prev char
+- C-s to save
