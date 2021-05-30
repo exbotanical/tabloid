@@ -27,7 +27,7 @@ enum keybindings {
 
 /**
  * @brief Stateful representation of a row buffer
- * 
+ *
  * @todo Allow custom tab-size
  */
 typedef struct trow {

@@ -13,7 +13,7 @@
 
 /**
  * @brief Wait for keypress from stdin and passthrough
- * 
+ *
  * @return int returned, keypress enum or escape sequence
  */
 int readKey(void) {
@@ -85,7 +85,7 @@ void procKeypress(void) {
 
       exit(0);
       break;
-    
+
     case HOME:
       T.cursx = 0;
       break;
@@ -99,7 +99,7 @@ void procKeypress(void) {
     // pos cursor at top or bottom of viewport
     case PG_U:
     case PG_D:
-      { 
+      {
         if (c == PG_U) {
           T.cursy = T.rowoff;
         } else if (c == PG_D) {
@@ -107,7 +107,7 @@ void procKeypress(void) {
 
           if (T.cursy > T.numrows) T.cursy = T.numrows;
         }
-        
+
         int cycles = T.screenrows;
         while (cycles--) {
           moveCursor(c == PG_U ? ARR_U : ARR_D);
@@ -115,10 +115,10 @@ void procKeypress(void) {
       break;
     }
 
-    case  ARR_U: 
-    case  ARR_D:
-    case  ARR_R:
-    case  ARR_L:
+    case ARR_U:
+    case ARR_D:
+    case ARR_R:
+    case ARR_L:
       moveCursor(c);
       break;
   }

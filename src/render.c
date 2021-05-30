@@ -10,7 +10,7 @@
 
 /**
  * @brief Draws vim-like tilde-prepended rows on the screen
- * 
+ *
  * @todo set to customizable with lineno
  */
 void drawRows(struct appendBuf *abuf) {
@@ -20,13 +20,13 @@ void drawRows(struct appendBuf *abuf) {
     int filerow = line + T.rowoff;
     // is this part of the text buffer, or a row that exists after its end?
     if (filerow >= T.numrows) {
-      // no file was opened; blank editor 
+      // no file was opened; blank editor
       if (T.numrows == 0 && line == T.screenrows / 3) {
         // write branding
         char branding[80];
 
         int brandingLen = snprintf(
-          branding, 
+          branding,
           sizeof(branding),
           "%s -- v%s", APPNAME, APPVERSION
         );
@@ -49,7 +49,7 @@ void drawRows(struct appendBuf *abuf) {
     } else {
       // subtract num of chars to left of the col offset from the row len
       int len = T.row[filerow].rsize - T.coloff;
-      
+
       if (len < 0) len = 0; // correct horizontal pos
       if (len > T.screencols) len = T.screencols;
 
@@ -66,15 +66,15 @@ void drawRows(struct appendBuf *abuf) {
 
 /**
  * @brief Render the message bar to the viewport
- * 
+ *
  * Times out after user input or five seconds
- * 
- * @param abuf 
+ *
+ * @param abuf
  */
 void drawMessageBar(struct appendBuf *abuf) {
   // clear message bar
   abufAppend(abuf, "\x1b[K", 3);
-  
+
   int msglen = strlen(T.statusmsg);
 
   // ensure it fits
@@ -88,8 +88,8 @@ void drawMessageBar(struct appendBuf *abuf) {
 
 /**
  * @brief Render the status bar
- * @param abuf 
- * 
+ * @param abuf
+ *
  * @see https://vt100.net/docs/vt100-ug/chapter3.html#SGR
  */
 void drawStatusBar(struct appendBuf *abuf) {
@@ -99,8 +99,8 @@ void drawStatusBar(struct appendBuf *abuf) {
   char status[80], rstatus[80];
 
   int len = snprintf(
-    status, 
-    sizeof(status), 
+    status,
+    sizeof(status),
     "%.20s - %d lines",
     T.filename ? T.filename : "[No Name]",
     T.numrows
@@ -112,7 +112,7 @@ void drawStatusBar(struct appendBuf *abuf) {
     sizeof(rstatus),
     "%d/%d",
     // current line
-    T.cursy + 1, 
+    T.cursy + 1,
     T.numrows
   );
 
@@ -140,8 +140,8 @@ void drawStatusBar(struct appendBuf *abuf) {
 
 /**
  * @brief Set the Status Message object
- * 
- * @param fmt 
+ *
+ * @param fmt
  * @param ... variadic
  */
 void setStatusMessage(const char *fmt, ...) {
@@ -149,12 +149,12 @@ void setStatusMessage(const char *fmt, ...) {
   va_start(ap, fmt);
 
   // va_arg(&fmt);
-  
+
   // this calls `va_arg` for us
   vsnprintf(
-    T.statusmsg, 
-    sizeof(T.statusmsg), 
-    fmt, 
+    T.statusmsg,
+    sizeof(T.statusmsg),
+    fmt,
     ap
   );
 

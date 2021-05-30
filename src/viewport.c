@@ -19,7 +19,7 @@
 
 /**
  * @brief Move the cursor position
- * @param key 
+ * @param key
  * @todo allow custom mappings
  */
 void moveCursor(int key) {
@@ -29,7 +29,7 @@ void moveCursor(int key) {
     case ARR_L:
       if (T.cursx != 0) {
         T.cursx--;
-        // if not first line, we allow user to go <- at line begin, 
+        // if not first line, we allow user to go <- at line begin,
         // snapping to the previous line
       } else if (T.cursy > 0) {
         T.cursy--;
@@ -46,7 +46,7 @@ void moveCursor(int key) {
     case ARR_R:
       if (row &&T.cursx < row->size) {
         T.cursx++;
-        
+
         // if cursor not at EOF, -> snaps to next line
       } else if (row && T.cursx == row->size) {
         T.cursy++;
@@ -62,18 +62,18 @@ void moveCursor(int key) {
   // we have to set the row again, then cursx to the end of the line if it is to the right of the end
   // of said line, where NULL is a line of len 0
   row = (T.cursy >= T.numrows) ? NULL : &T.row[T.cursy];
-  
+
   int rowlen = row ? row->size : 0;
   if (T.cursx > rowlen) T.cursx = rowlen;
 }
 
 /**
  * @brief Get the Cursor Pos object
- * 
- * @param rows 
- * @param cols 
- * @return int 
- * 
+ *
+ * @param rows
+ * @param cols
+ * @return int
+ *
  * @see https://vt100.net/docs/vt100-ug/chapter3.html#DSR
  * @see https://vt100.net/docs/vt100-ug/chapter3.html#CPR
  */
@@ -91,7 +91,7 @@ int getCursorPos(int *rows, int *cols) {
   }
 
   buf[i] = '\0';
-  
+
   // ensure response is an esc sequence
   if (buf[0] != ESCAPE || buf[1] != '[') return -1;
   // pull ints out of the response esc seq - these are our rows, cols
@@ -102,8 +102,8 @@ int getCursorPos(int *rows, int *cols) {
 
 /**
  * @brief Convert a chars index (`cursx`) into a render buffer index (`renderx`)
- * 
- * @return int 
+ *
+ * @return int
  */
 int cursxConv (trow *row, int cx) {
   int rx = 0;
@@ -128,10 +128,10 @@ int cursxConv (trow *row, int cx) {
 
 /**
  * @brief Clear the user's screen and set cursor position
- * 
+ *
  * Performs cleanup by clearing the user's screen, setting the cursor position.
- * Utilized in lieu of `atexit` given this would also clear error messages produced by `panic` 
- * 
+ * Utilized in lieu of `atexit` given this would also clear error messages produced by `panic`
+ *
  * @see https://vt100.net/docs/vt100-ug/chapter3.html#ED
  * @see https://vt100.net/docs/vt100-ug/chapter3.html#CUP
  * @todo use ncurses for better term support
@@ -145,14 +145,14 @@ void clearScreen(void) {
   abufAppend(&abuf, "\x1b[?25l", 6);
   // TODO use terminfo db
   abufAppend(&abuf, "\x1b[H", 3);
-  
+
   drawRows(&abuf);
   drawStatusBar(&abuf);
   drawMessageBar(&abuf);
-  
+
   // cursor
   char buf[32];
-  snprintf(buf, sizeof(buf), "\x1b[%d;%dH", (T.cursy - T.rowoff) + 1, 
+  snprintf(buf, sizeof(buf), "\x1b[%d;%dH", (T.cursy - T.rowoff) + 1,
                                             (T.renderx - T.coloff) + 1);
 
   abufAppend(&abuf, buf, strlen(buf));
@@ -165,16 +165,16 @@ void clearScreen(void) {
 
 /**
  * @brief Get the Window Size object
- * 
- * @param cols 
+ *
+ * @param cols
  * @return int return code
- * 
+ *
  * @see http://www.delorie.com/djgpp/doc/libc/libc_495.html
  * @see https://vt100.net/docs/vt100-ug/chapter3.html#CUD
  */
 int getWindowSize(int *rows, int *cols) {
   struct winsize ws;
-  
+
   if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) == -1 || ws.ws_col == 0) {
     // fallback if `ioctl` fails
     if (write(STDOUT_FILENO, "\x1b[999C\x1b[999B" /* cursor fwd, cursor dwn */, 12) != 12) {
@@ -199,9 +199,9 @@ void scroll(void) {
     T.renderx = cursxConv(&T.row[T.cursy], T.cursx);
   }
   // if cursor above visible viewport, scroll to cursor
-  if (T.cursy < T.rowoff) { 
+  if (T.cursy < T.rowoff) {
     T.rowoff = T.cursy;
-  } 
+  }
   // correct if cursor below visible viewport
   if (T.cursy >= T.rowoff + T.screenrows) {
     T.rowoff = T.cursy - T.screenrows + 1;
@@ -215,7 +215,7 @@ void scroll(void) {
   if (T.renderx >= T.coloff + T.screencols) {
     T.coloff = T.renderx - T.screencols + 1;
   }
-} 
+}
 
 /***********
  * Viewport Buffers
@@ -223,9 +223,9 @@ void scroll(void) {
 
 /**
  * @brief Allocate space for a new row, copy a given string at the end of the row array
- * 
- * @param s 
- * @param len 
+ *
+ * @param s
+ * @param len
  */
 void appendRow(char *s, size_t len) {
   // num bytes `trow` takes * the num of desired rows
@@ -236,7 +236,7 @@ void appendRow(char *s, size_t len) {
 
   T.row[at].size = len;
   T.row[at].chars = malloc(len + 1);
-  
+
   memcpy(T.row[at].chars, s, len);
   T.row[at].chars[len] = '\0';
 
@@ -250,8 +250,8 @@ void appendRow(char *s, size_t len) {
 
 /**
  * @brief USes chars str of a `trow` to fill the contents of the render string buffer
- * 
- * @param row 
+ *
+ * @param row
  */
 void updateRow(trow *row) {
   int tabs = 0;

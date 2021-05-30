@@ -42,8 +42,8 @@ struct ttyConfig T;
 
 /**
  * @brief Enables raw mode and disables Canonical mode, allowing parsing of input byte-by-byte
- * 
- * Disables Canonical mode by modifying the current terminal attributes, 
+ *
+ * Disables Canonical mode by modifying the current terminal attributes,
  * retrieving the local mode bitmask and disabling `ECHO` bitflag, canonical mode,
  * SIGINT, and SIGTSTP, etc
  */
@@ -53,9 +53,9 @@ void enableRawMode(void) {
   }
 
   atexit(disableRawMode);
-  
+
   struct termios raw = T.og_tty;
-  
+
   // conventions, C-m & datalink ctrl flow (C-s, C-q)
   raw.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
   // disable carriage return on output (also -n)
@@ -67,7 +67,7 @@ void enableRawMode(void) {
 
   raw.c_cc[VMIN] = 0;
   raw.c_cc[VTIME] = 1;
-  
+
   if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw) == -1) {
     panic("tcsetattr");
   }
@@ -103,26 +103,26 @@ void initEditor(void) {
 
   if (getWindowSize(&T.screenrows, &T.screencols) == -1) {
     panic("getWindowSize");
-  } 
+  }
 
   // row for status bar
   // prevent `drawRows` from rendering a line at the bottom row
-  T.screenrows -= 2; 
+  T.screenrows -= 2;
 }
 
 /***********
- * File I/O 
+ * File I/O
  ***********/
 
 /**
  * @brief Open a file in the editor
- * 
- * @param filename 
+ *
+ * @param filename
  */
 void editorOpen(char *filename) {
   free(T.filename);
   T.filename = strdup(filename);
-  
+
   FILE *fp = fopen(filename, "r");
   if (!fp) panic("fopen");
 
@@ -139,7 +139,7 @@ void editorOpen(char *filename) {
     }
 
     appendRow(line, linelen);
-  } 
+  }
 
   free(line);
   fclose(fp);

@@ -7,10 +7,10 @@
 
 /**
  * @brief Takes a string buffer and appends a next string, reallocating the required memory
- * 
- * @param abuf 
- * @param s 
- * @param len 
+ *
+ * @param abuf
+ * @param s
+ * @param len
  */
 void abufAppend(struct appendBuf *abuf, const char *s, int len) {
   // get mem sizeof current str + sizeof append str
@@ -24,8 +24,8 @@ void abufAppend(struct appendBuf *abuf, const char *s, int len) {
 
 /**
  * @brief Deallocate the dynamic memory used by an `appendBuf`
- * 
- * @param abuf 
+ *
+ * @param abuf
  */
 void abufFree(struct appendBuf *abuf) {
   free(abuf->buf);

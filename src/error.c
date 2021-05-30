@@ -6,7 +6,7 @@
 
 /**
  * @brief Exit the program with return code 1
- * 
+ *
  * @param s message
  */
 void panic(const char *s) {
