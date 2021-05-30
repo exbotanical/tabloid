@@ -3,6 +3,7 @@
 #include "common.h"
 #include "error.h"
 #include "buffer.h"
+#include "render.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -14,7 +15,6 @@
 #include <sys/types.h>
 #include <string.h>
 #include <time.h>
-#include <stdarg.h>
 
 // `strdup` is not yet a part of Standard C
 // it is standardized in POSIX.1-2008, and may or may not be provided by <string.h>
@@ -43,52 +43,6 @@ char *strdup(const char *s) {
 
 /* Local Constants */
 #define TAB_SIZE 8
-
-/***********
- * State
- ***********/
-
-/* Tty State */
-
-/**
- * @brief Stateful representation of a row buffer
- * 
- * @todo Allow custom tab-size
- */
-typedef struct trow {
-  int size; /**< Store row size */
-  int rsize; /**< Store tab size */
-  char *chars; /**< Store row text */
-  char *render; /**< Store tab contents */
-} trow;
-
-struct ttyConfig {
-  struct termios og_tty; /**< Pointer ref for storing original, original termios configurations */
-  int screenrows;
-  int screencols;
-  int cursx, cursy; /**< Cursor indices - chars on Cartesian plane */
-  int renderx; /**< Index of render buffer */
-  int rowoff; /**< Row offset - tracks which row of the file the user is scrolled to */
-  int coloff; /**< Column offset - tracks horizontal cursor position */
-  int numrows;
-  trow *row;
-  char *filename; /**< The current filename, if extant */
-  char statusmsg[80];
-  time_t statusmsg_time;
-};
-
-/* Mappings */
-enum keybindings {
-  ARR_U = 1000,
-  ARR_D,
-  ARR_R,
-  ARR_L,
-  DEL,
-  HOME,
-  END,
-  PG_U,
-  PG_D
-};
 
 struct ttyConfig T;
 
@@ -216,154 +170,6 @@ void clearScreen(void) {
 
   write(STDOUT_FILENO, abuf.buf, abuf.len);
   abufFree(&abuf);
-}
-
-/**
- * @brief Draws vim-like tilde-prepended rows on the screen
- * @todo set to customizable with lineno
- */
-void drawRows(struct appendBuf *abuf) {
-  int line;
-
-  for (line = 0; line < T.screenrows; line++) {
-    int filerow = line + T.rowoff;
-    // is this part of the text buffer, or a row that exists after its end?
-    if (filerow >= T.numrows) {
-      // no file was opened; blank editor 
-      if (T.numrows == 0 && line == T.screenrows / 3) {
-        // write branding
-        char branding[80];
-
-        int brandingLen = snprintf(
-          branding, 
-          sizeof(branding),
-          "%s -- v%s", APPNAME, APPVERSION
-        );
-
-        // truncate?
-        if (brandingLen > T.screencols) brandingLen = T.screencols;
-
-        // padding
-        int padding = (T.screencols - brandingLen) / 2;
-        if (padding) {
-          abufAppend(abuf, "~", 1);
-          padding--;
-        }
-
-        while (padding--) abufAppend(abuf, " ", 1);
-        abufAppend(abuf, branding, brandingLen);
-      } else {
-        abufAppend(abuf, "~", 1);
-      }
-    } else {
-      // subtract num of chars to left of the col offset from the row len
-      int len = T.row[filerow].rsize - T.coloff;
-      
-      if (len < 0) len = 0; // correct horizontal pos
-      if (len > T.screencols) len = T.screencols;
-
-      abufAppend(abuf, &T.row[filerow].render[T.coloff], len);
-    }
-
-    // clear line
-    abufAppend(abuf, "\x1b[K", 3);
-
-    // mitigate missing line prefix on last line
-    abufAppend(abuf, "\r\n", 2);
-  }
-}
-
-/**
- * @brief Render the status bar
- * @param abuf 
- * 
- * @see https://vt100.net/docs/vt100-ug/chapter3.html#SGR
- */
-void drawStatusBar(struct appendBuf *abuf) {
-  // switch to inverted hues
-  abufAppend(abuf, "\x1b[7m", 4);
-
-  char status[80], rstatus[80];
-
-  int len = snprintf(
-    status, 
-    sizeof(status), 
-    "%.20s - %d lines",
-    T.filename ? T.filename : "[No Name]",
-    T.numrows
-  );
-
-  // lineno
-  int rlen = snprintf(
-    rstatus,
-    sizeof(rstatus),
-    "%d%d",
-    // current line
-    T.cursy + 1, 
-    T.numrows
-  );
-
-  // truncate
-  if (len > T.screencols) len = T.screencols;
-  abufAppend(abuf, status, len);
-
-  while (len < T.screencols) {
-    // print spaces until we hit the second status str
-    if (T.screencols - len == rlen) {
-      abufAppend(abuf, rstatus, rlen);
-      break;
-    } else {
-      abufAppend(abuf, " ", 1);
-      len++;
-    }
-  }
-
-  // clear formatting
-  abufAppend(abuf, "\x1b[m", 3);
-
-  // print NL after first status bar
-  abufAppend(abuf, "\r\n", 2);
-}
-
-void drawMessageBar(struct appendBuf *abuf) {
-  // clear message bar
-  abufAppend(abuf, "\x1b[K", 3);
-  
-  int msglen = strlen(T.statusmsg);
-
-  // ensure it fits
-  if (msglen > T.screencols) msglen = T.screencols;
-
-  // only display message if it is less than 5s old
-  if (msglen && time(NULL) - T.statusmsg_time < 5) {
-    abufAppend(abuf, T.statusmsg, msglen);
-  }
-}
-
-/**
- * @brief Set the Status Message object
- * 
- * @param fmt 
- * @param ... variadic
- */
-void setStatusMessage(const char *fmt, ...) {
-  va_list ap;
-  va_start(ap, fmt);
-
-  // va_arg(&fmt);
-  
-  // this calls `va_arg` for us
-  vsnprintf(
-    T.statusmsg, 
-    sizeof(T.statusmsg), 
-    fmt, 
-    ap
-  );
-
-  va_end(ap);
-
-  // passing `NULL` sets UNIX timestamp for now
-  T.statusmsg_time = time(NULL);
 }
 
 /***********

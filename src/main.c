@@ -1,5 +1,6 @@
 #include "error.h"
 #include "editor.h"
+#include "render.h"
 
 #include <stdio.h>
 
