@@ -1,3 +1,5 @@
+#pragma GCC dependency "buffer.h"
+
 #include "viewport.h"
 
 #include "common.h"
@@ -10,7 +12,8 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
-#define ABUF_INIT {NULL, 0} /**< Initialize an `appendbuf` */
+
+#define E_BUFFER_INIT {NULL, 0} /**< Initialize an `extensible_buf` */
 
 /***********
  * Cursor Ctrl
@@ -21,35 +24,35 @@
  * @param key
  * @todo allow custom mappings
  */
-void moveCursor(int key) {
-  trow *row = (T.cursy >= T.numrows) ? NULL : &T.row[T.cursy];
+void curs_mv(int key) {
+  trow *row = (T.curs_y >= T.numrows) ? NULL : &T.row[T.curs_y];
 
   switch (key) {
     case ARR_L:
-      if (T.cursx != 0) {
-        T.cursx--;
+      if (T.curs_x != 0) {
+        T.curs_x--;
         // if not first line, we allow user to go <- at line begin,
         // snapping to the previous line
-      } else if (T.cursy > 0) {
-        T.cursy--;
-        T.cursx = T.row[T.cursy].size;
+      } else if (T.curs_y > 0) {
+        T.curs_y--;
+        T.curs_x = T.row[T.curs_y].size;
       }
       break;
     case ARR_D:
       // allow cursor advance past bottom of viewport (but not past file)
-      if (T.cursy < T.numrows) T.cursy++;
+      if (T.curs_y < T.numrows) T.curs_y++;
       break;
     case ARR_U:
-      if (T.cursy != 0) T.cursy--;
+      if (T.curs_y != 0) T.curs_y--;
       break;
     case ARR_R:
-      if (row &&T.cursx < row->size) {
-        T.cursx++;
+      if (row &&T.curs_x < row->size) {
+        T.curs_x++;
 
         // if cursor not at EOF, -> snaps to next line
-      } else if (row && T.cursx == row->size) {
-        T.cursy++;
-        T.cursx = 0;
+      } else if (row && T.curs_x == row->size) {
+        T.curs_y++;
+        T.curs_x = 0;
       }
       break;
   }
@@ -58,12 +61,12 @@ void moveCursor(int key) {
   // prevent cursor from falling out of the viewport if moving vertically off of a longer row
   // and onto a shorter one
 
-  // we have to set the row again, then cursx to the end of the line if it is to the right of the end
+  // we have to set the row again, then curs_x to the end of the line if it is to the right of the end
   // of said line, where NULL is a line of len 0
-  row = (T.cursy >= T.numrows) ? NULL : &T.row[T.cursy];
+  row = (T.curs_y >= T.numrows) ? NULL : &T.row[T.curs_y];
 
   int rowlen = row ? row->size : 0;
-  if (T.cursx > rowlen) T.cursx = rowlen;
+  if (T.curs_x > rowlen) T.curs_x = rowlen;
 }
 
 /**
@@ -76,7 +79,7 @@ void moveCursor(int key) {
  * @see https://vt100.net/docs/vt100-ug/chapter3.html#DSR
  * @see https://vt100.net/docs/vt100-ug/chapter3.html#CPR
  */
-int getCursorPos(int *rows, int *cols) {
+int get_curs_pos(int *rows, int *cols) {
   char buf[32];
   unsigned int i = 0;
 
@@ -100,11 +103,11 @@ int getCursorPos(int *rows, int *cols) {
 }
 
 /**
- * @brief Convert a chars index (`cursx`) into a render buffer index (`renderx`)
+ * @brief Convert a chars index (`curs_x`) into a render buffer index (`render_x`)
  *
  * @return int
  */
-int cursxConv (trow *row, int cx) {
+int curs_x_conv (trow *row, int cx) {
   int rx = 0;
   int j;
 
@@ -135,31 +138,31 @@ int cursxConv (trow *row, int cx) {
  * @see https://vt100.net/docs/vt100-ug/chapter3.html#CUP
  * @todo use ncurses for better term support
  */
-void clearScreen(void) {
+void clear_screen(void) {
   scroll();
 
-  struct appendBuf abuf = ABUF_INIT;
+  struct extensible_buf e_buffer = E_BUFFER_INIT;
 
   // mitigate cursor flash on repaint - hide / show
-  abufAppend(&abuf, "\x1b[?25l", 6);
+  buf_extend(&e_buffer, "\x1b[?25l", 6);
   // TODO use terminfo db
-  abufAppend(&abuf, "\x1b[H", 3);
+  buf_extend(&e_buffer, "\x1b[H", 3);
 
-  drawRows(&abuf);
-  drawStatusBar(&abuf);
-  drawMessageBar(&abuf);
+  draw_rows(&e_buffer);
+  draw_stats_bar(&e_buffer);
+  draw_msg_bar(&e_buffer);
 
   // cursor
   char buf[32];
-  snprintf(buf, sizeof(buf), "\x1b[%d;%dH", (T.cursy - T.rowoff) + 1,
-                                            (T.renderx - T.coloff) + 1);
+  snprintf(buf, sizeof(buf), "\x1b[%d;%dH", (T.curs_y - T.rowoff) + 1,
+                                            (T.render_x - T.coloff) + 1);
 
-  abufAppend(&abuf, buf, strlen(buf));
+  buf_extend(&e_buffer, buf, strlen(buf));
 
-  abufAppend(&abuf, "\x1b[?25h", 6);
+  buf_extend(&e_buffer, "\x1b[?25h", 6);
 
-  write(STDOUT_FILENO, abuf.buf, abuf.len);
-  abufFree(&abuf);
+  write(STDOUT_FILENO, e_buffer.buf, e_buffer.len);
+  free_e_buf(&e_buffer);
 }
 
 /**
@@ -171,7 +174,7 @@ void clearScreen(void) {
  * @see http://www.delorie.com/djgpp/doc/libc/libc_495.html
  * @see https://vt100.net/docs/vt100-ug/chapter3.html#CUD
  */
-int getWindowSize(int *rows, int *cols) {
+int get_win_sz(int *rows, int *cols) {
   struct winsize ws;
 
   if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) == -1 || ws.ws_col == 0) {
@@ -180,7 +183,7 @@ int getWindowSize(int *rows, int *cols) {
       return -1;
     }
 
-    return getCursorPos(rows, cols);
+    return get_curs_pos(rows, cols);
   } else {
     *cols = ws.ws_col;
     *rows = ws.ws_row;
@@ -192,26 +195,26 @@ int getWindowSize(int *rows, int *cols) {
  * @brief Control the cursor position in the Cartesian planar viewport
  */
 void scroll(void) {
-  T.renderx = 0;
+  T.render_x = 0;
 
-  if (T.cursy < T.numrows) {
-    T.renderx = cursxConv(&T.row[T.cursy], T.cursx);
+  if (T.curs_y < T.numrows) {
+    T.render_x = curs_x_conv(&T.row[T.curs_y], T.curs_x);
   }
   // if cursor above visible viewport, scroll to cursor
-  if (T.cursy < T.rowoff) {
-    T.rowoff = T.cursy;
+  if (T.curs_y < T.rowoff) {
+    T.rowoff = T.curs_y;
   }
   // correct if cursor below visible viewport
-  if (T.cursy >= T.rowoff + T.screenrows) {
-    T.rowoff = T.cursy - T.screenrows + 1;
+  if (T.curs_y >= T.rowoff + T.screenrows) {
+    T.rowoff = T.curs_y - T.screenrows + 1;
   }
   // horizontal, inverse of above
-  // here, we track `renderx` to account for both rendered chars and rendered cursor pos
-  if (T.renderx < T.coloff) {
-    T.coloff = T.renderx;
+  // here, we track `render_x` to account for both rendered chars and rendered cursor pos
+  if (T.render_x < T.coloff) {
+    T.coloff = T.render_x;
   }
 
-  if (T.renderx >= T.coloff + T.screencols) {
-    T.coloff = T.renderx - T.screencols + 1;
+  if (T.render_x >= T.coloff + T.screencols) {
+    T.coloff = T.render_x - T.screencols + 1;
   }
 }

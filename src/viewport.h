@@ -1,11 +1,16 @@
+#ifndef VIEWPORT_H
+#define VIEWPORT_H
+
 typedef struct trow trow;
 
-void clearScreen(void);
+void clear_screen(void);
 
-int cursxConv(trow *row, int iCursx);
+int curs_x_conv(trow *row, int i_curs_x);
 
-int getWindowSize(int *rows, int *cols);
+int get_win_sz(int *rows, int *cols);
 
-void moveCursor(int key);
+void curs_mv(int key);
 
 void scroll(void);
+
+#endif

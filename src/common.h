@@ -1,10 +1,13 @@
+#ifndef COMMON_H
+#define COMMON_H
+
 #include <termios.h>
 #include <time.h>
 
 #define TAB_SIZE 8
 #define CTRL_KEY(k) ((k) & 0x1f) /**< Mandate the ctrl binding that exits the program by setting upper 3 bits to 0 */
 
-struct appendBuf {
+struct extensible_buf {
   char *buf;
   int len;
 };
@@ -18,7 +21,7 @@ static const char ESCAPE = '\x1b';
 static const int CONFIRM_QUIT_X = 3;
 
 /* Mappings */
-enum keybindings {
+enum key_bindings {
 	BACKSPACE = 127,
   ARR_U = 1000,
   ARR_D,
@@ -43,12 +46,12 @@ typedef struct trow {
   char *render; /**< Store tab contents */
 } trow;
 
-struct ttyConfig {
+struct tty_conf {
   struct termios og_tty; /**< Pointer ref for storing original termios configurations */
   int screenrows;
   int screencols;
-  int cursx, cursy; /**< Cursor indices - chars on Cartesian plane */
-  int renderx; /**< Index of render buffer */
+  int curs_x, curs_y; /**< Cursor indices - chars on Cartesian plane */
+  int render_x; /**< Index of render buffer */
   int rowoff; /**< Row offset - tracks which row of the file the user is scrolled to */
   int coloff; /**< Column offset - tracks horizontal cursor position */
   int numrows;
@@ -59,4 +62,6 @@ struct ttyConfig {
 	int dirty; /**< Track file state */
 };
 
-extern struct ttyConfig T;
+extern struct tty_conf T;
+
+#endif

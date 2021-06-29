@@ -1,5 +1,10 @@
-void openFile(char *filename);
+#ifndef IO_H
+#define IO_H
 
-char *promptUser(char *prompt);
+void f_open(char *filename);
 
-void saveToFile(void);
+char *prompt(char *prompt);
+
+void f_write(void);
+
+#endif

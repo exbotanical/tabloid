@@ -1,9 +1,14 @@
-struct appendBuf;
+#ifndef RENDER_H
+#define RENDER_H
 
-void drawMessageBar(struct appendBuf *abuf);
+struct extensible_buf;
 
-void drawRows(struct appendBuf *abuf);
+void draw_msg_bar(struct extensible_buf *e_buffer);
 
-void drawStatusBar(struct appendBuf *abuf);
+void draw_rows(struct extensible_buf *e_buffer);
 
-void setStatusMessage(const char *fmt, ...);
+void draw_stats_bar(struct extensible_buf *e_buffer);
+
+void set_stats_msg(const char *fmt, ...);
+
+#endif

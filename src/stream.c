@@ -17,7 +17,7 @@
  * @param s
  * @param len
  */
-void insertRow(int at, char *s, size_t len) {
+void insert_row(int at, char *s, size_t len) {
 	if (at < 0 || at > T.numrows) return;
   // num bytes `trow` takes * the num of desired rows
   T.row = realloc(T.row, sizeof(trow) * (T.numrows + 1));
@@ -33,7 +33,7 @@ void insertRow(int at, char *s, size_t len) {
   // init tabs
   T.row[at].rsize = 0;
   T.row[at].render = NULL;
-  updateRow(&T.row[at]);
+  update_row(&T.row[at]);
 
   T.numrows++;
 	T.dirty++;
@@ -44,7 +44,7 @@ void insertRow(int at, char *s, size_t len) {
  *
  * @param row
  */
-void updateRow(trow *row) {
+void update_row(trow *row) {
   int tabs = 0;
   int j;
 
@@ -85,7 +85,7 @@ void updateRow(trow *row) {
  * @param at
  * @param c
  */
-void insertCharAtRow(trow *row, int at, int c) {
+void insert_char_at_row(trow *row, int at, int c) {
 	// validate `at` (the idx we are inserting into)
 	// if 1 char past end of str, char inserted at end
 	if (at < 0 || at > row->size) at = row->size;
@@ -101,8 +101,8 @@ void insertCharAtRow(trow *row, int at, int c) {
 	row->size++;
 
 	row->chars[at] = c;
-	// ensure `renderx` `rsize` are updated
-	updateRow(row);
+	// ensure `render_x` `rsize` are updated
+	update_row(row);
 
 	T.dirty++;
 }
@@ -113,13 +113,13 @@ void insertCharAtRow(trow *row, int at, int c) {
  * @param row
  * @param at
  */
-void delCharAtRow(trow *row, int at) {
+void rm_char_at_row(trow *row, int at) {
 	if (at < 0 || at >= row->size) return;
 
 	// overwrite the deleted char w/ the chars that succeed it
 	memmove(&row->chars[at], &row->chars[at + 1], row->size - at);
 	row->size--;
-	updateRow(row);
+	update_row(row);
 	T.dirty++;
 }
 
@@ -128,7 +128,7 @@ void delCharAtRow(trow *row, int at) {
  *
  * @param row
  */
-void freeRow(trow *row) {
+void free_row(trow *row) {
 	free(row->render);
 	free(row->chars);
 }
@@ -138,10 +138,10 @@ void freeRow(trow *row) {
  *
  * @param at
  */
-void delRow(int at) {
+void rm_row(int at) {
 	if (at <0 || at > T.numrows) return;
 
-	freeRow(&T.row[at]);
+	free_row(&T.row[at]);
 	memmove(
 		&T.row[at],
 		&T.row[at + 1],
@@ -159,13 +159,13 @@ void delRow(int at) {
  * @param s
  * @param len
  */
-void appendStrToRow(trow *row, char *s, size_t len) {
+void ap_str_to_row(trow *row, char *s, size_t len) {
 	row->chars = realloc(row->chars, row->size + len + 1);
 
 	memcpy(&row->chars[row->size], s, len);
 	row->size += len;
 	row->chars[row->size] = '\0';
-	updateRow(row);
+	update_row(row);
 	T.dirty++;
 }
 
@@ -173,29 +173,29 @@ void appendStrToRow(trow *row, char *s, size_t len) {
  * @brief Insert a newline, handles ENTER key op
  *
  */
-void insertNewline(void) {
+void insert_nl(void) {
 	// begin line, just insert a new row before curr line
-	if (T.cursx == 0) {
-		insertRow(T.cursy, "", 0);
+	if (T.curs_x == 0) {
+		insert_row(T.curs_y, "", 0);
 	} else {
 		// prep to split current line into two rows
-		trow *row = &T.row[T.cursy];
+		trow *row = &T.row[T.curs_y];
 
 		// contents of curr row to right of cursor
-		insertRow(T.cursy + 1, &row->chars[T.cursx], row->size - T.cursx);
+		insert_row(T.curs_y + 1, &row->chars[T.curs_x], row->size - T.curs_x);
 
-		// reset pointer (`insertRow` calls `realloc` and may move memory, invalidating it)
-		row = &T.row[T.cursy];
+		// reset pointer (`insert_row` calls `realloc` and may move memory, invalidating it)
+		row = &T.row[T.curs_y];
 
 		// truncate curr row to size and pos of the cursor
-		row->size = T.cursx;
+		row->size = T.curs_x;
 		row->chars[row->size] = '\0';
-		updateRow(row);
+		update_row(row);
 	}
 
 	// move to new row begin
-	T.cursy++;
-	T.cursx = 0;
+	T.curs_y++;
+	T.curs_x = 0;
 }
 
 /******************************
@@ -209,37 +209,37 @@ void insertNewline(void) {
  *
  * @param c
  */
-void insertChar(int c) {
+void insert_char(int c) {
 	// if cursor is line after EOD, append new row prior to inserting
-	if (T.cursy == T.numrows) {
-		insertRow(T.numrows, "", 0);
+	if (T.curs_y == T.numrows) {
+		insert_row(T.numrows, "", 0);
 	}
 
-	insertCharAtRow(&T.row[T.cursy], T.cursx, c);
-	T.cursx++;
+	insert_char_at_row(&T.row[T.curs_y], T.curs_x, c);
+	T.curs_x++;
 }
 
 /**
  * @brief Wrapper, deletes character from a row
  *
  */
-void delChar(void) {
+void rm_char(void) {
 	// if we're past EOF, return
-	if (T.cursy == T.numrows) return;
+	if (T.curs_y == T.numrows) return;
 	// if we're at line begin, return
-	if (T.cursx == 0 && T.cursy == 0) return;
+	if (T.curs_x == 0 && T.curs_y == 0) return;
 
 	// fetch row of cursor pos
-	trow *row = &T.row[T.cursy];
+	trow *row = &T.row[T.curs_y];
 
-	if (T.cursx > 0) {
-		delCharAtRow(row, T.cursx - 1);
-		T.cursx--;
+	if (T.curs_x > 0) {
+		rm_char_at_row(row, T.curs_x - 1);
+		T.curs_x--;
 	} else {
 		// set cursor to end of contents on prev row
-		T.cursx = T.row[T.cursy - 1].size;
-		appendStrToRow(&T.row[T.cursy - 1], row->chars, row->size);
-		delRow(T.cursy);
-		T.cursy--;
+		T.curs_x = T.row[T.curs_y - 1].size;
+		ap_str_to_row(&T.row[T.curs_y - 1], row->chars, row->size);
+		rm_row(T.curs_y);
+		T.curs_y--;
 	}
 }

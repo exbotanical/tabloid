@@ -47,7 +47,7 @@ char *strdup(const char *s) {
  *
  * @param filename
  */
-void openFile(char *filename) {
+void f_open(char *filename) {
   free(T.filename);
   T.filename = strdup(filename);
 
@@ -66,13 +66,13 @@ void openFile(char *filename) {
       linelen--;
     }
 
-    insertRow(T.numrows, line, linelen);
+    insert_row(T.numrows, line, linelen);
   }
 
   free(line);
   fclose(fp);
 
-	// because we invoke `insertRow`, status will be set to 'dirty' by default
+	// because we invoke `insert_row`, status will be set to 'dirty' by default
 	// mitigate w/ reset
 	T.dirty = 0;
 }
@@ -89,7 +89,7 @@ void openFile(char *filename) {
  * @param buflen
  * @return char*
  */
-char *strConvRows(int *buflen) {
+char *buf_out(int *buflen) {
 	int totlen = 0;
 	int i;
 
@@ -120,18 +120,18 @@ char *strConvRows(int *buflen) {
  *
  * @todo Write to a swapfile first
  */
-void saveToFile(void) {
+void f_write(void) {
 	if (T.filename == NULL) {
-		T.filename = promptUser("Save as %s (ESC to cancel)");
+		T.filename = prompt("Save as %s (ESC to cancel)");
 
 		if (T.filename == NULL) {
-			setStatusMessage("Save cancelled");
+			set_stats_msg("Save cancelled");
 			return;
 		}
 	}
 
 	int len;
-	char *buf = strConvRows(&len);
+	char *buf = buf_out(&len);
 
 	int fd = open(T.filename, O_RDWR | O_CREAT, 0644);
 
@@ -145,7 +145,7 @@ void saveToFile(void) {
 					free(buf);
 
 					T.dirty = 0; // reset dirty state
-					setStatusMessage("%d bytes written to disk", len);
+					set_stats_msg("%d bytes written to disk", len);
 					return;
 			}
 		}
@@ -153,7 +153,7 @@ void saveToFile(void) {
 	}
 
 	free(buf);
-	setStatusMessage("Unable to save file; I/O error: %s", strerror(errno));
+	set_stats_msg("Unable to save file; I/O error: %s", strerror(errno));
 }
 
 /**
@@ -162,7 +162,7 @@ void saveToFile(void) {
  * @param prompt
  * @return char*
  */
-char *promptUser(char *prompt) {
+char *prompt(char *prompt) {
 	size_t bufsize = 128;
 
 	// store user input
@@ -172,21 +172,21 @@ char *promptUser(char *prompt) {
 	buf[0] = '\0';
 
 	while (1) {
-		setStatusMessage(prompt, buf);
-		clearScreen();
+		set_stats_msg(prompt, buf);
+		clear_screen();
 
-		int c = readKey();
+		int c = readkey();
 
 	// allow backspace in prompt
 		if (c == DEL || c == CTRL_KEY('h') || c == BACKSPACE) {
 			if (buflen != 0) buf[--buflen] = '\0';
 		}	else if (c == '\x1b') { // user hits esc to cancel
-			setStatusMessage("");
+			set_stats_msg("");
 			free(buf);
 			return NULL;
 		} else if (c == '\r') {
 			if (buflen != 0) {
-				setStatusMessage("");
+				set_stats_msg("");
 				return buf;
 			}
 		} else if (!iscntrl(c) && c < 128) {

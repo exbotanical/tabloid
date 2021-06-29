@@ -1,15 +1,20 @@
+#ifndef STREAM_H
+#define STREAM_H
+
 #include <sys/types.h>
 
 typedef struct trow trow;
 
-void insertRow(int at, char *s, size_t len);
+void insert_row(int at, char *s, size_t len);
 
-void delChar(void);
+void rm_char(void);
 
-void updateRow(trow *row);
+void update_row(trow *row);
 
-void insertCharAtRow(trow *row, int at, int c);
+void insert_char_at_row(trow *row, int at, int c);
 
-void insertChar(int c);
+void insert_char(int c);
 
-void insertNewline(void);
+void insert_nl(void);
+
+#endif

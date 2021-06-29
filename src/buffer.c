@@ -6,27 +6,28 @@
 #include <string.h>
 
 /**
- * @brief Takes a string buffer and appends a next string, reallocating the required memory
+ * @brief Takes a string buffer and appends a next string, reallocating the required memory (caller must invoke `free`)
  *
- * @param abuf
- * @param s
- * @param len
+ * @param e_buffer the buffer to which `s` will be appended
+ * @param s char pointer to be appended to the buffer
+ * @param len the length of the buffer
  */
-void abufAppend(struct appendBuf *abuf, const char *s, int len) {
+void buf_extend(struct extensible_buf *e_buffer, const char *s, int len) {
   // get mem sizeof current str + sizeof append str
-  char *next = realloc(abuf->buf, abuf->len + len);
+  char *next = realloc(e_buffer->buf, e_buffer->len + len);
 
   if (next == NULL) return;
-  memcpy(&next[abuf->len], s, len);
-  abuf->buf = next;
-  abuf->len += len;
+
+  memcpy(&next[e_buffer->len], s, len);
+  e_buffer->buf = next;
+  e_buffer->len += len;
 }
 
 /**
- * @brief Deallocate the dynamic memory used by an `appendBuf`
+ * @brief Deallocate the dynamic memory used by an `extensible_buf`
  *
- * @param abuf
+ * @param e_buffer the buffer pointer
  */
-void abufFree(struct appendBuf *abuf) {
-  free(abuf->buf);
+void free_e_buf(struct extensible_buf *e_buffer) {
+  free(e_buffer->buf);
 }

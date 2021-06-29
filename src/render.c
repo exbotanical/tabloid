@@ -1,3 +1,5 @@
+#pragma GCC dependency "buffer.h"
+
 #include "render.h"
 
 #include "common.h"
@@ -13,7 +15,7 @@
  *
  * @todo set to customizable with lineno
  */
-void drawRows(struct appendBuf *abuf) {
+void draw_rows(struct extensible_buf *e_buffer) {
   int line;
 
   for (line = 0; line < T.screenrows; line++) {
@@ -37,14 +39,14 @@ void drawRows(struct appendBuf *abuf) {
         // padding
         int padding = (T.screencols - brandingLen) / 2;
         if (padding) {
-          abufAppend(abuf, "~", 1);
+          buf_extend(e_buffer, "~", 1);
           padding--;
         }
 
-        while (padding--) abufAppend(abuf, " ", 1);
-        abufAppend(abuf, branding, brandingLen);
+        while (padding--) buf_extend(e_buffer, " ", 1);
+        buf_extend(e_buffer, branding, brandingLen);
       } else {
-        abufAppend(abuf, "~", 1);
+        buf_extend(e_buffer, "~", 1);
       }
     } else {
       // subtract num of chars to left of the col offset from the row len
@@ -53,14 +55,14 @@ void drawRows(struct appendBuf *abuf) {
       if (len < 0) len = 0; // correct horizontal pos
       if (len > T.screencols) len = T.screencols;
 
-      abufAppend(abuf, &T.row[filerow].render[T.coloff], len);
+      buf_extend(e_buffer, &T.row[filerow].render[T.coloff], len);
     }
 
     // clear line
-    abufAppend(abuf, "\x1b[K", 3);
+    buf_extend(e_buffer, "\x1b[K", 3);
 
     // mitigate missing line prefix on last line
-    abufAppend(abuf, "\r\n", 2);
+    buf_extend(e_buffer, "\r\n", 2);
   }
 }
 
@@ -69,11 +71,11 @@ void drawRows(struct appendBuf *abuf) {
  *
  * Times out after user input or five seconds
  *
- * @param abuf
+ * @param e_buffer
  */
-void drawMessageBar(struct appendBuf *abuf) {
+void draw_msg_bar(struct extensible_buf *e_buffer) {
   // clear message bar
-  abufAppend(abuf, "\x1b[K", 3);
+  buf_extend(e_buffer, "\x1b[K", 3);
 
   int msglen = strlen(T.statusmsg);
 
@@ -82,19 +84,19 @@ void drawMessageBar(struct appendBuf *abuf) {
 
   // only display message if it is less than 5s old
   if (msglen && time(NULL) - T.statusmsg_time < 5) {
-    abufAppend(abuf, T.statusmsg, msglen);
+    buf_extend(e_buffer, T.statusmsg, msglen);
   }
 }
 
 /**
  * @brief Render the status bar
- * @param abuf
+ * @param e_buffer
  *
  * @see https://vt100.net/docs/vt100-ug/chapter3.html#SGR
  */
-void drawStatusBar(struct appendBuf *abuf) {
+void draw_stats_bar(struct extensible_buf *e_buffer) {
   // switch to inverted hues
-  abufAppend(abuf, "\x1b[7m", 4);
+  buf_extend(e_buffer, "\x1b[7m", 4);
 
   char status[80], rstatus[80];
 
@@ -113,30 +115,30 @@ void drawStatusBar(struct appendBuf *abuf) {
     sizeof(rstatus),
     "%d/%d",
     // current line
-    T.cursy + 1,
+    T.curs_y + 1,
     T.numrows
   );
 
   // truncate
   if (len > T.screencols) len = T.screencols;
-  abufAppend(abuf, status, len);
+  buf_extend(e_buffer, status, len);
 
   while (len < T.screencols) {
     // print spaces until we hit the second status str
     if (T.screencols - len == rlen) {
-      abufAppend(abuf, rstatus, rlen);
+      buf_extend(e_buffer, rstatus, rlen);
       break;
     } else {
-      abufAppend(abuf, " ", 1);
+      buf_extend(e_buffer, " ", 1);
       len++;
     }
   }
 
   // clear formatting
-  abufAppend(abuf, "\x1b[m", 3);
+  buf_extend(e_buffer, "\x1b[m", 3);
 
   // print NL after first status bar
-  abufAppend(abuf, "\r\n", 2);
+  buf_extend(e_buffer, "\r\n", 2);
 }
 
 /**
@@ -145,7 +147,7 @@ void drawStatusBar(struct appendBuf *abuf) {
  * @param fmt
  * @param ... variadic
  */
-void setStatusMessage(const char *fmt, ...) {
+void set_stats_msg(const char *fmt, ...) {
   va_list ap;
   va_start(ap, fmt);
 

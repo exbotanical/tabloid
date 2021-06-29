@@ -6,21 +6,22 @@
 #include "viewport.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 
 int main(int argc, char *argv[]) {
-  enableRawMode();
-  initEditor();
+  enable_rawmode();
+  init_ed();
 
   if (argc >= 2) {
-    openFile(argv[1]);
+    f_open(argv[1]);
   }
 
-  setStatusMessage("HELP: Ctrl-s -> save | Ctrl-c -> quit");
+  set_stats_msg("HELP: Ctrl-s -> save | Ctrl-c -> quit");
 
   while (1) {
-    clearScreen();
-    procKeypress();
+    clear_screen();
+    proc_keypress();
   }
 
-  return 0;
+  return EXIT_SUCCESS;
 }

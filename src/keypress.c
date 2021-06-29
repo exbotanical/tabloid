@@ -16,7 +16,7 @@
  *
  * @return int returned, keypress enum or escape sequence
  */
-int readKey(void) {
+int readkey(void) {
   int nread;
   char c;
 
@@ -74,18 +74,18 @@ int readKey(void) {
 /**
  * @brief Process keypresses by mapping various ctrl keys et al to tty functionality
  */
-void procKeypress(void) {
-  int c = readKey();
+void proc_keypress(void) {
+  int c = readkey();
 	static int quit_x = CONFIRM_QUIT_X;
 
   switch (c) {
 		case '\r':
-			insertNewline();
+			insert_nl();
 			break;
 
     case CTRL_KEY('c'):
 			if (T.dirty && quit_x > 0) {
-				setStatusMessage(
+				set_stats_msg(
 					"File has unsaved changes - press Ctrl-c %d more times to quit",
 					quit_x
 				);
@@ -101,16 +101,16 @@ void procKeypress(void) {
       break;
 
 		case CTRL_KEY('s'):
-			saveToFile();
+			f_write();
 			break;
 
     case HOME:
-      T.cursx = 0;
+      T.curs_x = 0;
       break;
 
     case END:
-      if (T.cursy < T.numrows) {
-        T.cursx = T.row[T.cursy].size;
+      if (T.curs_y < T.numrows) {
+        T.curs_x = T.row[T.curs_y].size;
       }
       break;
 
@@ -118,8 +118,8 @@ void procKeypress(void) {
 		case CTRL_KEY('h'):
 		case DEL:
 			// del char to right of cursor
-			if (c == DEL) moveCursor(ARR_R);
-			delChar();
+			if (c == DEL) curs_mv(ARR_R);
+			rm_char();
 			break;
 
     // pos cursor at top or bottom of viewport
@@ -127,16 +127,16 @@ void procKeypress(void) {
     case PG_D:
       {
         if (c == PG_U) {
-          T.cursy = T.rowoff;
+          T.curs_y = T.rowoff;
         } else if (c == PG_D) {
-          T.cursy = T.rowoff + T.screenrows - 1;
+          T.curs_y = T.rowoff + T.screenrows - 1;
 
-          if (T.cursy > T.numrows) T.cursy = T.numrows;
+          if (T.curs_y > T.numrows) T.curs_y = T.numrows;
         }
 
         int cycles = T.screenrows;
         while (cycles--) {
-          moveCursor(c == PG_U ? ARR_U : ARR_D);
+          curs_mv(c == PG_U ? ARR_U : ARR_D);
       }
       break;
     }
@@ -145,7 +145,7 @@ void procKeypress(void) {
     case ARR_D:
     case ARR_R:
     case ARR_L:
-      moveCursor(c);
+      curs_mv(c);
       break;
 
 		// ignore unimplemented escape sequences
@@ -155,7 +155,7 @@ void procKeypress(void) {
 			break;
 
 		default:
-			insertChar(c);
+			insert_char(c);
 			break;
   }
 

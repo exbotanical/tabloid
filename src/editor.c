@@ -1,3 +1,5 @@
+#pragma GCC dependency "buffer.h"
+
 #include "editor.h"
 
 #include "common.h"
@@ -8,13 +10,12 @@
 #include "viewport.h"
 
 #include <errno.h>
-// #include <stdio.h>
 #include <stdlib.h>
-// #include <string.h>
 #include <termios.h>
 #include <unistd.h>
 
-struct ttyConfig T;
+
+struct tty_conf T;
 
 /***********
  *
@@ -29,12 +30,12 @@ struct ttyConfig T;
  * retrieving the local mode bitmask and disabling `ECHO` bitflag, canonical mode,
  * SIGINT, and SIGTSTP, etc
  */
-void enableRawMode(void) {
+void enable_rawmode(void) {
   if (tcgetattr(STDIN_FILENO, &T.og_tty) == -1) {
     panic("tcgetattr");
   }
 
-  atexit(disableRawMode);
+  atexit(disable_rawmode);
 
   struct termios raw = T.og_tty;
 
@@ -58,7 +59,7 @@ void enableRawMode(void) {
 /**
  * @brief Disable raw mode by restoring termios attributes to defaults
  */
-void disableRawMode(void) {
+void disable_rawmode(void) {
   if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &T.og_tty) == -1) {
     panic("tcsetattr");
   }
@@ -73,24 +74,24 @@ void disableRawMode(void) {
 /**
  * @brief Initialize the editor viewport
  */
-void initEditor(void) {
-  T.cursx = 0;
-  T.cursy = 0;
+void init_ed(void) {
+  T.curs_x = 0;
+  T.curs_y = 0;
   T.rowoff = 0; // begin at top
   T.coloff = 0;
   T.numrows = 0;
-  T.renderx = 0;
+  T.render_x = 0;
   T.row = NULL;
   T.filename = NULL; // will remain null if no file loaded - what we want
   T.statusmsg[0] = '\0'; // default to no message at all
   T.statusmsg_time = 0;
 	T.dirty = 0;
 
-  if (getWindowSize(&T.screenrows, &T.screencols) == -1) {
-    panic("getWindowSize");
+  if (get_win_sz(&T.screenrows, &T.screencols) == -1) {
+    panic("get_win_sz");
   }
 
   // row for status bar
-  // prevent `drawRows` from rendering a line at the bottom row
+  // prevent `draw_rows` from rendering a line at the bottom row
   T.screenrows -= 2;
 }

@@ -10,7 +10,7 @@ cnano file.md
 cnano
 ```
 
-## Keybindings
+## key_bindings
 
 - up, down, left, right keys
 - PgUp, PgDown (y-axis, jumpto)
