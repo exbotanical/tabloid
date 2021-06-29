@@ -12,9 +12,9 @@ struct extensible_buf {
   int len;
 };
 
-static const char APPNAME[] = "cnano editor";
+static const char APPNAME[] = "tabloid editor";
 
-static const char APPVERSION[] = "0.0.1";
+static const char APPVERSION[] = "0.0.2";
 
 static const char ESCAPE = '\x1b';
 

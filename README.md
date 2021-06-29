@@ -1,13 +1,13 @@
-# cnano
+# tabloid
 
-A light-weight text editor
+Tabloid is a light-weight, fast, and extensible text editor written in C
 
 ```bash
 make install
 
-cnano file.md
+tabloid file.md
 # OR
-cnano
+tabloid
 ```
 
 ## key_bindings

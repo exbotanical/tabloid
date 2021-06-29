@@ -22,6 +22,6 @@ return 2>/dev/null
 set -o errexit
 set -o nounset
 
-DEFAULT_BIN='cnano'
+DEFAULT_BIN='tabloid'
 
 main $*

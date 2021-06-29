@@ -2,7 +2,7 @@ CC=gcc
 CFLAGS=-Wall -Wextra -pedantic -std=c17
 LDFLAGS=
 OBJFILES=$(wildcard src/*.c)
-TARGET=cnano
+TARGET=tabloid
 
 SCRIPTSDIR=scripts
 
