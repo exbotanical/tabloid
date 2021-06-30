@@ -20,7 +20,7 @@ int readkey(void) {
   int nread;
   char c;
 
-  while ((nread = read(STDIN_FILENO, &c, 1)) != 1) {
+  while (NEQ_1(nread = read(STDIN_FILENO, &c, 1))) {
     // ignore EAGAIN as cygwin returns -1 here, because...Windows
     if (nread == -1 && errno != EAGAIN) {
       panic("read");
@@ -31,13 +31,13 @@ int readkey(void) {
   if (c == ESCAPE) {
     char seq[3];
 
-    if (read(STDIN_FILENO, &seq[0], 1) != 1) return ESCAPE;
-    if (read(STDIN_FILENO, &seq[1], 1) != 1) return ESCAPE;
+    if (NEQ_1(read(STDIN_FILENO, &seq[0], 1))) return ESCAPE;
+    if (NEQ_1(read(STDIN_FILENO, &seq[1], 1))) return ESCAPE;
 
     if (seq[0] == '[') {
       if (seq[1] >= 0 && seq[1] <= '9') {
-        if (read(STDIN_FILENO, &seq[2], 1) != 1) return ESCAPE;
-        if (seq[2] == '~') {
+				if (NEQ_1(read(STDIN_FILENO, &seq[2], 1))) return ESCAPE;
+				if (seq[2] == '~') {
           switch(seq[1]) {
             case '1': return HOME;
             case '3': return DEL;

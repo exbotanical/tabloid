@@ -1,9 +1,9 @@
 #ifndef IO_H
 #define IO_H
 
-void f_open(char *filename);
+void f_open(char* filename);
 
-char *prompt(char *prompt);
+char* prompt(const char* prompt);
 
 void f_write(void);
 

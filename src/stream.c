@@ -17,18 +17,18 @@
  * @param s
  * @param len
  */
-void insert_row(int at, char *s, size_t len) {
+void insert_row(int at, const char* const s, size_t len) {
 	if (at < 0 || at > T.numrows) return;
-  // num bytes `trow` takes * the num of desired rows
-  T.row = realloc(T.row, sizeof(trow) * (T.numrows + 1));
+  // num bytes `t_row` takes * the num of desired rows
+  T.row = realloc(T.row, sizeof(t_row) * (T.numrows + 1));
 	// alloc mem at the specified `at` idx for the new row
-	memmove(&T.row[at + 1], &T.row[at], sizeof(trow) * (T.numrows - at));
+	memmove(&T.row[at + 1], &T.row[at], sizeof(t_row) * (T.numrows - at));
 
   T.row[at].size = len;
   T.row[at].chars = malloc(len + 1);
 
   memcpy(T.row[at].chars, s, len);
-  T.row[at].chars[len] = '\0';
+  T.row[at].chars[len] = NULL_TERM;
 
   // init tabs
   T.row[at].rsize = 0;
@@ -40,11 +40,11 @@ void insert_row(int at, char *s, size_t len) {
 }
 
 /**
- * @brief USes chars str of a `trow` to fill the contents of the render string buffer
+ * @brief USes chars str of a `t_row` to fill the contents of the render string buffer
  *
  * @param row
  */
-void update_row(trow *row) {
+void update_row(t_row* row) {
   int tabs = 0;
   int j;
 
@@ -74,7 +74,7 @@ void update_row(trow *row) {
     }
   }
 
-  row->render[idx] = '\0';
+  row->render[idx] = NULL_TERM;
   row->rsize = idx;
 }
 
@@ -85,12 +85,12 @@ void update_row(trow *row) {
  * @param at
  * @param c
  */
-void insert_char_at_row(trow *row, int at, int c) {
+void insert_char_at_row(t_row* row, int at, int c) {
 	// validate `at` (the idx we are inserting into)
 	// if 1 char past end of str, char inserted at end
 	if (at < 0 || at > row->size) at = row->size;
 
-	// alloc mem for the chars of the `trow`, null byte
+	// alloc mem for the chars of the `t_row`, null byte
 	row->chars = realloc(row->chars, row->size + 2);
 	// alloc for new char
 	memmove(
@@ -113,7 +113,7 @@ void insert_char_at_row(trow *row, int at, int c) {
  * @param row
  * @param at
  */
-void rm_char_at_row(trow *row, int at) {
+void rm_char_at_row(t_row* row, int at) {
 	if (at < 0 || at >= row->size) return;
 
 	// overwrite the deleted char w/ the chars that succeed it
@@ -128,7 +128,7 @@ void rm_char_at_row(trow *row, int at) {
  *
  * @param row
  */
-void free_row(trow *row) {
+void free_row(t_row* row) {
 	free(row->render);
 	free(row->chars);
 }
@@ -145,7 +145,7 @@ void rm_row(int at) {
 	memmove(
 		&T.row[at],
 		&T.row[at + 1],
-		sizeof(trow) * (T.numrows - at - 1)
+		sizeof(t_row) * (T.numrows - at - 1)
 	);
 
 	T.numrows--;
@@ -159,12 +159,12 @@ void rm_row(int at) {
  * @param s
  * @param len
  */
-void ap_str_to_row(trow *row, char *s, size_t len) {
+void ap_str_to_row(t_row* row, char* s, size_t len) {
 	row->chars = realloc(row->chars, row->size + len + 1);
 
 	memcpy(&row->chars[row->size], s, len);
 	row->size += len;
-	row->chars[row->size] = '\0';
+	row->chars[row->size] = NULL_TERM;
 	update_row(row);
 	T.dirty++;
 }
@@ -179,7 +179,7 @@ void insert_nl(void) {
 		insert_row(T.curs_y, "", 0);
 	} else {
 		// prep to split current line into two rows
-		trow *row = &T.row[T.curs_y];
+		t_row* row = &T.row[T.curs_y];
 
 		// contents of curr row to right of cursor
 		insert_row(T.curs_y + 1, &row->chars[T.curs_x], row->size - T.curs_x);
@@ -189,7 +189,7 @@ void insert_nl(void) {
 
 		// truncate curr row to size and pos of the cursor
 		row->size = T.curs_x;
-		row->chars[row->size] = '\0';
+		row->chars[row->size] = NULL_TERM;
 		update_row(row);
 	}
 
@@ -230,7 +230,7 @@ void rm_char(void) {
 	if (T.curs_x == 0 && T.curs_y == 0) return;
 
 	// fetch row of cursor pos
-	trow *row = &T.row[T.curs_y];
+	t_row* row = &T.row[T.curs_y];
 
 	if (T.curs_x > 0) {
 		rm_char_at_row(row, T.curs_x - 1);

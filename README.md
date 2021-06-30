@@ -10,8 +10,6 @@ tabloid file.md
 tabloid
 ```
 
-![unedited demo](docs/demo.gif "demo")
-
 ## key_bindings
 
 - up, down, left, right keys

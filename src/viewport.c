@@ -13,7 +13,7 @@
 #include <unistd.h>
 
 
-#define E_BUFFER_INIT {NULL, 0} /**< Initialize an `extensible_buf` */
+#define E_BUFFER_INIT {NULL, 0} /**< Initialize an `extensible_buffer` */
 
 /***********
  * Cursor Ctrl
@@ -25,7 +25,7 @@
  * @todo allow custom mappings
  */
 void curs_mv(int key) {
-  trow *row = (T.curs_y >= T.numrows) ? NULL : &T.row[T.curs_y];
+  t_row* row = (T.curs_y >= T.numrows) ? NULL : &T.row[T.curs_y];
 
   switch (key) {
     case ARR_L:
@@ -79,20 +79,20 @@ void curs_mv(int key) {
  * @see https://vt100.net/docs/vt100-ug/chapter3.html#DSR
  * @see https://vt100.net/docs/vt100-ug/chapter3.html#CPR
  */
-int get_curs_pos(int *rows, int *cols) {
+int get_curs_pos(int* rows, int* cols) {
   char buf[32];
   unsigned int i = 0;
 
   if (write(STDOUT_FILENO, "\x1b[6n", 4) != 4) return -1;
 
   while (i < sizeof(buf) - 1) {
-    if (read(STDIN_FILENO, &buf[i], 1) != 1) break;
+    if (NEQ_1(read(STDIN_FILENO, &buf[i], 1))) break;
     if (buf[i] == 'R') break;
 
     i++;
   }
 
-  buf[i] = '\0';
+  buf[i] = NULL_TERM;
 
   // ensure response is an esc sequence
   if (buf[0] != ESCAPE || buf[1] != '[') return -1;
@@ -107,7 +107,7 @@ int get_curs_pos(int *rows, int *cols) {
  *
  * @return int
  */
-int curs_x_conv (trow *row, int cx) {
+int curs_x_conv (t_row* row, int cx) {
   int rx = 0;
   int j;
 
@@ -141,7 +141,7 @@ int curs_x_conv (trow *row, int cx) {
 void clear_screen(void) {
   scroll();
 
-  struct extensible_buf e_buffer = E_BUFFER_INIT;
+  struct extensible_buffer e_buffer = E_BUFFER_INIT;
 
   // mitigate cursor flash on repaint - hide / show
   buf_extend(&e_buffer, "\x1b[?25l", 6);
@@ -174,7 +174,7 @@ void clear_screen(void) {
  * @see http://www.delorie.com/djgpp/doc/libc/libc_495.html
  * @see https://vt100.net/docs/vt100-ug/chapter3.html#CUD
  */
-int get_win_sz(int *rows, int *cols) {
+int get_win_sz(int* rows, int* cols) {
   struct winsize ws;
 
   if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) == -1 || ws.ws_col == 0) {

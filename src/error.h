@@ -1,6 +1,8 @@
 #ifndef ERROR_H
 #define ERROR_H
 
-void panic(const char *s);
+#include <stdnoreturn.h>
+
+noreturn void panic(const char* s);
 
 #endif

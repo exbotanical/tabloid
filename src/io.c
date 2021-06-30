@@ -25,10 +25,10 @@
 #ifndef STRDUP_H
 #define STRDUP_H
 
-char *strdup(const char *s) {
+char* strdup(const char* s) {
   size_t size = strlen(s) + 1;
-  char *p = malloc(size);
-  if (p != NULL) {
+  char* p = malloc(size);
+  if (p) {
     memcpy(p, s, size);
   }
   return p;
@@ -47,20 +47,20 @@ char *strdup(const char *s) {
  *
  * @param filename
  */
-void f_open(char *filename) {
+void f_open(char* filename) {
   free(T.filename);
   T.filename = strdup(filename);
 
-  FILE *fp = fopen(filename, "r");
-  if (!fp) panic("fopen");
+  FILE* stream = fopen(filename, "r");
+  if (!stream) panic("fopen");
 
-  char *line = NULL;
+  char* line = NULL;
   size_t linecap = 0; /**< Tracks how much memory has been allocated */
   ssize_t linelen;
 
   // -1 at EOF
-  while ((linelen = getline(&line, &linecap, fp)) != -1) {
-    // we know ea. `trow` represents a single line of text, thus there is
+  while ((linelen = getline(&line, &linecap, stream)) != -1) {
+    // we know ea. `t_row` represents a single line of text, thus there is
     // no reason to store the newline, carriage return
     while (linelen > 0 && (line[linelen - 1] == '\n' || line[linelen - 1] == '\r')) {
       linelen--;
@@ -70,7 +70,7 @@ void f_open(char *filename) {
   }
 
   free(line);
-  fclose(fp);
+  fclose(stream);
 
 	// because we invoke `insert_row`, status will be set to 'dirty' by default
 	// mitigate w/ reset
@@ -89,7 +89,7 @@ void f_open(char *filename) {
  * @param buflen
  * @return char*
  */
-char *buf_out(int *buflen) {
+char* buf_out(int* buflen) {
 	int totlen = 0;
 	int i;
 
@@ -100,8 +100,8 @@ char *buf_out(int *buflen) {
 
 	*buflen = totlen;
 
-	char *buf = malloc(totlen);
-	char *p = buf;
+	char* buf = malloc(totlen);
+	char* p = buf;
 
 	// copy ea text row into buffer
 	for (i = 0; i < T.numrows; i++) {
@@ -121,17 +121,17 @@ char *buf_out(int *buflen) {
  * @todo Write to a swapfile first
  */
 void f_write(void) {
-	if (T.filename == NULL) {
+	if (!T.filename) {
 		T.filename = prompt("Save as %s (ESC to cancel)");
 
-		if (T.filename == NULL) {
+		if (!T.filename) {
 			set_stats_msg("Save cancelled");
 			return;
 		}
 	}
 
 	int len;
-	char *buf = buf_out(&len);
+	char* buf = buf_out(&len);
 
 	int fd = open(T.filename, O_RDWR | O_CREAT, 0644);
 
@@ -162,14 +162,14 @@ void f_write(void) {
  * @param prompt
  * @return char*
  */
-char *prompt(char *prompt) {
+char* prompt(const char* prompt) {
 	size_t bufsize = 128;
 
 	// store user input
-	char *buf = malloc(bufsize);
+	char* buf = malloc(bufsize);
 
 	size_t buflen = 0;
-	buf[0] = '\0';
+	buf[0] = NULL_TERM;
 
 	while (1) {
 		set_stats_msg(prompt, buf);
@@ -179,7 +179,7 @@ char *prompt(char *prompt) {
 
 	// allow backspace in prompt
 		if (c == DEL || c == CTRL_KEY('h') || c == BACKSPACE) {
-			if (buflen != 0) buf[--buflen] = '\0';
+			if (buflen != 0) buf[--buflen] = NULL_TERM;
 		}	else if (c == '\x1b') { // user hits esc to cancel
 			set_stats_msg("");
 			free(buf);
@@ -197,7 +197,7 @@ char *prompt(char *prompt) {
 			}
 
 			buf[buflen++] = c;
-			buf[buflen] = '\0';
+			buf[buflen] = NULL_TERM;
 		}
 	}
 }

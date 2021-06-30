@@ -5,16 +5,20 @@
 #include <time.h>
 
 #define TAB_SIZE 8
-#define CTRL_KEY(k) ((k) & 0x1f) /**< Mandate the ctrl binding that exits the program by setting upper 3 bits to 0 */
 
-struct extensible_buf {
-  char *buf;
+#define CTRL_KEY(k) ((k) & 0x1f) /**< Mandate the ctrl binding that exits the program by setting upper 3 bits to 0 */
+#define NEQ_1(n) (n != 1) /**< Comparison helper */
+
+struct extensible_buffer {
+  char* buf;
   int len;
 };
 
 static const char APPNAME[] = "tabloid editor";
 
 static const char APPVERSION[] = "0.0.2";
+
+static const char NULL_TERM = '\0';
 
 static const char ESCAPE = '\x1b';
 
@@ -39,12 +43,12 @@ enum key_bindings {
  *
  * @todo Allow custom tab-size
  */
-typedef struct trow {
+typedef struct t_row {
   int size; /**< Store row size */
   int rsize; /**< Store tab size */
-  char *chars; /**< Store row text */
-  char *render; /**< Store tab contents */
-} trow;
+  char* chars; /**< Store row text */
+  char* render; /**< Store tab contents */
+} t_row;
 
 struct tty_conf {
   struct termios og_tty; /**< Pointer ref for storing original termios configurations */
@@ -55,8 +59,8 @@ struct tty_conf {
   int rowoff; /**< Row offset - tracks which row of the file the user is scrolled to */
   int coloff; /**< Column offset - tracks horizontal cursor position */
   int numrows;
-  trow *row;
-  char *filename; /**< The current filename, if extant */
+  t_row* row;
+  char* filename; /**< The current filename, if extant */
   char statusmsg[80];
   time_t statusmsg_time;
 	int dirty; /**< Track file state */

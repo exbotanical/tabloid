@@ -12,11 +12,11 @@
  * @param s char pointer to be appended to the buffer
  * @param len the length of the buffer
  */
-void buf_extend(struct extensible_buf *e_buffer, const char *s, int len) {
+void buf_extend(struct extensible_buffer* e_buffer, const char* s, int len) {
   // get mem sizeof current str + sizeof append str
-  char *next = realloc(e_buffer->buf, e_buffer->len + len);
+  char* next = realloc(e_buffer->buf, e_buffer->len + len);
 
-  if (next == NULL) return;
+  if (!next) return;
 
   memcpy(&next[e_buffer->len], s, len);
   e_buffer->buf = next;
@@ -24,10 +24,10 @@ void buf_extend(struct extensible_buf *e_buffer, const char *s, int len) {
 }
 
 /**
- * @brief Deallocate the dynamic memory used by an `extensible_buf`
+ * @brief Deallocate the dynamic memory used by an `extensible_buffer`
  *
  * @param e_buffer the buffer pointer
  */
-void free_e_buf(struct extensible_buf *e_buffer) {
+void free_e_buf(struct extensible_buffer* e_buffer) {
   free(e_buffer->buf);
 }

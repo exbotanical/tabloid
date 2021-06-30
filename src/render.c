@@ -15,7 +15,7 @@
  *
  * @todo set to customizable with lineno
  */
-void draw_rows(struct extensible_buf *e_buffer) {
+void draw_rows(struct extensible_buffer* e_buffer) {
   int line;
 
   for (line = 0; line < T.screenrows; line++) {
@@ -73,7 +73,7 @@ void draw_rows(struct extensible_buf *e_buffer) {
  *
  * @param e_buffer
  */
-void draw_msg_bar(struct extensible_buf *e_buffer) {
+void draw_msg_bar(struct extensible_buffer* e_buffer) {
   // clear message bar
   buf_extend(e_buffer, "\x1b[K", 3);
 
@@ -94,7 +94,7 @@ void draw_msg_bar(struct extensible_buf *e_buffer) {
  *
  * @see https://vt100.net/docs/vt100-ug/chapter3.html#SGR
  */
-void draw_stats_bar(struct extensible_buf *e_buffer) {
+void draw_stats_bar(struct extensible_buffer* e_buffer) {
   // switch to inverted hues
   buf_extend(e_buffer, "\x1b[7m", 4);
 
@@ -145,9 +145,9 @@ void draw_stats_bar(struct extensible_buf *e_buffer) {
  * @brief Set the Status Message object
  *
  * @param fmt
- * @param ... variadic
+ * @param ... variadic number of arguments to satisfy format string `fmt`
  */
-void set_stats_msg(const char *fmt, ...) {
+void set_stats_msg(const char* fmt, ...) {
   va_list ap;
   va_start(ap, fmt);
 
@@ -163,6 +163,5 @@ void set_stats_msg(const char *fmt, ...) {
 
   va_end(ap);
 
-  // passing `NULL` sets UNIX timestamp for now
   T.statusmsg_time = time(NULL);
 }
