@@ -4,6 +4,7 @@
 #include "error.h"
 #include "io.h"
 #include "render.h"
+#include "search.h"
 #include "stream.h"
 #include "viewport.h"
 
@@ -113,6 +114,11 @@ void proc_keypress(void) {
         T.curs_x = T.row[T.curs_y].size;
       }
       break;
+
+		// search
+		case CTRL_KEY('f'):
+			search();
+			break;
 
 		case BACKSPACE:
 		case CTRL_KEY('h'):

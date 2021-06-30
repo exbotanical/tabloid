@@ -5,7 +5,9 @@ typedef struct t_row t_row;
 
 void clear_screen(void);
 
-int curs_x_conv(t_row* row, int i_curs_x);
+int cidx_to_ridx(t_row* row, int i_curs_x);
+
+int ridx_to_cidx(t_row* row, int rx);
 
 int get_win_sz(int* rows, int* cols);
 

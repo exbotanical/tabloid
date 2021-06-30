@@ -103,11 +103,11 @@ int get_curs_pos(int* rows, int* cols) {
 }
 
 /**
- * @brief Convert a chars index (`curs_x`) into a render buffer index (`render_x`)
+ * @brief Convert a 'chars' index (`curs_x`) into a render buffer index (`render_x`)
  *
  * @return int
  */
-int curs_x_conv (t_row* row, int cx) {
+int cidx_to_ridx (t_row* row, int cx) {
   int rx = 0;
   int j;
 
@@ -122,6 +122,31 @@ int curs_x_conv (t_row* row, int cx) {
   }
 
   return rx;
+}
+
+/**
+ * @brief Convert a render buffer index (`render_x`) into a 'chars' index (`curs_x`)
+ *
+ * @return int
+ */
+int ridx_to_cidx(t_row* row, int rx) {
+  int cx = 0;
+  int j;
+
+	// much akin to `cidx_to_ridx`, we iterate the chars,
+	// stopping when cx == rx
+	for (j = 0; j < row->size; j++) {
+    if (row->chars[j] == '\t') {
+      cx += (TAB_SIZE - 1) - (cx % TAB_SIZE);
+    }
+
+    cx++;
+
+		if (cx > rx) return cx;
+  }
+
+	// we shouldn't get here - this would be out of range
+  return cx;
 }
 
 /***********
@@ -198,7 +223,7 @@ void scroll(void) {
   T.render_x = 0;
 
   if (T.curs_y < T.numrows) {
-    T.render_x = curs_x_conv(&T.row[T.curs_y], T.curs_x);
+    T.render_x = cidx_to_ridx(&T.row[T.curs_y], T.curs_x);
   }
   // if cursor above visible viewport, scroll to cursor
   if (T.curs_y < T.rowoff) {

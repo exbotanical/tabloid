@@ -27,10 +27,13 @@
 
 char* strdup(const char* s) {
   size_t size = strlen(s) + 1;
+
   char* p = malloc(size);
   if (p) {
+		// from what I can tell, `memcpy` here is more efficient than `strcpy`
     memcpy(p, s, size);
   }
+
   return p;
 }
 
@@ -122,7 +125,7 @@ char* buf_out(int* buflen) {
  */
 void f_write(void) {
 	if (!T.filename) {
-		T.filename = prompt("Save as %s (ESC to cancel)");
+		T.filename = prompt("Save as %s (ESC to cancel)", NULL);
 
 		if (!T.filename) {
 			set_stats_msg("Save cancelled");
@@ -157,12 +160,15 @@ void f_write(void) {
 }
 
 /**
- * @brief Prompt user (to save file as _name_)
+ * @brief Prompt for and collect user input
+ *
+ * Expects the caller to invoke `free`
  *
  * @param prompt
+ * @param cb optional callback
  * @return char*
  */
-char* prompt(const char* prompt) {
+char* prompt(const char* prompt, void (*cb)(char*, int)) {
 	size_t bufsize = 128;
 
 	// store user input
@@ -180,13 +186,17 @@ char* prompt(const char* prompt) {
 	// allow backspace in prompt
 		if (c == DEL || c == CTRL_KEY('h') || c == BACKSPACE) {
 			if (buflen != 0) buf[--buflen] = NULL_TERM;
-		}	else if (c == '\x1b') { // user hits esc to cancel
+		}	else if (c == ESCAPE) { // user hits esc to cancel
 			set_stats_msg("");
+			if (cb) cb(buf, c);
 			free(buf);
+
 			return NULL;
 		} else if (c == '\r') {
 			if (buflen != 0) {
 				set_stats_msg("");
+				if (cb) cb(buf, c);
+
 				return buf;
 			}
 		} else if (!iscntrl(c) && c < 128) {
@@ -199,5 +209,7 @@ char* prompt(const char* prompt) {
 			buf[buflen++] = c;
 			buf[buflen] = NULL_TERM;
 		}
+
+		if (cb) cb(buf, c);
 	}
 }

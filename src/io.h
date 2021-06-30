@@ -3,7 +3,7 @@
 
 void f_open(char* filename);
 
-char* prompt(const char* prompt);
+char* prompt(const char* prompt, void (*cb)(char*, int));
 
 void f_write(void);
 

@@ -16,7 +16,7 @@ int main(int argc, char* argv[]) {
     f_open(argv[1]);
   }
 
-  set_stats_msg("HELP: Ctrl-s -> save | Ctrl-c -> quit");
+  set_stats_msg("C-s to save | C-c to quit | C-f to search");
 
   while (1) {
     clear_screen();
