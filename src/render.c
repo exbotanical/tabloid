@@ -4,7 +4,9 @@
 
 #include "common.h"
 #include "buffer.h"
+#include "syntax.h"
 
+#include <ctype.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
@@ -55,8 +57,47 @@ void draw_rows(struct extensible_buffer* e_buffer) {
       if (len < 0) len = 0; // correct horizontal pos
       if (len > T.screencols) len = T.screencols;
 
-      buf_extend(e_buffer, &T.row[filerow].render[T.coloff], len);
-    }
+			/* syntax highlighting */
+			char *c = &T.row[filerow].render[T.coloff];
+			// grab the assigned highlight / syntax type for given char
+			unsigned char *hl = &T.row[filerow].highlight[T.coloff];
+
+			// track the current color so we don't have to
+			// manually append a color seq before every single char
+			int current_color = -1;
+			int j;
+
+			// for ea char
+			for (j = 0; j < len; j++) {
+				if (hl[j] == HL_DEFAULT) {
+					if (current_color != -1) {
+						buf_extend(e_buffer, "\x1b[39m", 5);
+						current_color = -1;
+					}
+
+					buf_extend(e_buffer, &c[j], 1);
+				} else {
+					int color = map_syntax_to_color(hl[j]);
+
+					if (color != current_color) {
+						current_color = color;
+
+						char buffer[16];
+
+						// write the esc sequence to a buffer
+						int c_len = snprintf(buffer, sizeof(buffer), "\x1b[%dm", color);
+
+						// append esc sequence to viewport text buffer
+						buf_extend(e_buffer, buffer, c_len);
+
+					}
+					// append the actual character
+					buf_extend(e_buffer, &c[j], 1);
+				}
+			}
+			// reset color to default
+			buf_extend(e_buffer, "\x1b[39m", 5);
+		}
 
     // clear line
     buf_extend(e_buffer, "\x1b[K", 3);

@@ -1,6 +1,7 @@
 #include "stream.h"
 
 #include "common.h"
+#include "syntax.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -33,6 +34,10 @@ void insert_row(int at, const char* const s, size_t len) {
   // init tabs
   T.row[at].rsize = 0;
   T.row[at].render = NULL;
+
+	// init highlight
+	T.row[at].highlight = NULL;
+
   update_row(&T.row[at]);
 
   T.numrows++;
@@ -40,7 +45,8 @@ void insert_row(int at, const char* const s, size_t len) {
 }
 
 /**
- * @brief USes chars str of a `t_row` to fill the contents of the render string buffer
+ * @brief Uses chars str of a `t_row` to fill the contents of the render string buffer
+ * In short, this function handles updating a row whenever its text changes
  *
  * @param row
  */
@@ -76,6 +82,8 @@ void update_row(t_row* row) {
 
   row->render[idx] = NULL_TERM;
   row->rsize = idx;
+
+	highlight_syntax(row);
 }
 
 /**
@@ -131,6 +139,7 @@ void rm_char_at_row(t_row* row, int at) {
 void free_row(t_row* row) {
 	free(row->render);
 	free(row->chars);
+	free(row->highlight);
 }
 
 /**

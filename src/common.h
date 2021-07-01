@@ -4,6 +4,20 @@
 #include <termios.h>
 #include <time.h>
 
+#ifdef DEBUG
+
+#ifndef fprintf
+#include <stdio.h>
+#endif
+
+#define LOG(fmt, ...) fprintf(stderr, fmt, __VA_ARGS__)
+
+#else
+
+#define LOG(fmt, ...)
+
+#endif
+
 #define TAB_SIZE 8
 
 #define CTRL_KEY(k) ((k) & 0x1f) /**< Mandate the ctrl binding that exits the program by setting upper 3 bits to 0 */
@@ -38,6 +52,12 @@ enum key_bindings {
   PG_D
 };
 
+enum highlights {
+	HL_DEFAULT = 0,
+	HL_NUMBER,
+	HL_SEARCH_MATCH,
+};
+
 /**
  * @brief Stateful representation of a row buffer
  *
@@ -48,6 +68,10 @@ typedef struct t_row {
   int rsize; /**< Store tab size */
   char* chars; /**< Store row text */
   char* render; /**< Store tab contents */
+
+	/* Store line syntax highlighting instructions */
+	// char array of int 0-255; ea array item corresponds to a char in `render`
+	unsigned char* highlight;
 } t_row;
 
 struct tty_conf {

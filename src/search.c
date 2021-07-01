@@ -35,6 +35,7 @@ void search(void) {
 /**
  * @brief Eagerly searches content text by evaluating against each query character as it is entered
  *
+ * Invoked as a callback
  * @param query
  * @param key
  */
@@ -42,6 +43,23 @@ void eager_search(char* query, int key) {
 	static int last_match = -1; /**< captures the row index where the last match resides */
 	static int dir = 1; /**< store the direction of the search - 1 forward, -1 backward */
 
+	// here, we persist the search match line before highlighting it
+	// so we can remove the highlighting once the user has finished search mode
+	static int lineno_hl; /**< store the lineno we will be restoring */
+	static char* line_hl; /**< store the given line as it was before highlighting */
+
+	// if we have a line to restore back to default color,
+	// we `memcpy` it to the saved line's highlight storage and dealloc
+	if (line_hl) {
+		memcpy(
+			T.row[lineno_hl].highlight,
+			line_hl,
+			T.row[lineno_hl].rsize
+		);
+
+		free(line_hl);
+		line_hl = NULL;
+	}
 	// search completed or exited
 	if (key == '\r' || key == ESCAPE) {
 		last_match = -1;
@@ -85,6 +103,23 @@ void eager_search(char* query, int key) {
 			// scroll to very bottom; this will cause the scroller to position the match
 			// at the top of the viewport
 			T.rowoff = T.numrows;
+
+			// set the matched lineno that will be highlighted
+			lineno_hl = curr;
+			// set the original line ptr
+			line_hl = malloc(row->rsize);
+
+			// highlight the search match
+			memcpy(line_hl, row->highlight, row->rsize);
+
+			// set the query match substr to its syntax typing
+			memset(
+				// where idx is the idx into `render` of the given match
+				&row->highlight[match - row->render],
+				HL_SEARCH_MATCH,
+				strlen(query)
+			);
+
 			break;
 		}
 	}

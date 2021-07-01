@@ -13,8 +13,11 @@ all: $(TARGET)
 $(TARGET): $(OBJFILES)
 	$(CC) $(CFLAGS) -o $(TARGET) $(OBJFILES) $(LDFLAGS)
 
+debug: CFLAGS += -D debug
+debug: $(TARGET)
+
 clean:
-	rm -f $(TARGET)
+	rm $(TARGET)
 
 install: $(TARGET)
 	install -m 0777 $(TARGET) $(DEST)/$(TARGET)
