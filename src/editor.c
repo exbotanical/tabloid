@@ -86,6 +86,7 @@ void init_ed(void) {
   T.statusmsg[0] = NULL_TERM; // default to no message at all
   T.statusmsg_time = 0;
 	T.dirty = 0;
+	T.syntax = NULL; // NULL == no file type detected
 
   if (get_win_sz(&T.screenrows, &T.screencols) == -1) {
     panic("get_win_sz");

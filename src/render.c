@@ -69,7 +69,23 @@ void draw_rows(struct extensible_buffer* e_buffer) {
 
 			// for ea char
 			for (j = 0; j < len; j++) {
-				if (hl[j] == HL_DEFAULT) {
+				// handle non-printable characters
+				if (iscntrl(c[j])) {
+					char sym = (c[j] <= 26) ? '@' + c[j] : '?';
+
+					buf_extend(e_buffer, "\x1b[7m", 4);
+					buf_extend(e_buffer, &sym, 1);
+					buf_extend(e_buffer, "\x1b[m", 3);
+
+					// revert to current color after inverting for non-printables
+					if (current_color != -1) {
+						char buf[16];
+						int c_len = snprintf(buf, sizeof(buf), "\x1b[%dm", current_color);
+
+						buf_extend(e_buffer, buf, c_len);
+					}
+
+				} else if (hl[j] == HL_DEFAULT) {
 					if (current_color != -1) {
 						buf_extend(e_buffer, "\x1b[39m", 5);
 						current_color = -1;
@@ -154,7 +170,9 @@ void draw_stats_bar(struct extensible_buffer* e_buffer) {
   int rlen = snprintf(
     rstatus,
     sizeof(rstatus),
-    "%d/%d",
+    "%s | %d/%d",
+		// syntax hl?
+		T.syntax ? T.syntax->f_type : "no file type detected",
     // current line
     T.curs_y + 1,
     T.numrows

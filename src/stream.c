@@ -23,7 +23,17 @@ void insert_row(int at, const char* const s, size_t len) {
   // num bytes `t_row` takes * the num of desired rows
   T.row = realloc(T.row, sizeof(t_row) * (T.numrows + 1));
 	// alloc mem at the specified `at` idx for the new row
-	memmove(&T.row[at + 1], &T.row[at], sizeof(t_row) * (T.numrows - at));
+	memmove(
+		&T.row[at + 1],
+		&T.row[at],
+		sizeof(t_row) * (T.numrows - at)
+	);
+
+	// update all row indices
+	for (int j = at + 1; j <= T.numrows; j++) T.row[j].idx++;
+
+	// set current idx when row is inserted
+	T.row[at].idx = at;
 
   T.row[at].size = len;
   T.row[at].chars = malloc(len + 1);
@@ -37,6 +47,7 @@ void insert_row(int at, const char* const s, size_t len) {
 
 	// init highlight
 	T.row[at].highlight = NULL;
+	T.row[at].hl_open_comment = 0;
 
   update_row(&T.row[at]);
 
@@ -125,7 +136,12 @@ void rm_char_at_row(t_row* row, int at) {
 	if (at < 0 || at >= row->size) return;
 
 	// overwrite the deleted char w/ the chars that succeed it
-	memmove(&row->chars[at], &row->chars[at + 1], row->size - at);
+	memmove(
+		&row->chars[at],
+		&row->chars[at + 1],
+		row->size - at
+	);
+
 	row->size--;
 	update_row(row);
 	T.dirty++;
@@ -156,6 +172,9 @@ void rm_row(int at) {
 		&T.row[at + 1],
 		sizeof(t_row) * (T.numrows - at - 1)
 	);
+
+	// update all row indices
+	for (int j = at; j < T.numrows - 1; j++) T.row[j].idx--;
 
 	T.numrows--;
 	T.dirty++;

@@ -10,6 +10,7 @@
 #include "keypress.h"
 #include "render.h"
 #include "stream.h"
+#include "syntax.h"
 #include "viewport.h"
 
 #include <ctype.h>
@@ -53,6 +54,8 @@ char* strdup(const char* s) {
 void f_open(char* filename) {
   free(T.filename);
   T.filename = strdup(filename);
+
+	resolve_syntax();
 
   FILE* stream = fopen(filename, "r");
   if (!stream) panic("fopen");
@@ -131,6 +134,8 @@ void f_write(void) {
 			set_stats_msg("Save cancelled");
 			return;
 		}
+
+		resolve_syntax();
 	}
 
 	int len;
