@@ -1,3 +1,14 @@
+/**
+ * @file syntax.c
+ * @author goldmund
+ * @brief Syntax-highlighting module
+ * @version 0.1
+ * @date 2021-07-05
+ *
+ * @copyright Copyright (c) 2021 Matthew Zito (goldmund)
+ *
+ */
+
 #include "syntax.h"
 
 #include "common.h"

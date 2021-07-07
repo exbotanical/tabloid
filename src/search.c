@@ -1,3 +1,13 @@
+/**
+ * @file search.c
+ * @author goldmund
+ * @brief Text search module
+ * @version 0.1
+ * @date 2021-07-05
+ * @copyright Copyright (c) 2021 Matthew Zito (goldmund)
+ *
+ */
+
 #include "search.h"
 
 #include "common.h"

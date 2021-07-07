@@ -1,3 +1,14 @@
+/**
+ * @file editor.c
+ * @author goldmund
+ * @brief Core editor environment and input / rendering modes
+ * @version 0.1
+ * @date 2021-07-05
+ *
+ * @copyright Copyright (c) 2021 Matthew Zito (goldmund)
+ *
+ */
+
 #pragma GCC dependency "buffer.h"
 
 #include "editor.h"

@@ -1,3 +1,14 @@
+/**
+ * @file render.c
+ * @author goldmund
+ * @brief Handles editor rendering and in-viewport drawing
+ * @version 0.1
+ * @date 2021-07-05
+ *
+ * @copyright Copyright (c) 2021 Matthew Zito (goldmund)
+ *
+ */
+
 #pragma GCC dependency "buffer.h"
 
 #include "render.h"

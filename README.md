@@ -20,5 +20,8 @@ tabloid
 - DEL delete char to right of cursor
 - backspace to delete prev char
 - C-s to save
+- C-f to search
 
 ## search
+
+## syntax highlighting

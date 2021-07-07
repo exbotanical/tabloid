@@ -1,3 +1,14 @@
+/**
+ * @file io.c
+ * @author goldmund
+ * @brief Handles file I/O to program
+ * @version 0.1
+ * @date 2021-07-05
+ *
+ * @copyright Copyright (c) 2021 Matthew Zito (goldmund)
+ *
+ */
+
 /* Feature Test Macros */
 #define _DEFAULT_SOURCE // ea. handles `getline` resolution
 #define _BSD_SOURCE

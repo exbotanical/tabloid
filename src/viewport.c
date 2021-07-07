@@ -1,3 +1,14 @@
+/**
+ * @file viewport.c
+ * @author goldmund
+ * @brief Viewport rendering and cursor control module
+ * @version 0.1
+ * @date 2021-07-05
+ *
+ * @copyright Copyright (c) 2021 Matthew Zito (goldmund)
+ *
+ */
+
 #pragma GCC dependency "buffer.h"
 
 #include "viewport.h"

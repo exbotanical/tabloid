@@ -1,3 +1,14 @@
+/**
+ * @file buffer.c
+ * @author goldmund
+ * @brief User input buffer management; extensible buffer configurations
+ * @version 0.1
+ * @date 2021-07-05
+ *
+ * @copyright Copyright (c) 2021 Matthew Zito (goldmund)
+ *
+ */
+
 #include "buffer.h"
 
 #include "common.h"

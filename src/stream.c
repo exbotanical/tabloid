@@ -1,3 +1,14 @@
+/**
+ * @file stream.c
+ * @author goldmund
+ * @brief Input-to-render stream handling, row operations (intermediate I/O)
+ * @version 0.1
+ * @date 2021-07-05
+ *
+ * @copyright Copyright (c) 2021 Matthew Zito (goldmund)
+ *
+ */
+
 #include "stream.h"
 
 #include "common.h"

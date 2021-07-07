@@ -1,3 +1,14 @@
+/**
+ * @file keypress.c
+ * @author goldmund
+ * @brief Handles keypress processing
+ * @version 0.1
+ * @date 2021-07-05
+ *
+ * @copyright Copyright (c) 2021 Matthew Zito (goldmund)
+ *
+ */
+
 #include "keypress.h"
 
 #include "common.h"
