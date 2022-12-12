@@ -1,7 +1,10 @@
 CC=gcc
 CFLAGS=-Wall -Wextra -pedantic -std=c17
 LDFLAGS=
-OBJFILES=$(wildcard src/*.c)
+SRC=$(wildcard src/*.c)
+TEST=$(wildcard t/*.c)
+DEPS=$(wildcard deps/**/*.c)
+
 TARGET=tabloid
 
 SCRIPTSDIR=scripts
@@ -10,8 +13,8 @@ DEST=/usr/local/bin
 
 all: $(TARGET)
 
-$(TARGET): $(OBJFILES)
-	$(CC) $(CFLAGS) -o $(TARGET) $(OBJFILES) $(LDFLAGS)
+$(TARGET): $(SRC)
+	$(CC) $(CFLAGS) -o $(TARGET) $(SRC) $(DEPS) $(LDFLAGS)
 
 debug: CFLAGS += -D debug
 debug: $(TARGET)
@@ -24,3 +27,6 @@ install: $(TARGET)
 
 check:
 	@$(SCRIPTSDIR)/memcheck.bash $(TARGET)
+
+test:
+	$(CC) $(CFLAGS) $(LDFLAGS) $(TEST) $(DEPS) -o $(TARGET)

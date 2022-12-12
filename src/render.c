@@ -9,13 +9,7 @@
  *
  */
 
-#pragma GCC dependency "buffer.h"
-
 #include "render.h"
-
-#include "common.h"
-#include "buffer.h"
-#include "syntax.h"
 
 #include <ctype.h>
 #include <stdarg.h>
@@ -23,12 +17,17 @@
 #include <string.h>
 #include <time.h>
 
+#include "../deps/libutil/buffer.h"
+#include "../deps/libutil/str.h"
+#include "common.h"
+#include "syntax.h"
+
 /**
  * @brief Draws vim-like tilde-prepended rows on the screen
  *
  * @todo set to customizable with lineno
  */
-void draw_rows(struct extensible_buffer* e_buffer) {
+void draw_rows(Buffer* e_buffer) {
   int line;
 
   for (line = 0; line < T.screenrows; line++) {
@@ -40,11 +39,8 @@ void draw_rows(struct extensible_buffer* e_buffer) {
         // write branding
         char branding[80];
 
-        int brandingLen = snprintf(
-          branding,
-          sizeof(branding),
-          "%s -- v%s", APPNAME, APPVERSION
-        );
+        int brandingLen = snprintf(branding, sizeof(branding), "%s -- v%s",
+                                   APPNAME, APPVERSION);
 
         // truncate?
         if (brandingLen > T.screencols) brandingLen = T.screencols;
@@ -52,85 +48,84 @@ void draw_rows(struct extensible_buffer* e_buffer) {
         // padding
         int padding = (T.screencols - brandingLen) / 2;
         if (padding) {
-          buf_extend(e_buffer, "~", 1);
+          buffer_append(e_buffer, "~");
           padding--;
         }
 
-        while (padding--) buf_extend(e_buffer, " ", 1);
-        buf_extend(e_buffer, branding, brandingLen);
+        while (padding--) buffer_append(e_buffer, " ");
+        buffer_append_with(e_buffer, branding, brandingLen);
       } else {
-        buf_extend(e_buffer, "~", 1);
+        buffer_append(e_buffer, "~");
       }
     } else {
       // subtract num of chars to left of the col offset from the row len
       int len = T.row[filerow].rsize - T.coloff;
 
-      if (len < 0) len = 0; // correct horizontal pos
+      if (len < 0) len = 0;  // correct horizontal pos
       if (len > T.screencols) len = T.screencols;
 
-			/* syntax highlighting */
-			char *c = &T.row[filerow].render[T.coloff];
-			// grab the assigned highlight / syntax type for given char
-			unsigned char *hl = &T.row[filerow].highlight[T.coloff];
+      /* syntax highlighting */
+      char* c = &T.row[filerow].render[T.coloff];
+      // grab the assigned highlight / syntax type for given char
+      unsigned char* hl = &T.row[filerow].highlight[T.coloff];
 
-			// track the current color so we don't have to
-			// manually append a color seq before every single char
-			int current_color = -1;
-			int j;
+      // track the current color so we don't have to
+      // manually append a color seq before every single char
+      int current_color = -1;
+      int j;
 
-			// for ea char
-			for (j = 0; j < len; j++) {
-				// handle non-printable characters
-				if (iscntrl(c[j])) {
-					char sym = (c[j] <= 26) ? '@' + c[j] : '?';
+      // for ea char
+      for (j = 0; j < len; j++) {
+        // handle non-printable characters
+        if (iscntrl(c[j])) {
+          char sym = (c[j] <= 26) ? '@' + c[j] : '?';
 
-					buf_extend(e_buffer, "\x1b[7m", 4);
-					buf_extend(e_buffer, &sym, 1);
-					buf_extend(e_buffer, "\x1b[m", 3);
+          buffer_append(e_buffer, "\x1b[7m");
+          buffer_append(e_buffer, &sym);
+          buffer_append(e_buffer, "\x1b[m");
 
-					// revert to current color after inverting for non-printables
-					if (current_color != -1) {
-						char buf[16];
-						int c_len = snprintf(buf, sizeof(buf), "\x1b[%dm", current_color);
+          // revert to current color after inverting for non-printables
+          if (current_color != -1) {
+            char buf[16];
+            int c_len = snprintf(buf, sizeof(buf), "\x1b[%dm", current_color);
 
-						buf_extend(e_buffer, buf, c_len);
-					}
+            buffer_append_with(e_buffer, buf, c_len);
+          }
 
-				} else if (hl[j] == HL_DEFAULT) {
-					if (current_color != -1) {
-						buf_extend(e_buffer, "\x1b[39m", 5);
-						current_color = -1;
-					}
+        } else if (hl[j] == HL_DEFAULT) {
+          if (current_color != -1) {
+            buffer_append(e_buffer, "\x1b[39m");
+            current_color = -1;
+          }
 
-					buf_extend(e_buffer, &c[j], 1);
-				} else {
-					int color = map_syntax_to_color(hl[j]);
+          buffer_append_with(e_buffer, &c[j], 1);
+        } else {
+          int color = map_syntax_to_color(hl[j]);
 
-					if (color != current_color) {
-						current_color = color;
+          if (color != current_color) {
+            current_color = color;
 
-						char buffer[16];
+            char buffer[16];
 
-						// write the esc sequence to a buffer
-						int c_len = snprintf(buffer, sizeof(buffer), "\x1b[%dm", color);
+            // write the esc sequence to a buffer
+            int c_len = snprintf(buffer, sizeof(buffer), "\x1b[%dm", color);
 
-						// append esc sequence to viewport text buffer
-						buf_extend(e_buffer, buffer, c_len);
-
-					}
-					// append the actual character
-					buf_extend(e_buffer, &c[j], 1);
-				}
-			}
-			// reset color to default
-			buf_extend(e_buffer, "\x1b[39m", 5);
-		}
+            // append esc sequence to viewport text buffer
+            buffer_append_with(e_buffer, buffer, c_len);
+          }
+          // append the actual character
+          buffer_append_with(e_buffer, &c[j], 1);
+        }
+      }
+      // reset color to default
+      buffer_append(e_buffer, "\x1b[39m");
+    }
 
     // clear line
-    buf_extend(e_buffer, "\x1b[K", 3);
+    buffer_append(e_buffer, "\x1b[K");
 
     // mitigate missing line prefix on last line
-    buf_extend(e_buffer, "\r\n", 2);
+    buffer_append(e_buffer, "\r\n");
   }
 }
 
@@ -141,9 +136,9 @@ void draw_rows(struct extensible_buffer* e_buffer) {
  *
  * @param e_buffer
  */
-void draw_msg_bar(struct extensible_buffer* e_buffer) {
+void draw_msg_bar(Buffer* e_buffer) {
   // clear message bar
-  buf_extend(e_buffer, "\x1b[K", 3);
+  buffer_append(e_buffer, "\x1b[K");
 
   int msglen = strlen(T.statusmsg);
 
@@ -152,7 +147,7 @@ void draw_msg_bar(struct extensible_buffer* e_buffer) {
 
   // only display message if it is less than 5s old
   if (msglen && time(NULL) - T.statusmsg_time < 5) {
-    buf_extend(e_buffer, T.statusmsg, msglen);
+    buffer_append_with(e_buffer, T.statusmsg, msglen);
   }
 }
 
@@ -162,53 +157,43 @@ void draw_msg_bar(struct extensible_buffer* e_buffer) {
  *
  * @see https://vt100.net/docs/vt100-ug/chapter3.html#SGR
  */
-void draw_stats_bar(struct extensible_buffer* e_buffer) {
+void draw_stats_bar(Buffer* e_buffer) {
   // switch to inverted hues
-  buf_extend(e_buffer, "\x1b[7m", 4);
+  buffer_append(e_buffer, "\x1b[7m");
 
   char status[80], rstatus[80];
 
-  int len = snprintf(
-    status,
-    sizeof(status),
-    "%.20s - %d lines %s",
-    T.filename ? T.filename : "[No Name]",
-    T.numrows,
-		T.dirty ? "(modified)" : ""
-  );
+  int len = snprintf(status, sizeof(status), "%.20s - %d lines %s",
+                     T.filename ? T.filename : "[No Name]", T.numrows,
+                     T.dirty ? "(modified)" : "");
 
   // lineno
-  int rlen = snprintf(
-    rstatus,
-    sizeof(rstatus),
-    "%s | %d/%d",
-		// syntax hl?
-		T.syntax ? T.syntax->f_type : "no file type detected",
-    // current line
-    T.curs_y + 1,
-    T.numrows
-  );
+  int rlen = snprintf(rstatus, sizeof(rstatus), "%s | %d/%d",
+                      // syntax hl?
+                      T.syntax ? T.syntax->f_type : "no file type detected",
+                      // current line
+                      T.curs_y + 1, T.numrows);
 
   // truncate
   if (len > T.screencols) len = T.screencols;
-  buf_extend(e_buffer, status, len);
+  buffer_append_with(e_buffer, status, len);
 
   while (len < T.screencols) {
     // print spaces until we hit the second status str
     if (T.screencols - len == rlen) {
-      buf_extend(e_buffer, rstatus, rlen);
+      buffer_append_with(e_buffer, rstatus, rlen);
       break;
     } else {
-      buf_extend(e_buffer, " ", 1);
+      buffer_append(e_buffer, " ");
       len++;
     }
   }
 
   // clear formatting
-  buf_extend(e_buffer, "\x1b[m", 3);
+  buffer_append(e_buffer, "\x1b[m");
 
   // print NL after first status bar
-  buf_extend(e_buffer, "\r\n", 2);
+  buffer_append(e_buffer, "\r\n");
 }
 
 /**
@@ -224,12 +209,7 @@ void set_stats_msg(const char* fmt, ...) {
   // va_arg(&fmt);
 
   // this calls `va_arg` for us
-  vsnprintf(
-    T.statusmsg,
-    sizeof(T.statusmsg),
-    fmt,
-    ap
-  );
+  vsnprintf(T.statusmsg, sizeof(T.statusmsg), fmt, ap);
 
   va_end(ap);
 

@@ -9,13 +9,7 @@
  *
  */
 
-#pragma GCC dependency "buffer.h"
-
 #include "viewport.h"
-
-#include "common.h"
-#include "buffer.h"
-#include "render.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,8 +17,9 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
-
-#define E_BUFFER_INIT {NULL, 0} /**< Initialize an `extensible_buffer` */
+#include "../deps/libutil/buffer.h"
+#include "common.h"
+#include "render.h"
 
 /***********
  * Cursor Ctrl
@@ -57,7 +52,7 @@ void curs_mv(int key) {
       if (T.curs_y != 0) T.curs_y--;
       break;
     case ARR_R:
-      if (row &&T.curs_x < row->size) {
+      if (row && T.curs_x < row->size) {
         T.curs_x++;
 
         // if cursor not at EOF, -> snaps to next line
@@ -69,11 +64,11 @@ void curs_mv(int key) {
   }
 
   // snap-to-row
-  // prevent cursor from falling out of the viewport if moving vertically off of a longer row
-  // and onto a shorter one
+  // prevent cursor from falling out of the viewport if moving vertically off of
+  // a longer row and onto a shorter one
 
-  // we have to set the row again, then curs_x to the end of the line if it is to the right of the end
-  // of said line, where NULL is a line of len 0
+  // we have to set the row again, then curs_x to the end of the line if it is
+  // to the right of the end of said line, where NULL is a line of len 0
   row = (T.curs_y >= T.numrows) ? NULL : &T.row[T.curs_y];
 
   int rowlen = row ? row->size : 0;
@@ -114,11 +109,12 @@ int get_curs_pos(int* rows, int* cols) {
 }
 
 /**
- * @brief Convert a 'chars' index (`curs_x`) into a render buffer index (`render_x`)
+ * @brief Convert a 'chars' index (`curs_x`) into a render buffer index
+ * (`render_x`)
  *
  * @return int
  */
-int cidx_to_ridx (t_row* row, int cx) {
+int cidx_to_ridx(t_row* row, int cx) {
   int rx = 0;
   int j;
 
@@ -136,7 +132,8 @@ int cidx_to_ridx (t_row* row, int cx) {
 }
 
 /**
- * @brief Convert a render buffer index (`render_x`) into a 'chars' index (`curs_x`)
+ * @brief Convert a render buffer index (`render_x`) into a 'chars' index
+ * (`curs_x`)
  *
  * @return int
  */
@@ -144,19 +141,19 @@ int ridx_to_cidx(t_row* row, int rx) {
   int cx = 0;
   int j;
 
-	// much akin to `cidx_to_ridx`, we iterate the chars,
-	// stopping when cx == rx
-	for (j = 0; j < row->size; j++) {
+  // much akin to `cidx_to_ridx`, we iterate the chars,
+  // stopping when cx == rx
+  for (j = 0; j < row->size; j++) {
     if (row->chars[j] == '\t') {
       cx += (TAB_SIZE - 1) - (cx % TAB_SIZE);
     }
 
     cx++;
 
-		if (cx > rx) return cx;
+    if (cx > rx) return cx;
   }
 
-	// we shouldn't get here - this would be out of range
+  // we shouldn't get here - this would be out of range
   return cx;
 }
 
@@ -168,7 +165,8 @@ int ridx_to_cidx(t_row* row, int rx) {
  * @brief Clear the user's screen and set cursor position
  *
  * Performs cleanup by clearing the user's screen, setting the cursor position.
- * Utilized in lieu of `atexit` given this would also clear error messages produced by `panic`
+ * Utilized in lieu of `atexit` given this would also clear error messages
+ * produced by `panic`
  *
  * @see https://vt100.net/docs/vt100-ug/chapter3.html#ED
  * @see https://vt100.net/docs/vt100-ug/chapter3.html#CUP
@@ -177,28 +175,28 @@ int ridx_to_cidx(t_row* row, int rx) {
 void clear_screen(void) {
   scroll();
 
-  struct extensible_buffer e_buffer = E_BUFFER_INIT;
+  Buffer* e_buffer = buffer_init(NULL);
 
   // mitigate cursor flash on repaint - hide / show
-  buf_extend(&e_buffer, "\x1b[?25l", 6);
+  buffer_append(e_buffer, "\x1b[?25l");
   // TODO use terminfo db
-  buf_extend(&e_buffer, "\x1b[H", 3);
+  buffer_append(e_buffer, "\x1b[H");
 
-  draw_rows(&e_buffer);
-  draw_stats_bar(&e_buffer);
-  draw_msg_bar(&e_buffer);
+  draw_rows(e_buffer);
+  draw_stats_bar(e_buffer);
+  draw_msg_bar(e_buffer);
 
   // cursor
   char buf[32];
   snprintf(buf, sizeof(buf), "\x1b[%d;%dH", (T.curs_y - T.rowoff) + 1,
-                                            (T.render_x - T.coloff) + 1);
+           (T.render_x - T.coloff) + 1);
 
-  buf_extend(&e_buffer, buf, strlen(buf));
+  buffer_append(e_buffer, buf);
 
-  buf_extend(&e_buffer, "\x1b[?25h", 6);
+  buffer_append(e_buffer, "\x1b[?25h");
 
-  write(STDOUT_FILENO, e_buffer.buf, e_buffer.len);
-  free_e_buf(&e_buffer);
+  write(STDOUT_FILENO, e_buffer->state, e_buffer->len);
+  buffer_free(e_buffer);
 }
 
 /**
@@ -215,7 +213,8 @@ int get_win_sz(int* rows, int* cols) {
 
   if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) == -1 || ws.ws_col == 0) {
     // fallback if `ioctl` fails
-    if (write(STDOUT_FILENO, "\x1b[999C\x1b[999B" /* cursor fwd, cursor dwn */, 12) != 12) {
+    if (write(STDOUT_FILENO, "\x1b[999C\x1b[999B" /* cursor fwd, cursor dwn */,
+              12) != 12) {
       return -1;
     }
 
@@ -245,7 +244,8 @@ void scroll(void) {
     T.rowoff = T.curs_y - T.screenrows + 1;
   }
   // horizontal, inverse of above
-  // here, we track `render_x` to account for both rendered chars and rendered cursor pos
+  // here, we track `render_x` to account for both rendered chars and rendered
+  // cursor pos
   if (T.render_x < T.coloff) {
     T.coloff = T.render_x;
   }

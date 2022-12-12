@@ -9,22 +9,18 @@
  *
  */
 
-#pragma GCC dependency "buffer.h"
-
 #include "editor.h"
-
-#include "common.h"
-#include "buffer.h"
-#include "error.h"
-#include "render.h"
-#include "stream.h"
-#include "viewport.h"
 
 #include <errno.h>
 #include <stdlib.h>
 #include <termios.h>
 #include <unistd.h>
 
+#include "common.h"
+#include "error.h"
+#include "render.h"
+#include "stream.h"
+#include "viewport.h"
 
 struct tty_conf T;
 
@@ -35,11 +31,12 @@ struct tty_conf T;
  ***********/
 
 /**
- * @brief Enables raw mode and disables Canonical mode, allowing parsing of input byte-by-byte
+ * @brief Enables raw mode and disables Canonical mode, allowing parsing of
+ * input byte-by-byte
  *
  * Disables Canonical mode by modifying the current terminal attributes,
- * retrieving the local mode bitmask and disabling `ECHO` bitflag, canonical mode,
- * SIGINT, and SIGTSTP, etc
+ * retrieving the local mode bitmask and disabling `ECHO` bitflag, canonical
+ * mode, SIGINT, and SIGTSTP, etc
  */
 void enable_rawmode(void) {
   if (tcgetattr(STDIN_FILENO, &T.og_tty) == -1) {
@@ -88,16 +85,16 @@ void disable_rawmode(void) {
 void init_ed(void) {
   T.curs_x = 0;
   T.curs_y = 0;
-  T.rowoff = 0; // begin at top
+  T.rowoff = 0;  // begin at top
   T.coloff = 0;
   T.numrows = 0;
   T.render_x = 0;
   T.row = NULL;
-  T.filename = NULL; // will remain null if no file loaded - what we want
-  T.statusmsg[0] = NULL_TERM; // default to no message at all
+  T.filename = NULL;  // will remain null if no file loaded - what we want
+  T.statusmsg[0] = NULL_TERM;  // default to no message at all
   T.statusmsg_time = 0;
-	T.dirty = 0;
-	T.syntax = NULL; // NULL == no file type detected
+  T.dirty = 0;
+  T.syntax = NULL;  // NULL == no file type detected
 
   if (get_win_sz(&T.screenrows, &T.screencols) == -1) {
     panic("get_win_sz");
