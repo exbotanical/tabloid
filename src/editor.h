@@ -1,10 +1,10 @@
 #ifndef EDITOR_H
 #define EDITOR_H
 
-void disable_rawmode(void);
+void disable_raw_mode(void);
 
-void enable_rawmode(void);
+void enable_raw_mode(void);
 
-void init_ed(void);
+void editor_init(void);
 
 #endif

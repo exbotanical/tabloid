@@ -1,3 +1,6 @@
+#include <stdio.h>
+#include <stdlib.h>
+
 #include "editor.h"
 #include "error.h"
 #include "io.h"
@@ -5,12 +8,9 @@
 #include "render.h"
 #include "viewport.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-
 int main(int argc, char* argv[]) {
-  enable_rawmode();
-  init_ed();
+  enable_raw_mode();
+  editor_init();
 
   if (argc >= 2) {
     f_open(argv[1]);

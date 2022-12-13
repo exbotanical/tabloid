@@ -38,12 +38,12 @@ struct tty_conf T;
  * retrieving the local mode bitmask and disabling `ECHO` bitflag, canonical
  * mode, SIGINT, and SIGTSTP, etc
  */
-void enable_rawmode(void) {
+void enable_raw_mode(void) {
   if (tcgetattr(STDIN_FILENO, &T.og_tty) == -1) {
     panic("tcgetattr");
   }
 
-  atexit(disable_rawmode);
+  atexit(disable_raw_mode);
 
   struct termios raw = T.og_tty;
 
@@ -67,7 +67,7 @@ void enable_rawmode(void) {
 /**
  * @brief Disable raw mode by restoring termios attributes to defaults
  */
-void disable_rawmode(void) {
+void disable_raw_mode(void) {
   if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &T.og_tty) == -1) {
     panic("tcsetattr");
   }
@@ -82,7 +82,7 @@ void disable_rawmode(void) {
 /**
  * @brief Initialize the editor viewport
  */
-void init_ed(void) {
+void editor_init(void) {
   T.curs_x = 0;
   T.curs_y = 0;
   T.rowoff = 0;  // begin at top
