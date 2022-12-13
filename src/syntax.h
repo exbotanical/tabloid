@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-void highlight_syntax(t_row *row);
+void highlight_syntax(Row *row);
 
 int map_syntax_to_color(int hl);
 

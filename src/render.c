@@ -27,7 +27,7 @@
  *
  * @todo set to customizable with lineno
  */
-void draw_rows(Buffer* e_buffer) {
+void draw_rows(Buffer* buffer) {
   int line;
 
   for (line = 0; line < T.screenrows; line++) {
@@ -40,7 +40,7 @@ void draw_rows(Buffer* e_buffer) {
         char branding[80];
 
         int brandingLen = snprintf(branding, sizeof(branding), "%s -- v%s",
-                                   APPNAME, APPVERSION);
+                                   APP_NAME, APP_VERSION);
 
         // truncate?
         if (brandingLen > T.screencols) brandingLen = T.screencols;
@@ -48,14 +48,14 @@ void draw_rows(Buffer* e_buffer) {
         // padding
         int padding = (T.screencols - brandingLen) / 2;
         if (padding) {
-          buffer_append(e_buffer, "~");
+          buffer_append(buffer, "~");
           padding--;
         }
 
-        while (padding--) buffer_append(e_buffer, " ");
-        buffer_append_with(e_buffer, branding, brandingLen);
+        while (padding--) buffer_append(buffer, " ");
+        buffer_append_with(buffer, branding, brandingLen);
       } else {
-        buffer_append(e_buffer, "~");
+        buffer_append(buffer, "~");
       }
     } else {
       // subtract num of chars to left of the col offset from the row len
@@ -80,52 +80,54 @@ void draw_rows(Buffer* e_buffer) {
         if (iscntrl(c[j])) {
           char sym = (c[j] <= 26) ? '@' + c[j] : '?';
 
-          buffer_append(e_buffer, "\x1b[7m");
-          buffer_append(e_buffer, &sym);
-          buffer_append(e_buffer, "\x1b[m");
+          buffer_append(buffer, "\x1b[7m");
+          buffer_append(buffer, &sym);
+          buffer_append(buffer, "\x1b[m");
 
           // revert to current color after inverting for non-printables
           if (current_color != -1) {
-            char buf[16];
-            int c_len = snprintf(buf, sizeof(buf), "\x1b[%dm", current_color);
+            char tmp_buffer[16];
+            int c_len = snprintf(tmp_buffer, sizeof(tmp_buffer), "\x1b[%dm",
+                                 current_color);
 
-            buffer_append_with(e_buffer, buf, c_len);
+            buffer_append_with(buffer, tmp_buffer, c_len);
           }
 
         } else if (hl[j] == HL_DEFAULT) {
           if (current_color != -1) {
-            buffer_append(e_buffer, "\x1b[39m");
+            buffer_append(buffer, "\x1b[39m");
             current_color = -1;
           }
 
-          buffer_append_with(e_buffer, &c[j], 1);
+          buffer_append_with(buffer, &c[j], 1);
         } else {
           int color = map_syntax_to_color(hl[j]);
 
           if (color != current_color) {
             current_color = color;
 
-            char buffer[16];
+            char tmp_buffer[16];
 
             // write the esc sequence to a buffer
-            int c_len = snprintf(buffer, sizeof(buffer), "\x1b[%dm", color);
+            int c_len =
+                snprintf(tmp_buffer, sizeof(tmp_buffer), "\x1b[%dm", color);
 
             // append esc sequence to viewport text buffer
-            buffer_append_with(e_buffer, buffer, c_len);
+            buffer_append_with(buffer, tmp_buffer, c_len);
           }
           // append the actual character
-          buffer_append_with(e_buffer, &c[j], 1);
+          buffer_append_with(buffer, &c[j], 1);
         }
       }
       // reset color to default
-      buffer_append(e_buffer, "\x1b[39m");
+      buffer_append(buffer, "\x1b[39m");
     }
 
     // clear line
-    buffer_append(e_buffer, "\x1b[K");
+    buffer_append(buffer, "\x1b[K");
 
     // mitigate missing line prefix on last line
-    buffer_append(e_buffer, "\r\n");
+    buffer_append(buffer, "\r\n");
   }
 }
 
@@ -134,11 +136,11 @@ void draw_rows(Buffer* e_buffer) {
  *
  * Times out after user input or five seconds
  *
- * @param e_buffer
+ * @param buffer
  */
-void draw_msg_bar(Buffer* e_buffer) {
+void draw_msg_bar(Buffer* buffer) {
   // clear message bar
-  buffer_append(e_buffer, "\x1b[K");
+  buffer_append(buffer, "\x1b[K");
 
   int msglen = strlen(T.statusmsg);
 
@@ -147,19 +149,19 @@ void draw_msg_bar(Buffer* e_buffer) {
 
   // only display message if it is less than 5s old
   if (msglen && time(NULL) - T.statusmsg_time < 5) {
-    buffer_append_with(e_buffer, T.statusmsg, msglen);
+    buffer_append_with(buffer, T.statusmsg, msglen);
   }
 }
 
 /**
  * @brief Render the status bar
- * @param e_buffer
+ * @param buffer
  *
  * @see https://vt100.net/docs/vt100-ug/chapter3.html#SGR
  */
-void draw_stats_bar(Buffer* e_buffer) {
+void draw_stats_bar(Buffer* buffer) {
   // switch to inverted hues
-  buffer_append(e_buffer, "\x1b[7m");
+  buffer_append(buffer, "\x1b[7m");
 
   char status[80], rstatus[80];
 
@@ -176,24 +178,24 @@ void draw_stats_bar(Buffer* e_buffer) {
 
   // truncate
   if (len > T.screencols) len = T.screencols;
-  buffer_append_with(e_buffer, status, len);
+  buffer_append_with(buffer, status, len);
 
   while (len < T.screencols) {
     // print spaces until we hit the second status str
     if (T.screencols - len == rlen) {
-      buffer_append_with(e_buffer, rstatus, rlen);
+      buffer_append_with(buffer, rstatus, rlen);
       break;
     } else {
-      buffer_append(e_buffer, " ");
+      buffer_append(buffer, " ");
       len++;
     }
   }
 
   // clear formatting
-  buffer_append(e_buffer, "\x1b[m");
+  buffer_append(buffer, "\x1b[m");
 
   // print NL after first status bar
-  buffer_append(e_buffer, "\r\n");
+  buffer_append(buffer, "\r\n");
 }
 
 /**

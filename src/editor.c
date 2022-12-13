@@ -91,7 +91,7 @@ void init_ed(void) {
   T.render_x = 0;
   T.row = NULL;
   T.filename = NULL;  // will remain null if no file loaded - what we want
-  T.statusmsg[0] = NULL_TERM;  // default to no message at all
+  T.statusmsg[0] = NULL_TERMINATOR;  // default to no message at all
   T.statusmsg_time = 0;
   T.dirty = 0;
   T.syntax = NULL;  // NULL == no file type detected

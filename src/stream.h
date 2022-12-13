@@ -3,15 +3,15 @@
 
 #include <sys/types.h>
 
-typedef struct t_row t_row;
+#include "common.h"
 
-void insert_row(int at, const char *const s, size_t len);
+void insert_row(int at, const char* const s, size_t len);
 
 void rm_char(void);
 
-void update_row(t_row* row);
+void update_row(Row* row);
 
-void insert_char_at_row(t_row* row, int at, int c);
+void insert_char_at_row(Row* row, int at, int c);
 
 void insert_char(int c);
 

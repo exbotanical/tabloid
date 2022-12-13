@@ -18,7 +18,6 @@
 #include <unistd.h>
 
 #include "../deps/libutil/buffer.h"
-#include "common.h"
 #include "render.h"
 
 /***********
@@ -31,7 +30,7 @@
  * @todo allow custom mappings
  */
 void curs_mv(int key) {
-  t_row* row = (T.curs_y >= T.numrows) ? NULL : &T.row[T.curs_y];
+  Row* row = (T.curs_y >= T.numrows) ? NULL : &T.row[T.curs_y];
 
   switch (key) {
     case ARR_L:
@@ -98,7 +97,7 @@ int get_curs_pos(int* rows, int* cols) {
     i++;
   }
 
-  buf[i] = NULL_TERM;
+  buf[i] = NULL_TERMINATOR;
 
   // ensure response is an esc sequence
   if (buf[0] != ESCAPE || buf[1] != '[') return -1;
@@ -114,7 +113,7 @@ int get_curs_pos(int* rows, int* cols) {
  *
  * @return int
  */
-int cidx_to_ridx(t_row* row, int cx) {
+int cidx_to_ridx(Row* row, int cx) {
   int rx = 0;
   int j;
 
@@ -137,7 +136,7 @@ int cidx_to_ridx(t_row* row, int cx) {
  *
  * @return int
  */
-int ridx_to_cidx(t_row* row, int rx) {
+int ridx_to_cidx(Row* row, int rx) {
   int cx = 0;
   int j;
 
@@ -175,28 +174,28 @@ int ridx_to_cidx(t_row* row, int rx) {
 void clear_screen(void) {
   scroll();
 
-  Buffer* e_buffer = buffer_init(NULL);
+  Buffer* buffer = buffer_init(NULL);
 
   // mitigate cursor flash on repaint - hide / show
-  buffer_append(e_buffer, "\x1b[?25l");
+  buffer_append(buffer, "\x1b[?25l");
   // TODO use terminfo db
-  buffer_append(e_buffer, "\x1b[H");
+  buffer_append(buffer, "\x1b[H");
 
-  draw_rows(e_buffer);
-  draw_stats_bar(e_buffer);
-  draw_msg_bar(e_buffer);
+  draw_rows(buffer);
+  draw_stats_bar(buffer);
+  draw_msg_bar(buffer);
 
   // cursor
   char buf[32];
   snprintf(buf, sizeof(buf), "\x1b[%d;%dH", (T.curs_y - T.rowoff) + 1,
            (T.render_x - T.coloff) + 1);
 
-  buffer_append(e_buffer, buf);
+  buffer_append(buffer, buf);
 
-  buffer_append(e_buffer, "\x1b[?25h");
+  buffer_append(buffer, "\x1b[?25h");
 
-  write(STDOUT_FILENO, e_buffer->state, e_buffer->len);
-  buffer_free(e_buffer);
+  write(STDOUT_FILENO, buffer->state, buffer->len);
+  buffer_free(buffer);
 }
 
 /**

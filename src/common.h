@@ -25,11 +25,11 @@
                 upper 3 bits to 0 */
 #define NEQ_1(n) (n != 1) /**< Comparison helper */
 
-static const char APPNAME[] = "tabloid editor";
+static const char APP_NAME[] = "tabloid editor";
 
-static const char APPVERSION[] = "0.0.2";
+static const char APP_VERSION[] = "0.0.2";
 
-static const char NULL_TERM = '\0';
+static const char NULL_TERMINATOR = '\0';
 
 static const char ESCAPE = '\x1b';
 
@@ -66,7 +66,7 @@ enum highlights {
  *
  * @todo Allow custom tab-size
  */
-typedef struct t_row {
+typedef struct row_t {
   int idx;             /**< track a row's index */
   int hl_open_comment; /**< track whether we're in a non-closed ml comment */
   int size;            /**< store row size */
@@ -77,7 +77,7 @@ typedef struct t_row {
   /* Store line syntax highlighting instructions */
   // char array of int 0-255; ea array item corresponds to a char in `render`
   unsigned char* highlight;
-} t_row;
+} Row;
 
 typedef struct syntax_config {
   char* f_type; /**< file type that will be displayed to the user in the status
@@ -107,7 +107,7 @@ struct tty_conf {
                          scrolled to */
   int coloff;         /**< Column offset - tracks horizontal cursor position */
   int numrows;
-  t_row* row;
+  Row* row;
   char* filename; /**< The current filename, if extant */
   char statusmsg[80];
   time_t statusmsg_time;
