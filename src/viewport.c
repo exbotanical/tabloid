@@ -29,7 +29,7 @@
  * @param key
  * @todo allow custom mappings
  */
-void curs_mv(int key) {
+void cursor_mv(int key) {
   Row* row = (T.curs_y >= T.numrows) ? NULL : &T.row[T.curs_y];
 
   switch (key) {
@@ -84,7 +84,7 @@ void curs_mv(int key) {
  * @see https://vt100.net/docs/vt100-ug/chapter3.html#DSR
  * @see https://vt100.net/docs/vt100-ug/chapter3.html#CPR
  */
-int get_curs_pos(int* rows, int* cols) {
+int cursor_get_pos(int* rows, int* cols) {
   char buf[32];
   unsigned int i = 0;
 
@@ -182,7 +182,7 @@ void clear_screen(void) {
   buffer_append(buffer, "\x1b[H");
 
   draw_rows(buffer);
-  draw_stats_bar(buffer);
+  draw_status_bar(buffer);
   draw_msg_bar(buffer);
 
   // cursor
@@ -207,7 +207,7 @@ void clear_screen(void) {
  * @see http://www.delorie.com/djgpp/doc/libc/libc_495.html
  * @see https://vt100.net/docs/vt100-ug/chapter3.html#CUD
  */
-int get_win_sz(int* rows, int* cols) {
+int get_window_size(int* rows, int* cols) {
   struct winsize ws;
 
   if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) == -1 || ws.ws_col == 0) {
@@ -217,7 +217,7 @@ int get_win_sz(int* rows, int* cols) {
       return -1;
     }
 
-    return get_curs_pos(rows, cols);
+    return cursor_get_pos(rows, cols);
   } else {
     *cols = ws.ws_col;
     *rows = ws.ws_row;

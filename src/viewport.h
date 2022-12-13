@@ -9,9 +9,9 @@ int cidx_to_ridx(Row* row, int i_curs_x);
 
 int ridx_to_cidx(Row* row, int rx);
 
-int get_win_sz(int* rows, int* cols);
+int get_window_size(int* rows, int* cols);
 
-void curs_mv(int key);
+void cursor_mv(int key);
 
 void scroll(void);
 

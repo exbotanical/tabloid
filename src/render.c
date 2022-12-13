@@ -101,7 +101,7 @@ void draw_rows(Buffer* buffer) {
 
           buffer_append_with(buffer, &c[j], 1);
         } else {
-          int color = map_syntax_to_color(hl[j]);
+          int color = syntax_map_to_color(hl[j]);
 
           if (color != current_color) {
             current_color = color;
@@ -159,7 +159,7 @@ void draw_msg_bar(Buffer* buffer) {
  *
  * @see https://vt100.net/docs/vt100-ug/chapter3.html#SGR
  */
-void draw_stats_bar(Buffer* buffer) {
+void draw_status_bar(Buffer* buffer) {
   // switch to inverted hues
   buffer_append(buffer, "\x1b[7m");
 
@@ -204,7 +204,7 @@ void draw_stats_bar(Buffer* buffer) {
  * @param fmt
  * @param ... variadic number of arguments to satisfy format string `fmt`
  */
-void set_stats_msg(const char* fmt, ...) {
+void set_status_msg(const char* fmt, ...) {
   va_list ap;
   va_start(ap, fmt);
 

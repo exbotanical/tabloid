@@ -102,7 +102,7 @@ void update_row(Row* row) {
   row->render[idx] = NULL_TERMINATOR;
   row->rsize = idx;
 
-  highlight_syntax(row);
+  syntax_highlight(row);
 }
 
 /**

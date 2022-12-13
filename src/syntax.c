@@ -69,7 +69,7 @@ int is_delimiter(int c) {
  * in the HL database; if not match, syntax is set to `NULL`
  *
  */
-void resolve_syntax(void) {
+void syntax_resolve(void) {
   T.syntax = NULL;
 
   if (!T.filename) return;
@@ -92,7 +92,7 @@ void resolve_syntax(void) {
         // only after being saved is then highlighted
         int f_row;
         for (f_row = 0; f_row < T.numrows; f_row++) {
-          highlight_syntax(&T.row[f_row]);
+          syntax_highlight(&T.row[f_row]);
         }
 
         return;
@@ -108,7 +108,7 @@ void resolve_syntax(void) {
  *
  * @param row
  */
-void highlight_syntax(Row *row) {
+void syntax_highlight(Row *row) {
   // where `row.highlight` will either be a NULL pointer
   // or larger than when last passed in
 
@@ -283,7 +283,7 @@ void highlight_syntax(Row *row) {
 
   // as long as ml comment state is open, we continue updating
   if (changed && row->idx + 1 < T.numrows) {
-    highlight_syntax(&T.row[row->idx + 1]);
+    syntax_highlight(&T.row[row->idx + 1]);
   }
 }
 
@@ -295,7 +295,7 @@ void highlight_syntax(Row *row) {
  *
  * @todo read configuration file for color settings
  */
-int map_syntax_to_color(int hl) {
+int syntax_map_to_color(int hl) {
   switch (hl) {
     case HL_COMMENT:
     case HL_ML_COMMENT:

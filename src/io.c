@@ -67,7 +67,7 @@ void f_open(char* filename) {
   free(T.filename);
   T.filename = strdup(filename);
 
-  resolve_syntax();
+  syntax_resolve();
 
   FILE* stream = fopen(filename, "r");
   if (!stream) panic("fopen");
@@ -108,7 +108,7 @@ void f_open(char* filename) {
  * @param buflen
  * @return char*
  */
-char* buf_out(int* buflen) {
+char* editor_content_to_str(int* buflen) {
   int totlen = 0;
   int i;
 
@@ -141,18 +141,18 @@ char* buf_out(int* buflen) {
  */
 void f_write(void) {
   if (!T.filename) {
-    T.filename = prompt("Save as %s (ESC to cancel)", NULL);
+    T.filename = status_prompt("Save as %s (ESC to cancel)", NULL);
 
     if (!T.filename) {
-      set_stats_msg("Save cancelled");
+      set_status_msg("Save cancelled");
       return;
     }
 
-    resolve_syntax();
+    syntax_resolve();
   }
 
   int len;
-  char* buf = buf_out(&len);
+  char* buf = editor_content_to_str(&len);
 
   int fd = open(T.filename, O_RDWR | O_CREAT, 0644);
 
@@ -167,7 +167,7 @@ void f_write(void) {
         free(buf);
 
         T.dirty = 0;  // reset dirty state
-        set_stats_msg("%d bytes written to disk", len);
+        set_status_msg("%d bytes written to disk", len);
         return;
       }
     }
@@ -175,7 +175,7 @@ void f_write(void) {
   }
 
   free(buf);
-  set_stats_msg("Unable to save file; I/O error: %s", strerror(errno));
+  set_status_msg("Unable to save file; I/O error: %s", strerror(errno));
 }
 
 /**
@@ -187,7 +187,7 @@ void f_write(void) {
  * @param cb optional callback
  * @return char*
  */
-char* prompt(const char* prompt, void (*cb)(char*, int)) {
+char* status_prompt(const char* prompt, void (*cb)(char*, int)) {
   size_t bufsize = 128;
 
   // store user input
@@ -197,23 +197,23 @@ char* prompt(const char* prompt, void (*cb)(char*, int)) {
   buf[0] = NULL_TERMINATOR;
 
   while (1) {
-    set_stats_msg(prompt, buf);
+    set_status_msg(prompt, buf);
     clear_screen();
 
-    int c = readkey();
+    int c = keypress_read();
 
     // allow backspace in prompt
     if (c == DEL || c == CTRL_KEY('h') || c == BACKSPACE) {
       if (buflen != 0) buf[--buflen] = NULL_TERMINATOR;
     } else if (c == ESCAPE) {  // user hits esc to cancel
-      set_stats_msg("");
+      set_status_msg("");
       if (cb) cb(buf, c);
       free(buf);
 
       return NULL;
     } else if (c == '\r') {
       if (buflen != 0) {
-        set_stats_msg("");
+        set_status_msg("");
         if (cb) cb(buf, c);
 
         return buf;

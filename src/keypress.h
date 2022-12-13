@@ -1,8 +1,8 @@
 #ifndef KEYPRESS_H
 #define KEYPRESS_H
 
-void proc_keypress(void);
+void keypress_process(void);
 
-int readkey(void);
+int keypress_read(void);
 
 #endif

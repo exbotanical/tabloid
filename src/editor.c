@@ -96,8 +96,8 @@ void editor_init(void) {
   T.dirty = 0;
   T.syntax = NULL;  // NULL == no file type detected
 
-  if (get_win_sz(&T.screenrows, &T.screencols) == -1) {
-    panic("get_win_sz");
+  if (get_window_size(&T.screenrows, &T.screencols) == -1) {
+    panic("get_window_size");
   }
 
   // row for status bar

@@ -16,11 +16,11 @@ int main(int argc, char* argv[]) {
     f_open(argv[1]);
   }
 
-  set_stats_msg("C-s to save | C-c to quit | C-f to search");
+  set_status_msg("C-s to save | C-c to quit | C-f to search");
 
   while (1) {
     clear_screen();
-    proc_keypress();
+    keypress_process();
   }
 
   return EXIT_SUCCESS;

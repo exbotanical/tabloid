@@ -28,7 +28,7 @@ void search(void) {
   int saved_col = T.coloff;
   int saved_row = T.rowoff;
 
-  char* query = prompt("Search: %s (ESC/Arrows/Enter)", eager_search);
+  char* query = status_prompt("Search: %s (ESC/Arrows/Enter)", eager_search);
 
   // != NULL; user did not abort the prompt
   if (query) {

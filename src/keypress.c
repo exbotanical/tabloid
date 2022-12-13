@@ -11,6 +11,10 @@
 
 #include "keypress.h"
 
+#include <errno.h>
+#include <stdlib.h>
+#include <unistd.h>
+
 #include "common.h"
 #include "error.h"
 #include "io.h"
@@ -19,16 +23,12 @@
 #include "stream.h"
 #include "viewport.h"
 
-#include <errno.h>
-#include <stdlib.h>
-#include <unistd.h>
-
 /**
  * @brief Wait for keypress from stdin and passthrough
  *
  * @return int returned, keypress enum or escape sequence
  */
-int readkey(void) {
+int keypress_read(void) {
   int nread;
   char c;
 
@@ -48,32 +48,47 @@ int readkey(void) {
 
     if (seq[0] == '[') {
       if (seq[1] >= 0 && seq[1] <= '9') {
-				if (NEQ_1(read(STDIN_FILENO, &seq[2], 1))) return ESCAPE;
-				if (seq[2] == '~') {
-          switch(seq[1]) {
-            case '1': return HOME;
-            case '3': return DEL;
-            case '4': return END;
-            case '5': return PG_U;
-            case '6': return PG_D;
-            case '7': return HOME;
-            case '8': return END;
+        if (NEQ_1(read(STDIN_FILENO, &seq[2], 1))) return ESCAPE;
+        if (seq[2] == '~') {
+          switch (seq[1]) {
+            case '1':
+              return HOME;
+            case '3':
+              return DEL;
+            case '4':
+              return END;
+            case '5':
+              return PG_U;
+            case '6':
+              return PG_D;
+            case '7':
+              return HOME;
+            case '8':
+              return END;
           }
         }
       } else {
         switch (seq[1]) {
-          case 'A': return ARR_U;
-          case 'B': return ARR_D;
-          case 'C': return ARR_R;
-          case 'D': return ARR_L;
-          case 'H': return HOME;
-          case 'F': return END;
+          case 'A':
+            return ARR_U;
+          case 'B':
+            return ARR_D;
+          case 'C':
+            return ARR_R;
+          case 'D':
+            return ARR_L;
+          case 'H':
+            return HOME;
+          case 'F':
+            return END;
         }
       }
     } else if (seq[0] == 'O') {
       switch (seq[1]) {
-        case 'H': return HOME;
-        case 'F': return END;
+        case 'H':
+          return HOME;
+        case 'F':
+          return END;
       }
     }
 
@@ -84,27 +99,27 @@ int readkey(void) {
 }
 
 /**
- * @brief Process keypresses by mapping various ctrl keys et al to tty functionality
+ * @brief Process keypresses by mapping various ctrl keys et al to tty
+ * functionality
  */
-void proc_keypress(void) {
-  int c = readkey();
-	static int quit_x = CONFIRM_QUIT_X;
+void keypress_process(void) {
+  int c = keypress_read();
+  static int quit_x = CONFIRM_QUIT_X;
 
   switch (c) {
-		case '\r':
-			insert_nl();
-			break;
+    case '\r':
+      insert_nl();
+      break;
 
     case CTRL_KEY('c'):
-			if (T.dirty && quit_x > 0) {
-				set_stats_msg(
-					"File has unsaved changes - press Ctrl-c %d more times to quit",
-					quit_x
-				);
+      if (T.dirty && quit_x > 0) {
+        set_status_msg(
+            "File has unsaved changes - press Ctrl-c %d more times to quit",
+            quit_x);
 
-				quit_x--;
-				return;
-			}
+        quit_x--;
+        return;
+      }
       // clean
       write(STDOUT_FILENO, "\x1b[2J", 4);
       write(STDOUT_FILENO, "\x1b[H", 3);
@@ -112,9 +127,9 @@ void proc_keypress(void) {
       exit(0);
       break;
 
-		case CTRL_KEY('s'):
-			f_write();
-			break;
+    case CTRL_KEY('s'):
+      f_write();
+      break;
 
     case HOME:
       T.curs_x = 0;
@@ -126,34 +141,33 @@ void proc_keypress(void) {
       }
       break;
 
-		// search
-		case CTRL_KEY('f'):
-			search();
-			break;
+    // search
+    case CTRL_KEY('f'):
+      search();
+      break;
 
-		case BACKSPACE:
-		case CTRL_KEY('h'):
-		case DEL:
-			// del char to right of cursor
-			if (c == DEL) curs_mv(ARR_R);
-			rm_char();
-			break;
+    case BACKSPACE:
+    case CTRL_KEY('h'):
+    case DEL:
+      // del char to right of cursor
+      if (c == DEL) cursor_mv(ARR_R);
+      rm_char();
+      break;
 
     // pos cursor at top or bottom of viewport
     case PG_U:
-    case PG_D:
-      {
-        if (c == PG_U) {
-          T.curs_y = T.rowoff;
-        } else if (c == PG_D) {
-          T.curs_y = T.rowoff + T.screenrows - 1;
+    case PG_D: {
+      if (c == PG_U) {
+        T.curs_y = T.rowoff;
+      } else if (c == PG_D) {
+        T.curs_y = T.rowoff + T.screenrows - 1;
 
-          if (T.curs_y > T.numrows) T.curs_y = T.numrows;
-        }
+        if (T.curs_y > T.numrows) T.curs_y = T.numrows;
+      }
 
-        int cycles = T.screenrows;
-        while (cycles--) {
-          curs_mv(c == PG_U ? ARR_U : ARR_D);
+      int cycles = T.screenrows;
+      while (cycles--) {
+        cursor_mv(c == PG_U ? ARR_U : ARR_D);
       }
       break;
     }
@@ -162,19 +176,19 @@ void proc_keypress(void) {
     case ARR_D:
     case ARR_R:
     case ARR_L:
-      curs_mv(c);
+      cursor_mv(c);
       break;
 
-		// ignore unimplemented escape sequences
-		// ignore C-l, as this editor refreshes after ea keypress
-		case CTRL_KEY('l'):
-		case '\x1b':
-			break;
+    // ignore unimplemented escape sequences
+    // ignore C-l, as this editor refreshes after ea keypress
+    case CTRL_KEY('l'):
+    case '\x1b':
+      break;
 
-		default:
-			insert_char(c);
-			break;
+    default:
+      insert_char(c);
+      break;
   }
 
-	quit_x = CONFIRM_QUIT_X;
+  quit_x = CONFIRM_QUIT_X;
 }

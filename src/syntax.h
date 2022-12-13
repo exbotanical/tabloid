@@ -3,10 +3,10 @@
 
 #include "common.h"
 
-void highlight_syntax(Row *row);
+void syntax_highlight(Row *row);
 
-int map_syntax_to_color(int hl);
+int syntax_map_to_color(int hl);
 
-void resolve_syntax(void);
+void syntax_resolve(void);
 
 #endif
