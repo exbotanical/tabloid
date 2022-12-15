@@ -30,12 +30,12 @@
 void draw_rows(Buffer* buffer) {
   int line;
 
-  for (line = 0; line < T.screenrows; line++) {
-    int filerow = line + T.rowoff;
+  for (line = 0; line < T.screen_rows; line++) {
+    int filerow = line + T.row_offset;
     // is this part of the text buffer, or a row that exists after its end?
-    if (filerow >= T.numrows) {
+    if (filerow >= T.num_rows) {
       // no file was opened; blank editor
-      if (T.numrows == 0 && line == T.screenrows / 3) {
+      if (T.num_rows == 0 && line == T.screen_rows / 3) {
         // write branding
         char branding[80];
 
@@ -59,15 +59,15 @@ void draw_rows(Buffer* buffer) {
       }
     } else {
       // subtract num of chars to left of the col offset from the row len
-      int len = T.row[filerow].rsize - T.coloff;
+      int len = T.row[filerow].rsize - T.col_offset;
 
       if (len < 0) len = 0;  // correct horizontal pos
       if (len > T.screencols) len = T.screencols;
 
       /* syntax highlighting */
-      char* c = &T.row[filerow].render[T.coloff];
+      char* c = &T.row[filerow].render[T.col_offset];
       // grab the assigned highlight / syntax type for given char
-      unsigned char* hl = &T.row[filerow].highlight[T.coloff];
+      unsigned char* hl = &T.row[filerow].highlight[T.col_offset];
 
       // track the current color so we don't have to
       // manually append a color seq before every single char
@@ -166,7 +166,7 @@ void draw_status_bar(Buffer* buffer) {
   char status[80], rstatus[80];
 
   int len = snprintf(status, sizeof(status), "%.20s - %d lines %s",
-                     T.filename ? T.filename : "[No Name]", T.numrows,
+                     T.filename ? T.filename : "[No Name]", T.num_rows,
                      T.dirty ? "(modified)" : "");
 
   // lineno
@@ -174,7 +174,7 @@ void draw_status_bar(Buffer* buffer) {
                       // syntax hl?
                       T.syntax ? T.syntax->f_type : "no file type detected",
                       // current line
-                      T.curs_y + 1, T.numrows);
+                      T.curs_y + 1, T.num_rows);
 
   // truncate
   if (len > T.screencols) len = T.screencols;

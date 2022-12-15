@@ -30,7 +30,7 @@
  * @todo allow custom mappings
  */
 void cursor_mv(int key) {
-  Row* row = (T.curs_y >= T.numrows) ? NULL : &T.row[T.curs_y];
+  Row* row = (T.curs_y >= T.num_rows) ? NULL : &T.row[T.curs_y];
 
   switch (key) {
     case ARR_L:
@@ -45,7 +45,7 @@ void cursor_mv(int key) {
       break;
     case ARR_D:
       // allow cursor advance past bottom of viewport (but not past file)
-      if (T.curs_y < T.numrows) T.curs_y++;
+      if (T.curs_y < T.num_rows) T.curs_y++;
       break;
     case ARR_U:
       if (T.curs_y != 0) T.curs_y--;
@@ -68,7 +68,7 @@ void cursor_mv(int key) {
 
   // we have to set the row again, then curs_x to the end of the line if it is
   // to the right of the end of said line, where NULL is a line of len 0
-  row = (T.curs_y >= T.numrows) ? NULL : &T.row[T.curs_y];
+  row = (T.curs_y >= T.num_rows) ? NULL : &T.row[T.curs_y];
 
   int rowlen = row ? row->size : 0;
   if (T.curs_x > rowlen) T.curs_x = rowlen;
@@ -187,8 +187,8 @@ void clear_screen(void) {
 
   // cursor
   char buf[32];
-  snprintf(buf, sizeof(buf), "\x1b[%d;%dH", (T.curs_y - T.rowoff) + 1,
-           (T.render_x - T.coloff) + 1);
+  snprintf(buf, sizeof(buf), "\x1b[%d;%dH", (T.curs_y - T.row_offset) + 1,
+           (T.render_x - T.col_offset) + 1);
 
   buffer_append(buffer, buf);
 
@@ -231,25 +231,25 @@ int get_window_size(int* rows, int* cols) {
 void scroll(void) {
   T.render_x = 0;
 
-  if (T.curs_y < T.numrows) {
+  if (T.curs_y < T.num_rows) {
     T.render_x = cidx_to_ridx(&T.row[T.curs_y], T.curs_x);
   }
   // if cursor above visible viewport, scroll to cursor
-  if (T.curs_y < T.rowoff) {
-    T.rowoff = T.curs_y;
+  if (T.curs_y < T.row_offset) {
+    T.row_offset = T.curs_y;
   }
   // correct if cursor below visible viewport
-  if (T.curs_y >= T.rowoff + T.screenrows) {
-    T.rowoff = T.curs_y - T.screenrows + 1;
+  if (T.curs_y >= T.row_offset + T.screen_rows) {
+    T.row_offset = T.curs_y - T.screen_rows + 1;
   }
   // horizontal, inverse of above
   // here, we track `render_x` to account for both rendered chars and rendered
   // cursor pos
-  if (T.render_x < T.coloff) {
-    T.coloff = T.render_x;
+  if (T.render_x < T.col_offset) {
+    T.col_offset = T.render_x;
   }
 
-  if (T.render_x >= T.coloff + T.screencols) {
-    T.coloff = T.render_x - T.screencols + 1;
+  if (T.render_x >= T.col_offset + T.screencols) {
+    T.col_offset = T.render_x - T.screencols + 1;
   }
 }

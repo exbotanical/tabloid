@@ -73,7 +73,7 @@ void f_open(char* filename) {
   if (!stream) panic("fopen");
 
   char* line = NULL;
-  size_t linecap = 0; /**< Tracks how much memory has been allocated */
+  size_t linecap = 0; /** Tracks how much memory has been allocated */
   ssize_t linelen;
 
   // -1 at EOF
@@ -85,7 +85,7 @@ void f_open(char* filename) {
       linelen--;
     }
 
-    insert_row(T.numrows, line, linelen);
+    insert_row(T.num_rows, line, linelen);
   }
 
   free(line);
@@ -113,7 +113,7 @@ char* editor_content_to_str(int* buflen) {
   int i;
 
   // aggregate len as len of ea text row
-  for (i = 0; i < T.numrows; i++) {
+  for (i = 0; i < T.num_rows; i++) {
     totlen += T.row[i].size + 1;
   }
 
@@ -123,7 +123,7 @@ char* editor_content_to_str(int* buflen) {
   char* p = buf;
 
   // copy ea text row into buffer
-  for (i = 0; i < T.numrows; i++) {
+  for (i = 0; i < T.num_rows; i++) {
     memcpy(p, T.row[i].chars, T.row[i].size);
     p += T.row[i].size;
     // manual NL insertion because we aren't parsing these

@@ -22,7 +22,7 @@
 #include "stream.h"
 #include "viewport.h"
 
-struct tty_conf T;
+struct TtyConfig T;
 
 /***********
  *
@@ -85,9 +85,9 @@ void disable_raw_mode(void) {
 void editor_init(void) {
   T.curs_x = 0;
   T.curs_y = 0;
-  T.rowoff = 0;  // begin at top
-  T.coloff = 0;
-  T.numrows = 0;
+  T.row_offset = 0;  // begin at top
+  T.col_offset = 0;
+  T.num_rows = 0;
   T.render_x = 0;
   T.row = NULL;
   T.filename = NULL;  // will remain null if no file loaded - what we want
@@ -96,11 +96,11 @@ void editor_init(void) {
   T.dirty = 0;
   T.syntax = NULL;  // NULL == no file type detected
 
-  if (get_window_size(&T.screenrows, &T.screencols) == -1) {
+  if (get_window_size(&T.screen_rows, &T.screencols) == -1) {
     panic("get_window_size");
   }
 
   // row for status bar
   // prevent `draw_rows` from rendering a line at the bottom row
-  T.screenrows -= 2;
+  T.screen_rows -= 2;
 }

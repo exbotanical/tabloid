@@ -37,7 +37,7 @@ char *C_HL_KEYWORDS[] = {
 
     NULL};
 
-syntax_config HLDB[] = {
+SyntaxConfig HLDB[] = {
     // clang
     {.f_type = "c",
      .f_match = C_HL_EXTENSIONS,
@@ -77,7 +77,7 @@ void syntax_resolve(void) {
   char *ext = strchr(T.filename, '.');
 
   for (unsigned int j = 0; j < HLDB_ENTRIES; j++) {
-    syntax_config *s = &HLDB[j];
+    SyntaxConfig *s = &HLDB[j];
     unsigned int i = 0;
 
     // iter ea hldb entry; check for match; set syntax accordingly
@@ -91,7 +91,7 @@ void syntax_resolve(void) {
         // re-highlight all text; this ensures a file that acquires a file type
         // only after being saved is then highlighted
         int f_row;
-        for (f_row = 0; f_row < T.numrows; f_row++) {
+        for (f_row = 0; f_row < T.num_rows; f_row++) {
           syntax_highlight(&T.row[f_row]);
         }
 
@@ -282,7 +282,7 @@ void syntax_highlight(Row *row) {
   row->hl_open_comment = in_comment;
 
   // as long as ml comment state is open, we continue updating
-  if (changed && row->idx + 1 < T.numrows) {
+  if (changed && row->idx + 1 < T.num_rows) {
     syntax_highlight(&T.row[row->idx + 1]);
   }
 }

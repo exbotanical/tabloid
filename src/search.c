@@ -25,8 +25,8 @@ void search(void) {
   // persist original cursor pos for cases where the user aborts the search
   int saved_cx = T.curs_x;
   int saved_cy = T.curs_y;
-  int saved_col = T.coloff;
-  int saved_row = T.rowoff;
+  int saved_col = T.col_offset;
+  int saved_row = T.row_offset;
 
   char* query = status_prompt("Search: %s (ESC/Arrows/Enter)", eager_search);
 
@@ -37,8 +37,8 @@ void search(void) {
     // restore OG pos
     T.curs_x = saved_cx;
     T.curs_y = saved_cy;
-    T.coloff = saved_col;
-    T.rowoff = saved_row;
+    T.col_offset = saved_col;
+    T.row_offset = saved_row;
   }
 }
 
@@ -52,15 +52,15 @@ void search(void) {
  */
 void eager_search(char* query, int key) {
   static int last_match =
-      -1; /**< captures the row index where the last match resides */
+      -1; /** captures the row index where the last match resides */
   static int dir =
-      1; /**< store the direction of the search - 1 forward, -1 backward */
+      1; /** store the direction of the search - 1 forward, -1 backward */
 
   // here, we persist the search match line before highlighting it
   // so we can remove the highlighting once the user has finished search mode
-  static int lineno_hl; /**< store the lineno we will be restoring */
+  static int lineno_hl; /** store the lineno we will be restoring */
   static char*
-      line_hl; /**< store the given line as it was before highlighting */
+      line_hl; /** store the given line as it was before highlighting */
 
   // if we have a line to restore back to default color,
   // we `memcpy` it to the saved line's highlight storage and dealloc
@@ -89,18 +89,18 @@ void eager_search(char* query, int key) {
   }
 
   if (last_match == -1) dir = 1;
-  int curr = last_match; /**< Row index of the row currently being searched */
+  int curr = last_match; /** Row index of the row currently being searched */
 
   int i;
 
   // check ea row buffer for a match
-  for (i = 0; i < T.numrows; i++) {
+  for (i = 0; i < T.num_rows; i++) {
     curr += dir;
 
     // support cycling through matches
     if (curr == -1)
-      curr = T.numrows - 1;
-    else if (curr == T.numrows)
+      curr = T.num_rows - 1;
+    else if (curr == T.num_rows)
       curr = 0;
 
     Row* row = &T.row[curr];
@@ -115,7 +115,7 @@ void eager_search(char* query, int key) {
       T.curs_x = ridx_to_cidx(row, match - row->render);
       // scroll to very bottom; this will cause the scroller to position the
       // match at the top of the viewport
-      T.rowoff = T.numrows;
+      T.row_offset = T.num_rows;
 
       // set the matched lineno that will be highlighted
       lineno_hl = curr;

@@ -136,7 +136,7 @@ void keypress_process(void) {
       break;
 
     case END:
-      if (T.curs_y < T.numrows) {
+      if (T.curs_y < T.num_rows) {
         T.curs_x = T.row[T.curs_y].size;
       }
       break;
@@ -158,14 +158,14 @@ void keypress_process(void) {
     case PG_U:
     case PG_D: {
       if (c == PG_U) {
-        T.curs_y = T.rowoff;
+        T.curs_y = T.row_offset;
       } else if (c == PG_D) {
-        T.curs_y = T.rowoff + T.screenrows - 1;
+        T.curs_y = T.row_offset + T.screen_rows - 1;
 
-        if (T.curs_y > T.numrows) T.curs_y = T.numrows;
+        if (T.curs_y > T.num_rows) T.curs_y = T.num_rows;
       }
 
-      int cycles = T.screenrows;
+      int cycles = T.screen_rows;
       while (cycles--) {
         cursor_mv(c == PG_U ? ARR_U : ARR_D);
       }

@@ -30,14 +30,14 @@
  * @param len
  */
 void insert_row(int at, const char* const s, size_t len) {
-  if (at < 0 || at > T.numrows) return;
+  if (at < 0 || at > T.num_rows) return;
   // num bytes `Row` takes * the num of desired rows
-  T.row = realloc(T.row, sizeof(Row) * (T.numrows + 1));
+  T.row = realloc(T.row, sizeof(Row) * (T.num_rows + 1));
   // alloc mem at the specified `at` idx for the new row
-  memmove(&T.row[at + 1], &T.row[at], sizeof(Row) * (T.numrows - at));
+  memmove(&T.row[at + 1], &T.row[at], sizeof(Row) * (T.num_rows - at));
 
   // update all row indices
-  for (int j = at + 1; j <= T.numrows; j++) T.row[j].idx++;
+  for (int j = at + 1; j <= T.num_rows; j++) T.row[j].idx++;
 
   // set current idx when row is inserted
   T.row[at].idx = at;
@@ -58,7 +58,7 @@ void insert_row(int at, const char* const s, size_t len) {
 
   update_row(&T.row[at]);
 
-  T.numrows++;
+  T.num_rows++;
   T.dirty++;
 }
 
@@ -165,15 +165,15 @@ void free_row(Row* row) {
  * @param at
  */
 void rm_row(int at) {
-  if (at < 0 || at > T.numrows) return;
+  if (at < 0 || at > T.num_rows) return;
 
   free_row(&T.row[at]);
-  memmove(&T.row[at], &T.row[at + 1], sizeof(Row) * (T.numrows - at - 1));
+  memmove(&T.row[at], &T.row[at + 1], sizeof(Row) * (T.num_rows - at - 1));
 
   // update all row indices
-  for (int j = at; j < T.numrows - 1; j++) T.row[j].idx--;
+  for (int j = at; j < T.num_rows - 1; j++) T.row[j].idx--;
 
-  T.numrows--;
+  T.num_rows--;
   T.dirty++;
 }
 
@@ -237,8 +237,8 @@ void insert_nl(void) {
  */
 void insert_char(int c) {
   // if cursor is line after EOD, append new row prior to inserting
-  if (T.curs_y == T.numrows) {
-    insert_row(T.numrows, "", 0);
+  if (T.curs_y == T.num_rows) {
+    insert_row(T.num_rows, "", 0);
   }
 
   insert_char_at_row(&T.row[T.curs_y], T.curs_x, c);
@@ -251,7 +251,7 @@ void insert_char(int c) {
  */
 void rm_char(void) {
   // if we're past EOF, return
-  if (T.curs_y == T.numrows) return;
+  if (T.curs_y == T.num_rows) return;
   // if we're at line begin, return
   if (T.curs_x == 0 && T.curs_y == 0) return;
 
