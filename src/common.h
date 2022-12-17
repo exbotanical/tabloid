@@ -157,7 +157,7 @@ struct TtyConfig {
 
   int screen_rows;
 
-  int screencols;
+  int screen_cols;
 
   /**
    * @brief Cursor indices - chars on Cartesian plane
@@ -189,9 +189,9 @@ struct TtyConfig {
    */
   char* filename;
 
-  char statusmsg[80];
+  char status_msg[80];
 
-  time_t statusmsg_time;
+  time_t status_msg_time;
 
   /**
    * @brief Track file state

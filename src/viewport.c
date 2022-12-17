@@ -249,7 +249,7 @@ void scroll(void) {
     T.col_offset = T.render_x;
   }
 
-  if (T.render_x >= T.col_offset + T.screencols) {
-    T.col_offset = T.render_x - T.screencols + 1;
+  if (T.render_x >= T.col_offset + T.screen_cols) {
+    T.col_offset = T.render_x - T.screen_cols + 1;
   }
 }

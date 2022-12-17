@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "constants.h"
 #include "editor.h"
 #include "error.h"
 #include "io.h"
@@ -16,7 +17,7 @@ int main(int argc, char* argv[]) {
     f_open(argv[1]);
   }
 
-  set_status_msg("C-s to save | C-c to quit | C-f to search");
+  set_status_msg(INITIAL_VISUAL_MODE_PROMPT);
 
   while (1) {
     clear_screen();

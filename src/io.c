@@ -157,8 +157,8 @@ void f_write(void) {
   int fd = open(T.filename, O_RDWR | O_CREAT, 0644);
 
   if (fd != -1) {
-    // by manually truncating to the same len as the writable data,
-    // we render the overwrite safer in the case that `write` fails
+    // by manually truncating to the same length as the writable data,
+    // we make the overwrite safer in the case that `write` fails
     // (as opposed to passing `O_TRUNC` to `open` directly, which clears all
     // data prior to writing)
     if (ftruncate(fd, len) != -1) {
@@ -204,17 +204,23 @@ char* status_prompt(const char* prompt, void (*cb)(char*, int)) {
 
     // allow backspace in prompt
     if (c == DEL || c == CTRL_KEY('h') || c == BACKSPACE) {
-      if (buflen != 0) buf[--buflen] = NULL_TERMINATOR;
+      if (buflen != 0) {
+        buf[--buflen] = NULL_TERMINATOR;
+      }
     } else if (c == ESCAPE) {  // user hits esc to cancel
       set_status_msg("");
-      if (cb) cb(buf, c);
+      if (cb) {
+        cb(buf, c);
+      }
       free(buf);
 
       return NULL;
     } else if (c == '\r') {
       if (buflen != 0) {
         set_status_msg("");
-        if (cb) cb(buf, c);
+        if (cb) {
+          cb(buf, c);
+        }
 
         return buf;
       }
@@ -229,6 +235,8 @@ char* status_prompt(const char* prompt, void (*cb)(char*, int)) {
       buf[buflen] = NULL_TERMINATOR;
     }
 
-    if (cb) cb(buf, c);
+    if (cb) {
+      cb(buf, c);
+    }
   }
 }

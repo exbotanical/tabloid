@@ -39,6 +39,7 @@ struct TtyConfig T;
  * mode, SIGINT, and SIGTSTP, etc
  */
 void enable_raw_mode(void) {
+  // Get terminal attributes and store them in T
   if (tcgetattr(STDIN_FILENO, &T.og_tty) == -1) {
     panic("tcgetattr");
   }
@@ -54,10 +55,15 @@ void enable_raw_mode(void) {
   // set char size to 8 bits per byte
   raw.c_cflag |= (CS8);
   // modify local mode bitmask
-  raw.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG);
-
-  raw.c_cc[VMIN] = 0;
-  raw.c_cc[VTIME] = 1;
+  raw.c_lflag &=
+      ~(ECHO      // Echo input characters
+        | ICANON  // Enable canonical mode
+        | IEXTEN  // Enable implementation-defined input processing
+        | ISIG    // When any of the characters INTR, QUIT, SUSP, or DSUSP are
+                  // received, generate the corresponding signal);
+      );
+  raw.c_cc[VMIN] = 0;   // Minimum number of characters for non-canonical read
+  raw.c_cc[VTIME] = 1;  // Timeout in deciseconds for non-canonical read
 
   if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw) == -1) {
     panic("tcsetattr");
@@ -90,13 +96,13 @@ void editor_init(void) {
   T.num_rows = 0;
   T.render_x = 0;
   T.row = NULL;
-  T.filename = NULL;  // will remain null if no file loaded - what we want
-  T.statusmsg[0] = NULL_TERMINATOR;  // default to no message at all
-  T.statusmsg_time = 0;
+  T.filename = NULL;                  // will remain null if no file loaded
+  T.status_msg[0] = NULL_TERMINATOR;  // default to no message at all
+  T.status_msg_time = 0;
   T.dirty = 0;
   T.syntax = NULL;  // NULL == no file type detected
 
-  if (get_window_size(&T.screen_rows, &T.screencols) == -1) {
+  if (get_window_size(&T.screen_rows, &T.screen_cols) == -1) {
     panic("get_window_size");
   }
 

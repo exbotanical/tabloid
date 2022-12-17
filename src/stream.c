@@ -165,7 +165,9 @@ void free_row(Row* row) {
  * @param at
  */
 void rm_row(int at) {
-  if (at < 0 || at > T.num_rows) return;
+  if (at < 0 || at > T.num_rows) {
+    return;
+  }
 
   free_row(&T.row[at]);
   memmove(&T.row[at], &T.row[at + 1], sizeof(Row) * (T.num_rows - at - 1));
@@ -251,9 +253,13 @@ void insert_char(int c) {
  */
 void rm_char(void) {
   // if we're past EOF, return
-  if (T.curs_y == T.num_rows) return;
+  if (T.curs_y == T.num_rows) {
+    return;
+  }
   // if we're at line begin, return
-  if (T.curs_x == 0 && T.curs_y == 0) return;
+  if (T.curs_x == 0 && T.curs_y == 0) {
+    return;
+  }
 
   // fetch row of cursor pos
   Row* row = &T.row[T.curs_y];

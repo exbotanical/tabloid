@@ -43,16 +43,18 @@ void draw_rows(Buffer* buffer) {
                                    APP_NAME, APP_VERSION);
 
         // truncate?
-        if (brandingLen > T.screencols) brandingLen = T.screencols;
+        if (brandingLen > T.screen_cols) brandingLen = T.screen_cols;
 
         // padding
-        int padding = (T.screencols - brandingLen) / 2;
+        int padding = (T.screen_cols - brandingLen) / 2;
         if (padding) {
           buffer_append(buffer, "~");
           padding--;
         }
 
-        while (padding--) buffer_append(buffer, " ");
+        while (padding--) {
+          buffer_append(buffer, " ");
+        }
         buffer_append_with(buffer, branding, brandingLen);
       } else {
         buffer_append(buffer, "~");
@@ -61,8 +63,12 @@ void draw_rows(Buffer* buffer) {
       // subtract num of chars to left of the col offset from the row len
       int len = T.row[filerow].rsize - T.col_offset;
 
-      if (len < 0) len = 0;  // correct horizontal pos
-      if (len > T.screencols) len = T.screencols;
+      if (len < 0) {
+        len = 0;  // correct horizontal pos
+      }
+      if (len > T.screen_cols) {
+        len = T.screen_cols;
+      }
 
       /* syntax highlighting */
       char* c = &T.row[filerow].render[T.col_offset];
@@ -142,14 +148,16 @@ void draw_msg_bar(Buffer* buffer) {
   // clear message bar
   buffer_append(buffer, "\x1b[K");
 
-  int msglen = strlen(T.statusmsg);
+  int msglen = strlen(T.status_msg);
 
   // ensure it fits
-  if (msglen > T.screencols) msglen = T.screencols;
+  if (msglen > T.screen_cols) {
+    msglen = T.screen_cols;
+  }
 
   // only display message if it is less than 5s old
-  if (msglen && time(NULL) - T.statusmsg_time < 5) {
-    buffer_append_with(buffer, T.statusmsg, msglen);
+  if (msglen && time(NULL) - T.status_msg_time < 5) {
+    buffer_append_with(buffer, T.status_msg, msglen);
   }
 }
 
@@ -177,12 +185,14 @@ void draw_status_bar(Buffer* buffer) {
                       T.curs_y + 1, T.num_rows);
 
   // truncate
-  if (len > T.screencols) len = T.screencols;
+  if (len > T.screen_cols) {
+    len = T.screen_cols;
+  }
   buffer_append_with(buffer, status, len);
 
-  while (len < T.screencols) {
+  while (len < T.screen_cols) {
     // print spaces until we hit the second status str
-    if (T.screencols - len == rlen) {
+    if (T.screen_cols - len == rlen) {
       buffer_append_with(buffer, rstatus, rlen);
       break;
     } else {
@@ -193,7 +203,6 @@ void draw_status_bar(Buffer* buffer) {
 
   // clear formatting
   buffer_append(buffer, "\x1b[m");
-
   // print NL after first status bar
   buffer_append(buffer, "\r\n");
 }
@@ -207,13 +216,9 @@ void draw_status_bar(Buffer* buffer) {
 void set_status_msg(const char* fmt, ...) {
   va_list ap;
   va_start(ap, fmt);
-
-  // va_arg(&fmt);
-
   // this calls `va_arg` for us
-  vsnprintf(T.statusmsg, sizeof(T.statusmsg), fmt, ap);
-
+  vsnprintf(T.status_msg, sizeof(T.status_msg), fmt, ap);
   va_end(ap);
 
-  T.statusmsg_time = time(NULL);
+  T.status_msg_time = time(NULL);
 }

@@ -43,8 +43,13 @@ int keypress_read(void) {
   if (c == ESCAPE) {
     char seq[3];
 
-    if (NEQ_1(read(STDIN_FILENO, &seq[0], 1))) return ESCAPE;
-    if (NEQ_1(read(STDIN_FILENO, &seq[1], 1))) return ESCAPE;
+    if (NEQ_1(read(STDIN_FILENO, &seq[0], 1))) {
+      return ESCAPE;
+    }
+
+    if (NEQ_1(read(STDIN_FILENO, &seq[1], 1))) {
+      return ESCAPE;
+    }
 
     if (seq[0] == '[') {
       if (seq[1] >= 0 && seq[1] <= '9') {
@@ -150,7 +155,9 @@ void keypress_process(void) {
     case CTRL_KEY('h'):
     case DEL:
       // del char to right of cursor
-      if (c == DEL) cursor_mv(ARR_R);
+      if (c == DEL) {
+        cursor_mv(ARR_R);
+      }
       rm_char();
       break;
 

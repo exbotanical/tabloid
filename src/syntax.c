@@ -117,7 +117,9 @@ void syntax_highlight(Row *row) {
   row->highlight = realloc(row->highlight, row->rsize);
   memset(row->highlight, HL_DEFAULT, row->rsize);
 
-  if (!T.syntax) return;
+  if (!T.syntax) {
+    return;
+  }
 
   // pull keyword matches
   char **keywords = T.syntax->keywords;
