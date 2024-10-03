@@ -1,3 +1,7 @@
-tabloid
+*.a
+*.o
+*.so
 .vscode
-deps
+obj
+tabloid*
+*.log

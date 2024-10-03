@@ -1,201 +1,151 @@
-/**
- * @file keypress.c
- * @author goldmund
- * @brief Handles keypress processing
- * @version 0.1
- * @date 2021-07-05
- *
- * @copyright Copyright (c) 2021 Matthew Zito (goldmund)
- *
- */
-
 #include "keypress.h"
 
 #include <errno.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "common.h"
-#include "error.h"
-#include "io.h"
-#include "render.h"
-#include "search.h"
-#include "stream.h"
-#include "viewport.h"
+#include "cursor.h"
+#include "editor.h"
+#include "exception.h"
+#include "globals.h"
+#include "window.h"
 
-/**
- * @brief Wait for keypress from stdin and passthrough
- *
- * @return int returned, keypress enum or escape sequence
- */
-int keypress_read(void) {
-  int nread;
+static int
+keypress_read (void) {
+  int  bytes_read;
   char c;
 
-  while (NEQ_1(nread = read(STDIN_FILENO, &c, 1))) {
-    // ignore EAGAIN as cygwin returns -1 here, because...Windows
-    if (nread == -1 && errno != EAGAIN) {
-      panic("read");
+  while ((bytes_read = read(STDIN_FILENO, &c, 1)) != 1) {
+    if (bytes_read == -1 && errno != EAGAIN) {
+      panic("read failed and returned %d\n", bytes_read);
     }
   }
 
-  // read the given escape sequence
-  if (c == ESCAPE) {
+  // If the char is an escape sequence...
+  if (c == ESCAPE_SEQ_CHAR) {
     char seq[3];
 
-    if (NEQ_1(read(STDIN_FILENO, &seq[0], 1))) {
-      return ESCAPE;
+    // Nothing else; just an esc seq literal
+    if (read(STDIN_FILENO, &seq[0], 1) != 1) {
+      return ESCAPE_SEQ_CHAR;
+    }
+    if (read(STDIN_FILENO, &seq[1], 1) != 1) {
+      return ESCAPE_SEQ_CHAR;
     }
 
-    if (NEQ_1(read(STDIN_FILENO, &seq[1], 1))) {
-      return ESCAPE;
-    }
-
+    // If the first byte is a [...
     if (seq[0] == '[') {
-      if (seq[1] >= 0 && seq[1] <= '9') {
-        if (NEQ_1(read(STDIN_FILENO, &seq[2], 1))) return ESCAPE;
+      // If the second byte is a digit...
+      if (seq[1] >= '0' && seq[1] <= '9') {
+        if (read(STDIN_FILENO, &seq[2], 1) != 1) {
+          return ESCAPE_SEQ_CHAR;
+        }
+
         if (seq[2] == '~') {
           switch (seq[1]) {
+            case '3': return DELETE;
             case '1':
-              return HOME;
-            case '3':
-              return DEL;
+            case '7': return HOME;
             case '4':
-              return END;
-            case '5':
-              return PG_U;
-            case '6':
-              return PG_D;
-            case '7':
-              return HOME;
-            case '8':
-              return END;
+            case '8': return END;
+            case '5': return PAGE_UP;
+            case '6': return PAGE_DOWN;
           }
         }
       } else {
         switch (seq[1]) {
-          case 'A':
-            return ARR_U;
-          case 'B':
-            return ARR_D;
-          case 'C':
-            return ARR_R;
-          case 'D':
-            return ARR_L;
-          case 'H':
-            return HOME;
-          case 'F':
-            return END;
+          case 'A': return ARROW_UP;
+          case 'B': return ARROW_DOWN;
+          case 'C': return ARROW_RIGHT;
+          case 'D': return ARROW_LEFT;
+          case 'H': return HOME;
+          case 'F': return END;
         }
       }
     } else if (seq[0] == 'O') {
       switch (seq[1]) {
-        case 'H':
-          return HOME;
-        case 'F':
-          return END;
+        case 'H': return HOME;
+        case 'F': return END;
       }
     }
 
-    return ESCAPE;
-  } else {
-    return c;
+    return ESCAPE_SEQ_CHAR;
   }
+
+  return c;
 }
 
-/**
- * @brief Process keypresses by mapping various ctrl keys et al to tty
- * functionality
- */
-void keypress_process(void) {
+void
+keypress_handle (void) {
   int c = keypress_read();
-  static int quit_x = CONFIRM_QUIT_X;
+  logger.write("Keypress: %d\n", c);
 
   switch (c) {
-    case '\r':
-      insert_nl();
-      break;
-
-    case CTRL_KEY('c'):
-      if (T.dirty && quit_x > 0) {
-        set_status_msg(
-            "File has unsaved changes - press Ctrl-c %d more times to quit",
-            quit_x);
-
-        quit_x--;
-        return;
-      }
-      // clean
-      write(STDOUT_FILENO, "\x1b[2J", 4);
-      write(STDOUT_FILENO, "\x1b[H", 3);
-
+    // TODO: dyn
+    case CTRL_KEY('q'): {
       exit(0);
-      break;
+    }
 
-    case CTRL_KEY('s'):
-      f_write();
-      break;
-
-    case HOME:
-      T.curs_x = 0;
-      break;
-
-    case END:
-      if (T.curs_y < T.num_rows) {
-        T.curs_x = T.row[T.curs_y].size;
-      }
-      break;
-
-    // search
-    case CTRL_KEY('f'):
-      search();
-      break;
+      // Enter key
+    case '\r': editor_insert_newline(); break;
 
     case BACKSPACE:
-    case CTRL_KEY('h'):
-    case DEL:
-      // del char to right of cursor
-      if (c == DEL) {
-        cursor_mv(ARR_R);
-      }
-      rm_char();
+    // Ctrl+h aka ctrl code 8 aka backspace
+    case CTRL_KEY('h'): editor_del_char(); break;
+
+    case DELETE:
+      cursor_move_right();
+      editor_del_char();
       break;
 
-    // pos cursor at top or bottom of viewport
-    case PG_U:
-    case PG_D: {
-      if (c == PG_U) {
-        T.curs_y = T.row_offset;
-      } else if (c == PG_D) {
-        T.curs_y = T.row_offset + T.screen_rows - 1;
-
-        if (T.curs_y > T.num_rows) T.curs_y = T.num_rows;
-      }
-
-      int cycles = T.screen_rows;
-      while (cycles--) {
-        cursor_mv(c == PG_U ? ARR_U : ARR_D);
-      }
+    case PAGE_UP: {
+      cursor_move_visible_top();
+      break;
+    }
+    case PAGE_DOWN: {
+      cursor_move_visible_bottom();
+      break;
+    }
+    case HOME: {
+      cursor_move_begin();
+      break;
+    }
+    case END: {
+      cursor_move_end();
       break;
     }
 
-    case ARR_U:
-    case ARR_D:
-    case ARR_R:
-    case ARR_L:
-      cursor_mv(c);
+    case ARROW_LEFT: {
+      cursor_move_left();
       break;
+    }
+    case ARROW_RIGHT: {
+      cursor_move_right();
+      break;
+    }
+    case ARROW_UP: {
+      cursor_move_up();
+      break;
+    }
+    case ARROW_DOWN: {
+      cursor_move_down();
+      break;
+    }
 
-    // ignore unimplemented escape sequences
-    // ignore C-l, as this editor refreshes after ea keypress
     case CTRL_KEY('l'):
-    case '\x1b':
-      break;
+    case '\x1b': break;
 
-    default:
-      insert_char(c);
+    default: {
+      // Ignore unknown ctrl sequences
+      if ((c & 0x1F) == c) {
+        break;
+      }
+
+      editor_insert_char(c);
       break;
+    }
   }
 
-  quit_x = CONFIRM_QUIT_X;
+  cursor_snap_to_end();
 }

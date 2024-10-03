@@ -1,7 +1,8 @@
 # TODOs
-
-- [ ] Refactor Makefile to include deps as dynamically linked library
-- [ ] Vim-like write/quit
+- [ ] status bar
+- [ ] file I/O
+- [ ] history (undo/redo stack)
+- [ ] command mode
+- [ ] keybindings config support
+  - [ ] default keybindings/config
 - [ ] LSP support
-- [ ] Config w/ line number and tab char/size opts
-- [ ] debug file
