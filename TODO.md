@@ -6,3 +6,9 @@
 - [ ] keybindings config support
   - [ ] default keybindings/config
 - [ ] LSP support
+- [ ] line numbers
+- [ ] terminfo
+- [ ] modes (editor, command)
+- [ ] plugins system
+  - [ ] git
+  - [ ] search
