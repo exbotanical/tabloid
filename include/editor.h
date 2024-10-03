@@ -34,14 +34,20 @@ typedef struct {
 } buffer_state_t;
 
 typedef struct {
-  cursor_t       curs;
-  window_t       win;
-  buffer_state_t buf;
-  tty_t          tty;
-  config_t       config;
-  file_handle_t  f;
+  // TODO:
+  char msg[64];
+} statusbar_state_t;
+
+typedef struct {
+  cursor_t          curs;
+  window_t          win;
+  buffer_state_t    buf;
+  tty_t             tty;
+  config_t          config;
+  file_handle_t     f;
+  statusbar_state_t sbar;
   // ???
-  unsigned int   renderx;
+  unsigned int      renderx;
 } editor_t;
 
 void editor_init(void);

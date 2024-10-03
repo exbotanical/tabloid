@@ -1,6 +1,8 @@
 #include "window.h"
 
+#include <stdarg.h>
 #include <stdio.h>
+#include <string.h>
 #include <unistd.h>
 
 #include "cursor.h"
@@ -83,8 +85,10 @@ static void
 window_draw_status_bar (buffer_t* buf) {
   buffer_append(buf, ESCAPE_SEQ_INVERT_COLOR);
 
+  buffer_append(buf, editor.sbar.msg);
+
   unsigned int len = 0;
-  while (len < editor.win.cols) {
+  while (len < editor.win.cols - strlen(editor.sbar.msg)) {
     buffer_append(buf, " ");
     len++;
   }
@@ -156,4 +160,12 @@ void
 window_clear (void) {
   write(STDOUT_FILENO, ESCAPE_SEQ_CLEAR_SCREEN, 4);
   write(STDOUT_FILENO, ESCAPE_SEQ_CURSOR_POS, 3);
+}
+
+void
+window_set_status_bar_msg (const char* fmt, ...) {
+  va_list ap;
+  va_start(ap, fmt);
+  vsnprintf(editor.sbar.msg, sizeof(editor.sbar.msg), fmt, ap);
+  va_end(ap);
 }

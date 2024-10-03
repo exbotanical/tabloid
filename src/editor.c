@@ -206,6 +206,7 @@ editor_init (void) {
 
   // Subtract 1 for the status bar
   editor.win.rows         -= 1;
+  editor.sbar.msg[0]       = '\0';
 }
 
 void

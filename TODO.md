@@ -12,3 +12,4 @@
 - [ ] plugins system
   - [ ] git
   - [ ] search
+- [ ] fix scroll out / capture window
