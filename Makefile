@@ -18,20 +18,21 @@ UNIT_TESTS  := $(wildcard $(TESTDIR)/unit/*.c)
 TEST_DEPS   := $(wildcard $(DEPSDIR)/tap.c/*.c)
 DEPS        := $(filter-out $(wildcard $(DEPSDIR)/tap.c/*), $(wildcard $(DEPSDIR)/*/*.c))
 
+LIBS        := -lm
 INCLUDES    := -I$(INCDIR) -I$(DEPSDIR) -I$(SRCDIR)
 CFLAGS      := -Wall -Wextra -pedantic $(INCLUDES)
 
 all: $(TARGET)
 
 $(TARGET): $(SRC) $(DEPS)
-	$(CC) $(CFLAGS) $^  -o $@
+	$(CC) $(CFLAGS) $^ $(LIBS) -o $@
 
 test:
 	@$(MAKE) unit_test
 	@$(MAKE) integ_test
 
 unit_test: $(UNIT_TESTS) $(TEST_DEPS) $(DEPS) $(SRC_NOMAIN)
-	$(CC) $(CFLAGS) $^ -o $(UNIT_TARGET)
+	$(CC) $(CFLAGS) $^ $(LIBS) -o $(UNIT_TARGET)
 	@./$(UNIT_TARGET)
 	@$(MAKE) clean
 

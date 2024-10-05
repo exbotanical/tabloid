@@ -1,7 +1,9 @@
 #include "window.h"
 
+#include <math.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -10,6 +12,8 @@
 #include "globals.h"
 #include "keypress.h"
 #include "libutil/libutil.h"
+
+unsigned int line_pad = 0;
 
 /**
  * Convert raw buffer index into a render buffer index.
@@ -28,15 +32,14 @@ get_renderx (row_buffer_t* row, unsigned int cursx) {
     renderx++;
   }
 
-  return renderx;
+  return renderx + (line_pad > 0 ? line_pad : DEFAULT_LNPAD) + 1;
 }
 
 static void
 window_scroll (void) {
-  editor.renderx = 0;
+  // editor.renderx = 0;
   if (cursor_on_content_line()) {
-    editor.renderx
-      = get_renderx(&editor.buf.rows[editor.curs.y], editor.curs.x);
+    editor.renderx = get_renderx(&editor.buf.rows[editor.curs.y], editor.curs.x);
   }
 
   // Check if the cursor is above the visible window; if so, scroll up to it.
@@ -61,8 +64,7 @@ window_scroll (void) {
 static void
 window_draw_splash (buffer_t* buf) {
   char splash[80];
-  int  splash_len
-    = snprintf(splash, sizeof(splash), "Tabloid - version %s", TABLOID_VERSION);
+  int splash_len = snprintf(splash, sizeof(splash), "Tabloid - version %s", TABLOID_VERSION);
 
   if (splash_len > editor.win.cols) {
     splash_len = editor.win.cols;
@@ -87,10 +89,8 @@ window_draw_status_bar (buffer_t* buf) {
 
   buffer_append(buf, editor.sbar.msg);
 
-  unsigned int len = 0;
-  while (len < editor.win.cols - strlen(editor.sbar.msg)) {
+  for (unsigned int len = 0; len < editor.win.cols - strlen(editor.sbar.msg); len++) {
     buffer_append(buf, " ");
-    len++;
   }
 
   buffer_append(buf, ESCAPE_SEQ_NORM_COLOR);
@@ -110,7 +110,16 @@ window_draw_row (buffer_t* buf, row_buffer_t* row) {
 }
 
 static void
+window_draw_lineno (buffer_t* buf, unsigned int lineno) {}
+
+static void
 window_draw_rows (buffer_t* buf) {
+  unsigned int lineno = 0;
+  line_pad            = log10(editor.buf.num_rows) + 1;
+  if (line_pad < DEFAULT_LNPAD) {
+    line_pad = DEFAULT_LNPAD;
+  }
+
   // For every row in the entire window...
   for (unsigned int y = 0; y < editor.win.rows; y++) {
     // Grab the visible row
@@ -124,6 +133,11 @@ window_draw_rows (buffer_t* buf) {
         buffer_append(buf, editor.config.ln_prefix);
       }
     } else {
+      char* lineno_str = s_fmt("%*ld ", line_pad, ++lineno);
+
+      buffer_append(buf, lineno_str);
+      free(lineno_str);
+
       // Has row content; render it...
       row_buffer_t current_row = editor.buf.rows[visible_row_idx];
       window_draw_row(buf, &current_row);

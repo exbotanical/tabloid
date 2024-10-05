@@ -12,4 +12,5 @@
 - [ ] plugins system
   - [ ] git
   - [ ] search
-- [ ] fix scroll out / capture window
+- [x] fix scroll out / capture window
+- [ ] bounded / max size guards

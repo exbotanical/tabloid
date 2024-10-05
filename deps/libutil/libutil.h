@@ -7,6 +7,7 @@ extern "C" {
 
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdio.h>
 
 #ifndef LIB_UTIL_ARRAY_CAPACITY_INCR
 #define LIB_UTIL_ARRAY_CAPACITY_INCR 4
@@ -29,6 +30,7 @@ typedef void *callback_t(void *el, unsigned int index, array_t *array);
 typedef bool predicate_t(void *el, unsigned int index, array_t *array,
                          void *compare_to);
 typedef bool comparator_t(void *el, void *compare_to);
+typedef void free_fn(void *el);
 
 // An int comparator that implements the comparator_t interface
 bool int_comparator(int a, int b);
@@ -68,6 +70,8 @@ bool str_comparator(char *a, char *b);
  * Note: This method will NOT work with a list ending in NULL.
  *
  * Example: array_t* arr = array_collect("hello", "world");
+ *
+ * Caller is responsible for `free`-ing the returned pointer.
  */
 #define array_collect(...) __array_collect(__VA_ARGS__, NULL)
 
@@ -84,6 +88,8 @@ void *array_get(array_t *array, int index);
 
 /**
  * array_init initializes and returns a new array_t*.
+ *
+ * Caller is responsible for `free`-ing the returned pointer.
  */
 array_t *array_init(void);
 
@@ -132,6 +138,8 @@ void *array_shift(array_t *array);
  * array object selected from start to end (end not included) where start and
  * end represent the indices of items in that array. The original array will not
  * be modified.
+ *
+ * Caller is responsible for `free`-ing the returned pointer.
  */
 array_t *array_slice(array_t *array, unsigned int start, int end);
 
@@ -164,21 +172,17 @@ void array_foreach(array_t *array, callback_t *callback);
 /**
  * array_concat concatenates two arrays, returning a new array of [...arr1,
  * ...arr2]. The original arrays are not modified.
+ *
+ * Caller is responsible for `free`-ing the returned pointer.
  */
 array_t *array_concat(array_t *arr1, array_t *arr2);
 
 /**
  * array_free frees the array and its internal state container. Safe to use
- * with an array of primitives.
+ * with an array of primitives. Accepts an optional function pointer if you want
+ * all values to be freed.
  */
-void array_free(array_t *array);
-
-/**
- * array_free_ptrs frees the array, its elements, and its internal state
- * container. NOT safe to use with an array of primitives; only for use with an
- * array whose elements are pointers.
- */
-void array_free_ptrs(array_t *array);
+void array_free(array_t *array, free_fn *free_fnptr);
 
 typedef struct {
   char *state;
@@ -199,6 +203,8 @@ char *buffer_state(buffer_t *buf);
 
 /**
  * buffer_init initializes and returns a new buffer_t*.
+ *
+ * Caller is responsible for `free`-ing the returned pointer.
  */
 buffer_t *buffer_init(const char *init);
 
@@ -218,6 +224,8 @@ bool buffer_append_with(buffer_t *buf, const char *s, unsigned int len);
 /**
  * buffer_concat concatenates two buffers and returns them as a new buffer. Does
  * not modify the given buffers.
+ *
+ * Caller is responsible for `free`-ing the returned pointer.
  */
 buffer_t *buffer_concat(buffer_t *buf_a, buffer_t *buf_b);
 
@@ -228,21 +236,29 @@ void buffer_free(buffer_t *buf);
 
 /**
  * Returns a formatted string. Uses printf syntax.
+ *
+ * Caller is responsible for `free`-ing the returned pointer.
  */
-char *fmt_str(char *fmt, ...);
+char *s_fmt(char *fmt, ...);
 
 /**
  * s_truncate truncates the given string `s` by `n` characters.
+ *
+ * Caller is responsible for `free`-ing the returned pointer.
  */
 char *s_truncate(const char *s, int n);
 
 /**
  * s_concat concatenates two strings `s1` and `s2` in that order.
+ *
+ * Caller is responsible for `free`-ing the returned pointer.
  */
 char *s_concat(const char *s1, const char *s2);
 
 /**
  * s_copy returns a copy of given string `str`. Compare to strdup.
+ *
+ * Caller is responsible for `free`-ing the returned pointer.
  */
 char *s_copy(const char *s);
 
@@ -259,6 +275,8 @@ int s_indexof(const char *str, const char *target);
  * The start index is always inclusive.
  * The third argument `inclusive` is a boolean flag indicating whether the
  * substring match should be end-inclusive.
+ *
+ * Caller is responsible for `free`-ing the returned pointer.
  */
 char *s_substr(const char *s, int start, int end, bool inclusive);
 
@@ -270,6 +288,8 @@ bool s_casecmp(const char *s1, const char *s2);
 
 /**
  * s_upper converts the given string `s` to uppercase.
+ *
+ * Caller is responsible for `free`-ing the returned pointer.
  */
 char *s_upper(const char *s);
 
@@ -286,14 +306,38 @@ bool s_nullish(const char *s);
 
 /**
  * s_trim returns a copy of the string `s` with all whitespace removed.
+ *
+ * Caller is responsible for `free`-ing the returned pointer.
  */
 char *s_trim(const char *s);
 
 /**
  * s_split splits a string on all instances of a delimiter.
  * Returns an array_t* of matches, if any, or NULL if erroneous.
+ *
+ * Caller is responsible for `free`-ing the returned pointer.
  */
 array_t *s_split(const char *s, const char *delim);
+
+#ifndef READ_ALL_CHUNK_SZ
+#define READ_ALL_CHUNK_SZ 262144
+#endif
+
+typedef enum {
+  READ_ALL_OK = 0,          // Success
+  READ_ALL_INVALID = -1,    // Bad input
+  READ_ALL_ERR = -2,        // Stream err
+  READ_ALL_TOO_LARGE = -3,  // Input too large
+  READ_ALL_NOMEM = -4       // Out of memory
+} read_all_result;
+
+/**
+ * TODO:
+ *
+ * @param fd
+ * @return char*
+ */
+read_all_result read_all(FILE *fd, char **data_ptr, size_t *sz_ptr);
 
 #ifdef __cplusplus
 }

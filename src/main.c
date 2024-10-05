@@ -22,6 +22,7 @@ main (int argc, char const *argv[]) {
   logger.open();
   atexit(logger.close);
 
+  tty_clear();
   tty_enable_raw_mode();
   atexit(window_clear);
   atexit(tty_disable_raw_mode);

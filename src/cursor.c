@@ -5,6 +5,7 @@
 #include <unistd.h>
 
 #include "editor.h"
+#include "globals.h"
 #include "keypress.h"
 #include "tty.h"
 
@@ -23,6 +24,11 @@ cursor_on_first_line (void) {
 bool
 cursor_on_first_col (void) {
   return editor.curs.x == 0;
+}
+
+bool
+cursor_on_last_line (void) {
+  return editor.curs.y == editor.buf.num_rows - 1;
 }
 
 bool
@@ -47,8 +53,9 @@ cursor_right_of_visible_window (void) {
 
 void
 cursor_move_down (void) {
-  if (editor.curs.y < editor.buf.num_rows) {
+  if (editor.curs.y < editor.buf.num_rows - 1) {
     editor.curs.y++;
+    logger.write("y=%d, r=%d\n", editor.curs.y, editor.buf.num_rows);
   }
 }
 
@@ -76,9 +83,11 @@ cursor_move_right (void) {
                         ? NULL
                         : &editor.buf.rows[editor.curs.y];
 
+  logger
+    .write("RIGHT HERE: %d %d %d\n", editor.curs.y, editor.curs.row, editor.buf.num_rows);
   if (row && editor.curs.x < row->raw_sz) {
     editor.curs.x++;
-  } else if (row && editor.curs.x == row->raw_sz) {
+  } else if (row && editor.curs.x == row->raw_sz && !cursor_on_last_line()) {
     // Move to beginning of next line on right from last col
     editor.curs.y++;
     editor.curs.x = 0;
@@ -164,6 +173,7 @@ cursor_get_position (unsigned int *rows, unsigned int *cols) {
 void
 cursor_set_position (buffer_t *buf) {
   char curs[32];
+
   snprintf(
     curs,
     sizeof(curs),

@@ -1,6 +1,8 @@
 #ifndef WINDOW_H
 #define WINDOW_H
 
+#define DEFAULT_LNPAD 3
+
 typedef struct {
   // Num rows in the window
   unsigned int rows;

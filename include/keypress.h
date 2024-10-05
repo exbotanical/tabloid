@@ -7,6 +7,7 @@
 #define ESCAPE_SEQ_CHAR                     '\x1b'
 #define ESCAPE_SEQ                          "\x1b"
 #define ESCAPE_SEQ_CLEAR_SCREEN             ESCAPE_SEQ "[2J"
+#define ESCAPE_SEQ_CLEAR_SCROLLBUF          ESCAPE_SEQ "[3J"
 #define ESCAPE_SEQ_CURSOR_POS               ESCAPE_SEQ "[H"
 #define ESCAPE_SEQ_CURSOR_POS_FMT           ESCAPE_SEQ "[%d;%dH"
 

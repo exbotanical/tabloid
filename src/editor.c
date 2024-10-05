@@ -28,6 +28,7 @@ editor_refresh_row (row_buffer_t *row) {
     // Render tab
     if (row->raw[i] == '\t') {
       row->renderbuf[idx++] = ' ';
+
       while (idx % editor.config.tab_sz != 0) {
         row->renderbuf[idx++] = ' ';
       }
@@ -47,10 +48,7 @@ editor_insert_row (int at, char *s, size_t len) {
   }
 
   // Make room at `at`
-  editor.buf.rows = realloc(
-    editor.buf.rows,
-    sizeof(row_buffer_t) * (editor.buf.num_rows + 1)
-  );
+  editor.buf.rows = realloc(editor.buf.rows, sizeof(row_buffer_t) * (editor.buf.num_rows + 1));
   memmove(
     &editor.buf.rows[at + 1],
     &editor.buf.rows[at],
@@ -127,7 +125,6 @@ editor_row_del_char (row_buffer_t *row, int at) {
 
 void
 editor_insert_char (int c) {
-  logger.write("WRITING CHAR: %c\n", c);
   if (editor.curs.y == editor.buf.num_rows) {
     editor_insert_row(editor.buf.num_rows, "", 0);
   }
@@ -155,11 +152,7 @@ editor_del_char (void) {
   } else {
     // We're at the beginning of the row
     editor.curs.x = editor.buf.rows[editor.curs.y - 1].raw_sz;
-    editor_row_concat(
-      &editor.buf.rows[editor.curs.y - 1],
-      row->raw,
-      row->raw_sz
-    );
+    editor_row_concat(&editor.buf.rows[editor.curs.y - 1], row->raw, row->raw_sz);
     editor_del_row(editor.curs.y);
     editor.curs.y--;
   }
@@ -196,9 +189,9 @@ editor_init (void) {
     panic("Failed call to get terminal window size\n");
   }
 
-  editor.curs              = (cursor_t){ .x = 0, .y = 0, .row = 0, .col = 0 };
+  editor.curs              = (cursor_t){.x = 0, .y = 0, .row = 0, .col = 0};
   editor.buf.num_rows      = 0;
-  editor.renderx           = 0;
+  editor.renderx           = DEFAULT_LNPAD;
   editor.buf.rows          = NULL;
 
   editor.config.tab_sz     = DEFAULT_TAB_SZ;
@@ -207,6 +200,8 @@ editor_init (void) {
   // Subtract 1 for the status bar
   editor.win.rows         -= 1;
   editor.sbar.msg[0]       = '\0';
+
+  editor_insert_row(editor.curs.y, "", 0);
 }
 
 void
@@ -221,8 +216,7 @@ editor_open (const char *filename) {
   ssize_t line_len;
 
   while ((line_len = getline(&line, &max_line_len, fd)) != -1) {
-    while (line_len > 0
-           && (line[line_len - 1] == '\n' || line[line_len - 1] == '\r')) {
+    while (line_len > 0 && (line[line_len - 1] == '\n' || line[line_len - 1] == '\r')) {
       line_len--;
     }
     editor_insert_row(editor.buf.num_rows, line, line_len);

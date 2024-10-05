@@ -10,5 +10,6 @@ typedef struct {
 void tty_enable_raw_mode(void);
 void tty_disable_raw_mode(void);
 int  tty_get_window_sz(unsigned int* rows, unsigned int* cols);
+void tty_clear(void);
 
 #endif /* TTY_H */

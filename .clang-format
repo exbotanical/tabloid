@@ -83,7 +83,7 @@ CommentPragmas: '^ IWYU pragma:'
 CompactNamespaces: false
 ConstructorInitializerIndentWidth: 4
 ContinuationIndentWidth: 2
-Cpp11BracedListStyle: false
+Cpp11BracedListStyle: true
 DerivePointerAlignment: true
 DisableFormat: false
 EmptyLineAfterAccessModifier: Never
@@ -146,13 +146,15 @@ NamespaceIndentation: None
 PPIndentWidth: -1
 PackConstructorInitializers: NextLine
 PenaltyBreakAssignment: 2
-PenaltyBreakBeforeFirstCallParameter: 1
-PenaltyBreakComment: 300
+# I don't like weird line breaks
+PenaltyBreakBeforeFirstCallParameter: 100
+PenaltyBreakComment: 100
 PenaltyBreakFirstLessLess: 120
-PenaltyBreakOpenParenthesis: 0
+# Again - I don't like weird line breaks. It's OK to violate the column width rule a bit.
+PenaltyBreakOpenParenthesis: 1
 PenaltyBreakString: 1000
 PenaltyBreakTemplateDeclaration: 10
-PenaltyExcessCharacter: 1000000
+PenaltyExcessCharacter: 0
 PenaltyIndentedWhitespace: 0
 PenaltyReturnTypeOnItsOwnLine: 200
 PointerAlignment: Left

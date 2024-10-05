@@ -79,7 +79,6 @@ keypress_read (void) {
 void
 keypress_handle (void) {
   int c = keypress_read();
-  logger.write("Keypress: %d\n", c);
 
   switch (c) {
     // TODO: dyn
