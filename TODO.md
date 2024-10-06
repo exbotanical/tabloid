@@ -6,7 +6,7 @@
 - [ ] keybindings config support
   - [ ] default keybindings/config
 - [ ] LSP support
-- [ ] line numbers
+- [x] line numbers
 - [ ] terminfo
 - [ ] modes (editor, command)
 - [ ] plugins system
@@ -14,3 +14,5 @@
   - [ ] search
 - [x] fix scroll out / capture window
 - [ ] bounded / max size guards
+- [ ] unit tests
+- [ ] integ tests

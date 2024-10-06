@@ -36,18 +36,24 @@ typedef struct {
 typedef struct {
   // TODO:
   char msg[64];
-} statusbar_state_t;
+} sbar_state_t;
 
 typedef struct {
-  cursor_t          curs;
-  window_t          win;
-  buffer_state_t    buf;
-  tty_t             tty;
-  config_t          config;
-  file_handle_t     f;
-  statusbar_state_t sbar;
+  // TODO:
+  char msg[64];
+} cmdbar_state_t;
+
+typedef struct {
+  cursor_t       curs;
+  window_t       win;
+  buffer_state_t buf;
+  tty_t          tty;
+  config_t       config;
+  file_handle_t  f;
+  sbar_state_t   sbar;
+  cmdbar_state_t cbar;
   // ???
-  unsigned int      renderx;
+  unsigned int   renderx;
 } editor_t;
 
 void editor_init(void);
@@ -55,5 +61,6 @@ void editor_open(const char* filename);
 void editor_insert_char(int c);
 void editor_del_char(void);
 void editor_insert_newline(void);
+void editor_insert_row(int at, char* s, size_t len);
 
 #endif /* EDITOR_H */

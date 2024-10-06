@@ -12,6 +12,7 @@ typedef struct {
 
 void window_clear(void);
 void window_refresh(void);
-void window_set_status_bar_msg(const char* fmt, ...);
+void window_set_sbar_msg(const char* fmt, ...);
+void window_set_cbar_msg(const char* fmt, ...);
 
 #endif /* WINDOW_H */

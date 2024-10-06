@@ -1,14 +1,16 @@
 {
-  "name": "libtabloid2",
+  "name": "tabloid",
   "version": "0.0.1",
   "author": "Matthew Zito",
-  "repo": "exbotanical/libtabloid2",
+  "repo": "exbotanical/tabloid",
   "license": "MIT",
   "description": "",
   "keywords": [],
-  "src": ["include/libtabloid2.h"],
+  "src": [
+    "include/tabloid.h"
+  ],
   "development": {
-    "thlorenz/tap.c": "*"
+    "exbotanical/libtap": "0.0.5"
   },
   "dependencies": {
     "exbotanical/libutil": "1.0.1"

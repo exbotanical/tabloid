@@ -55,7 +55,6 @@ void
 cursor_move_down (void) {
   if (editor.curs.y < editor.buf.num_rows - 1) {
     editor.curs.y++;
-    logger.write("y=%d, r=%d\n", editor.curs.y, editor.buf.num_rows);
   }
 }
 
@@ -82,9 +81,6 @@ cursor_move_right (void) {
   row_buffer_t *row = (editor.curs.y >= editor.buf.num_rows)
                         ? NULL
                         : &editor.buf.rows[editor.curs.y];
-
-  logger
-    .write("RIGHT HERE: %d %d %d\n", editor.curs.y, editor.curs.row, editor.buf.num_rows);
   if (row && editor.curs.x < row->raw_sz) {
     editor.curs.x++;
   } else if (row && editor.curs.x == row->raw_sz && !cursor_on_last_line()) {
@@ -92,6 +88,83 @@ cursor_move_right (void) {
     editor.curs.y++;
     editor.curs.x = 0;
   }
+}
+
+void
+cursor_move_right_word (void) {
+  row_buffer_t *row = (editor.curs.y >= editor.buf.num_rows)
+                        ? NULL
+                        : &editor.buf.rows[editor.curs.y];
+
+  if (editor.curs.x == row->raw_sz && !cursor_on_last_line()) {
+    editor.curs.y++;
+    editor.curs.x = 0;
+    return;
+  }
+
+  // Jump to end if we're one char away
+  if (editor.curs.x == row->renderbuf_sz - 1) {
+    editor.curs.x = row->renderbuf_sz;
+    return;
+  }
+
+  unsigned int i = editor.curs.x;
+
+  // If the very next char is a break char, jump to the start of the next word
+  if (row->raw[i] == ' ' || row->raw[i] == '\t') {
+    for (; i < row->raw_sz; i++) {
+      if (row->raw[i] != ' ' && row->raw[i] != '\t') {
+        break;
+      }
+    }
+  } else {
+    // Otherwise, if we're on a word, jump to the next break char
+    for (; i < row->raw_sz; i++) {
+      if (row->raw[i] == ' ' || row->raw[i] == '\t') {
+        break;
+      }
+    }
+  }
+
+  editor.curs.x = i;
+}
+
+void
+cursor_move_left_word (void) {
+  row_buffer_t *row = (editor.curs.y >= editor.buf.num_rows)
+                        ? NULL
+                        : &editor.buf.rows[editor.curs.y];
+
+  if (editor.curs.x == 0) {
+    cursor_move_left();
+    return;
+  }
+
+  // Jump to beginning if we're one char away
+  if (editor.curs.x == 1) {
+    editor.curs.x = 0;
+    return;
+  }
+
+  unsigned int i = editor.curs.x;
+
+  // If the preceding char is a break char, jump to the end of the next word
+  if (row->raw[i - 1] == ' ' || row->raw[i - 1] == '\t') {
+    for (; i > 0; i--) {
+      if (row->raw[i - 1] != ' ' && row->raw[i - 1] != '\t') {
+        break;
+      }
+    }
+  } else {
+    // Otherwise, if we're on a word, jump to the prev break char
+    for (; i > 0; i--) {
+      if (row->raw[i - 1] == ' ' || row->raw[i - 1] == '\t') {
+        break;
+      }
+    }
+  }
+
+  editor.curs.x = i;
 }
 
 void

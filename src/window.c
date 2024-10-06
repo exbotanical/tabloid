@@ -88,12 +88,19 @@ window_draw_status_bar (buffer_t* buf) {
   buffer_append(buf, ESCAPE_SEQ_INVERT_COLOR);
 
   buffer_append(buf, editor.sbar.msg);
-
   for (unsigned int len = 0; len < editor.win.cols - strlen(editor.sbar.msg); len++) {
     buffer_append(buf, " ");
   }
 
   buffer_append(buf, ESCAPE_SEQ_NORM_COLOR);
+}
+
+static void
+window_draw_command_bar (buffer_t* buf) {
+  buffer_append(buf, editor.cbar.msg);
+  for (unsigned int len = 0; len < editor.win.cols - strlen(editor.sbar.msg); len++) {
+    buffer_append(buf, " ");
+  }
 }
 
 static void
@@ -161,6 +168,7 @@ window_refresh (void) {
 
   window_draw_rows(buf);
   window_draw_status_bar(buf);
+  window_draw_command_bar(buf);
 
   cursor_set_position(buf);
 
@@ -177,9 +185,17 @@ window_clear (void) {
 }
 
 void
-window_set_status_bar_msg (const char* fmt, ...) {
+window_set_sbar_msg (const char* fmt, ...) {
   va_list ap;
   va_start(ap, fmt);
   vsnprintf(editor.sbar.msg, sizeof(editor.sbar.msg), fmt, ap);
+  va_end(ap);
+}
+
+void
+window_set_cbar_msg (const char* fmt, ...) {
+  va_list ap;
+  va_start(ap, fmt);
+  vsnprintf(editor.cbar.msg, sizeof(editor.cbar.msg), fmt, ap);
   va_end(ap);
 }

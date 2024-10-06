@@ -41,7 +41,7 @@ editor_refresh_row (row_buffer_t *row) {
   row->renderbuf_sz   = idx;
 }
 
-static void
+void
 editor_insert_row (int at, char *s, size_t len) {
   if (at < 0 || at > editor.buf.num_rows) {
     return;
@@ -197,9 +197,10 @@ editor_init (void) {
   editor.config.tab_sz     = DEFAULT_TAB_SZ;
   editor.config.ln_prefix  = DEFAULT_LINE_PREFIX;
 
-  // Subtract 1 for the status bar
-  editor.win.rows         -= 1;
+  // Subtract for the status bar
+  editor.win.rows         -= 2;
   editor.sbar.msg[0]       = '\0';
+  editor.cbar.msg[0]       = '\0';
 
   editor_insert_row(editor.curs.y, "", 0);
 }

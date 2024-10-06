@@ -20,7 +20,7 @@ DEPS        := $(filter-out $(wildcard $(DEPSDIR)/tap.c/*), $(wildcard $(DEPSDIR
 
 LIBS        := -lm
 INCLUDES    := -I$(INCDIR) -I$(DEPSDIR) -I$(SRCDIR)
-CFLAGS      := -Wall -Wextra -pedantic $(INCLUDES)
+CFLAGS      := -Wall -Wextra -pedantic $(INCLUDES) -O0 -g
 
 all: $(TARGET)
 

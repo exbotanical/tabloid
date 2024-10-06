@@ -24,7 +24,7 @@ keypress_read (void) {
 
   // If the char is an escape sequence...
   if (c == ESCAPE_SEQ_CHAR) {
-    char seq[3];
+    char seq[5];
 
     // Nothing else; just an esc seq literal
     if (read(STDIN_FILENO, &seq[0], 1) != 1) {
@@ -53,6 +53,28 @@ keypress_read (void) {
             case '6': return PAGE_DOWN;
           }
         }
+
+        if (seq[2] == ';') {
+          if (read(STDIN_FILENO, &seq[3], 1) != 1) {
+            return ESCAPE_SEQ_CHAR;
+          }
+
+          // ESC-[1;5D
+          if (seq[3] == '5') {
+            if (read(STDIN_FILENO, &seq[4], 1) != 1) {
+              return ESCAPE_SEQ_CHAR;
+            }
+
+            switch (seq[4]) {
+              case 'A': return CTRL_ARROW_UP;
+              case 'B': return CTRL_ARROW_DOWN;
+              case 'C': return CTRL_ARROW_RIGHT;
+              case 'D': return CTRL_ARROW_LEFT;
+            }
+          }
+        }
+
+        // HERE!
       } else {
         switch (seq[1]) {
           case 'A': return ARROW_UP;
@@ -128,6 +150,23 @@ keypress_handle (void) {
       break;
     }
     case ARROW_DOWN: {
+      cursor_move_down();
+      break;
+    }
+
+    case CTRL_ARROW_LEFT: {
+      cursor_move_left_word();
+      break;
+    }
+    case CTRL_ARROW_RIGHT: {
+      cursor_move_right_word();
+      break;
+    }
+    case CTRL_ARROW_UP: {
+      cursor_move_up();
+      break;
+    }
+    case CTRL_ARROW_DOWN: {
       cursor_move_down();
       break;
     }
