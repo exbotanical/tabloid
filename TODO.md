@@ -1,6 +1,7 @@
 # TODOs
 - [ ] status bar
 - [ ] file I/O
+  - [ ] swap files
 - [ ] history (undo/redo stack)
 - [ ] command mode
 - [ ] keybindings config support
@@ -13,6 +14,25 @@
   - [ ] git
   - [ ] search
 - [x] fix scroll out / capture window
-- [ ] bounded / max size guards
-- [ ] unit tests
+- [ ] bounded / max size guards (e.g. max file size or max num lines - temporary)
+- [x] unit tests
 - [ ] integ tests
+- [ ] current row highlight
+- [ ] handle screen size change
+- [ ] handle wrap on out-of-bounds long line (e.g. wrap around but maintain lineno)
+- [ ] Keybindings:
+  - [ ] cut
+  - [ ] copy
+  - [ ] paste
+  - [ ] delete (ctrl+k)
+  - [ ] delete word (ctrl+backspace)
+  - [ ] select char
+  - [ ] select word
+  - [ ] select row
+  - [ ] select all
+  - [ ] select all matches
+  - [ ] select match sequential (e.g. ctrl+d ++)
+  - [ ] move row (ctrl up/down)
+  - [ ] duplicate row (binding -> ???)
+- [ ] Multi-cursor editing
+  - [ ] dupe cursor up/down

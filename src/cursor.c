@@ -255,5 +255,7 @@ cursor_set_position (buffer_t *buf) {
     (editor.renderx - editor.curs.col) + 1
   );
 
+  // If blinking block:
+  // buffer_append(buf, "\x1b[2 q");
   buffer_append(buf, curs);
 }

@@ -125,9 +125,22 @@ editor_row_del_char (row_buffer_t *row, int at) {
 
 void
 editor_insert_char (int c) {
-  if (editor.curs.y == editor.buf.num_rows) {
-    editor_insert_row(editor.buf.num_rows, "", 0);
-  }
+  // ???
+  // if (editor.curs.y == editor.buf.num_rows) {
+  //   editor_insert_row(editor.buf.num_rows, "", 0);
+  // }
+
+  // If at the end of the row, wrap
+  // if (editor.curs.x == editor.win.cols - line_pad - 2) {
+
+  //   editor.curs.x = 0;
+  //   editor.curs.y++;
+
+  //   if (editor.curs.y == editor.buf.num_rows) {
+  //     editor_insert_row(editor.buf.num_rows, "", 0);
+  //   }
+  // }
+
   editor_row_insert_char(&editor.buf.rows[editor.curs.y], editor.curs.x, c);
   editor.curs.x++;
 }

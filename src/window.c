@@ -117,9 +117,6 @@ window_draw_row (buffer_t* buf, row_buffer_t* row) {
 }
 
 static void
-window_draw_lineno (buffer_t* buf, unsigned int lineno) {}
-
-static void
 window_draw_rows (buffer_t* buf) {
   unsigned int lineno = 0;
   line_pad            = log10(editor.buf.num_rows) + 1;
@@ -142,12 +139,36 @@ window_draw_rows (buffer_t* buf) {
     } else {
       char* lineno_str = s_fmt("%*ld ", line_pad, ++lineno);
 
+      // if (visible_row_idx == editor.curs.y) {
+      //   buffer_append(buf, "\x1b[33m");
+      // }
       buffer_append(buf, lineno_str);
+      // if (visible_row_idx == editor.curs.y) {
+      //   buffer_append(buf, ESCAPE_SEQ_NORM_COLOR);
+      // }
+
       free(lineno_str);
 
       // Has row content; render it...
       row_buffer_t current_row = editor.buf.rows[visible_row_idx];
+
+      // Highlight the current row where the cursor is
+      // if (visible_row_idx == editor.curs.y) {
+      //   buffer_append(buf, ESCAPE_SEQ_INVERT_COLOR);
+      // }
+
       window_draw_row(buf, &current_row);
+
+      // if (visible_row_idx == editor.curs.y) {
+      //   // If it's the current row, reset the highlight after drawing the row
+      //   int padding_len = editor.win.cols - (current_row.renderbuf_sz +
+      //   line_pad + 1); if (padding_len > 0) {
+      //     for (int i = 0; i < padding_len; i++) {
+      //       buffer_append(buf, " ");  // Highlight entire row till the end
+      //     }
+      //   }
+      //   buffer_append(buf, ESCAPE_SEQ_NORM_COLOR);
+      // }
     }
 
     // Clear line to the right of the cursor
