@@ -105,7 +105,7 @@ window_draw_command_bar (buffer_t* buf) {
 
 static void
 window_draw_row (buffer_t* buf, row_buffer_t* row) {
-  int len = row->renderbuf_sz - editor.curs.col;
+  int len = row->renderbuf_sz;
   if (len < 0) {
     len = 0;
   }
@@ -113,7 +113,7 @@ window_draw_row (buffer_t* buf, row_buffer_t* row) {
     len = editor.win.cols;
   }
 
-  buffer_append_with(buf, &row->renderbuf[editor.curs.col], len);
+  buffer_append_with(buf, row->renderbuf, len);
 }
 
 static void
