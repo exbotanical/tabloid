@@ -13,7 +13,7 @@ extern editor_t editor;
 
 bool
 cursor_on_content_line (void) {
-  return editor.curs.y < editor.buf.num_rows;
+  return editor.curs.y < editor.buf.num_lines;
 }
 
 bool
@@ -28,32 +28,32 @@ cursor_on_first_col (void) {
 
 bool
 cursor_on_last_line (void) {
-  return editor.curs.y == editor.buf.num_rows - 1;
+  return editor.curs.y == editor.buf.num_lines - 1;
 }
 
 bool
 cursor_above_visible_window (void) {
-  return editor.curs.y < editor.curs.row;
+  return editor.curs.y < editor.curs.row_off;
 }
 
 bool
 cursor_below_visible_window (void) {
-  return editor.curs.y >= editor.curs.row + editor.win.rows;
+  return editor.curs.y >= editor.curs.row_off + editor.win.rows;
 }
 
 bool
 cursor_left_of_visible_window (void) {
-  return editor.renderx < editor.curs.col;
+  return editor.curs.render_x < editor.curs.col_off;
 }
 
 bool
 cursor_right_of_visible_window (void) {
-  return editor.renderx >= editor.curs.col + editor.win.cols;
+  return editor.curs.render_x >= editor.curs.col_off + editor.win.cols;
 }
 
 void
 cursor_move_down (void) {
-  if (editor.curs.y < editor.buf.num_rows - 1) {
+  if (editor.curs.y < editor.buf.num_lines - 1) {
     editor.curs.y++;
   }
 }
@@ -72,15 +72,15 @@ cursor_move_left (void) {
   } else if (!cursor_on_first_line()) {
     // Move to end of prev line on left from col 0
     editor.curs.y--;
-    editor.curs.x = editor.buf.rows[editor.curs.y].raw_sz;
+    editor.curs.x = editor.buf.lines[editor.curs.y].raw_sz;
   }
 }
 
 void
 cursor_move_right (void) {
-  row_buffer_t *row = (editor.curs.y >= editor.buf.num_rows)
-                        ? NULL
-                        : &editor.buf.rows[editor.curs.y];
+  line_buffer_t *row = (editor.curs.y >= editor.buf.num_lines)
+                         ? NULL
+                         : &editor.buf.lines[editor.curs.y];
   if (row && editor.curs.x < row->raw_sz) {
     editor.curs.x++;
   } else if (row && editor.curs.x == row->raw_sz && !cursor_on_last_line()) {
@@ -92,9 +92,9 @@ cursor_move_right (void) {
 
 void
 cursor_move_right_word (void) {
-  row_buffer_t *row = (editor.curs.y >= editor.buf.num_rows)
-                        ? NULL
-                        : &editor.buf.rows[editor.curs.y];
+  line_buffer_t *row = (editor.curs.y >= editor.buf.num_lines)
+                         ? NULL
+                         : &editor.buf.lines[editor.curs.y];
 
   if (editor.curs.x == row->raw_sz && !cursor_on_last_line()) {
     editor.curs.y++;
@@ -103,8 +103,8 @@ cursor_move_right_word (void) {
   }
 
   // Jump to end if we're one char away
-  if (editor.curs.x == row->renderbuf_sz - 1) {
-    editor.curs.x = row->renderbuf_sz;
+  if (editor.curs.x == row->render_buf_sz - 1) {
+    editor.curs.x = row->render_buf_sz;
     return;
   }
 
@@ -131,9 +131,9 @@ cursor_move_right_word (void) {
 
 void
 cursor_move_left_word (void) {
-  row_buffer_t *row = (editor.curs.y >= editor.buf.num_rows)
-                        ? NULL
-                        : &editor.buf.rows[editor.curs.y];
+  line_buffer_t *row = (editor.curs.y >= editor.buf.num_lines)
+                         ? NULL
+                         : &editor.buf.lines[editor.curs.y];
 
   if (editor.curs.x == 0) {
     cursor_move_left();
@@ -174,7 +174,7 @@ cursor_move_top (void) {
 
 void
 cursor_move_visible_top (void) {
-  editor.curs.y = editor.curs.row;
+  editor.curs.y = editor.curs.row_off;
 }
 
 void
@@ -184,9 +184,9 @@ cursor_move_bottom (void) {
 
 void
 cursor_move_visible_bottom (void) {
-  editor.curs.y = (editor.curs.y > editor.buf.num_rows)
-                    ? editor.buf.num_rows
-                    : editor.curs.row + editor.win.rows - 1;
+  editor.curs.y = (editor.curs.y > editor.buf.num_lines)
+                    ? editor.buf.num_lines
+                    : editor.curs.row_off + editor.win.rows - 1;
 }
 
 void
@@ -196,16 +196,16 @@ cursor_move_begin (void) {
 
 void
 cursor_move_end (void) {
-  if (editor.curs.y < editor.buf.num_rows) {
-    editor.curs.x = editor.buf.rows[editor.curs.y].raw_sz;
+  if (editor.curs.y < editor.buf.num_lines) {
+    editor.curs.x = editor.buf.lines[editor.curs.y].raw_sz;
   }
 }
 
 void
 cursor_snap_to_end (void) {
-  row_buffer_t *row    = (editor.curs.y >= editor.buf.num_rows)
+  line_buffer_t *row   = (editor.curs.y >= editor.buf.num_lines)
                            ? NULL
-                           : &editor.buf.rows[editor.curs.y];
+                           : &editor.buf.lines[editor.curs.y];
 
   unsigned int row_len = row ? row->raw_sz : 0;
   if (editor.curs.x > row_len) {
@@ -251,8 +251,8 @@ cursor_set_position (buffer_t *buf) {
     curs,
     sizeof(curs),
     ESCAPE_SEQ_CURSOR_POS_FMT,
-    (editor.curs.y - editor.curs.row) + 1,
-    (editor.renderx - editor.curs.col) + 1
+    (editor.curs.y - editor.curs.row_off) + 1,
+    (editor.curs.render_x - editor.curs.col_off) + 1
   );
 
   // If blinking block:

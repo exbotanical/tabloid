@@ -23,41 +23,42 @@ unsigned int line_pad = 0;
  * @return int
  */
 static int
-get_renderx (row_buffer_t* row, unsigned int cursx) {
-  unsigned int renderx = 0;
+get_render_x (line_buffer_t* row, unsigned int cursx) {
+  unsigned int render_x = 0;
   for (unsigned int i = 0; i < cursx; i++) {
     if (row->raw[i] == '\t') {
-      renderx += (editor.config.tab_sz - 1) - (renderx % editor.config.tab_sz);
+      render_x += (editor.conf.tab_sz - 1) - (render_x % editor.conf.tab_sz);
     }
-    renderx++;
+    render_x++;
   }
 
-  return renderx + (line_pad > 0 ? line_pad : DEFAULT_LNPAD) + 1;
+  return render_x + (line_pad > 0 ? line_pad : DEFAULT_LNPAD) + 1;
 }
 
 static void
 window_scroll (void) {
-  // editor.renderx = 0;
+  // editor.curs.render_x = 0;
   if (cursor_on_content_line()) {
-    editor.renderx = get_renderx(&editor.buf.rows[editor.curs.y], editor.curs.x);
+    editor.curs.render_x
+      = get_render_x(&editor.buf.lines[editor.curs.y], editor.curs.x);
   }
 
   // Check if the cursor is above the visible window; if so, scroll up to it.
   if (cursor_above_visible_window()) {
-    editor.curs.row = editor.curs.y;
+    editor.curs.row_off = editor.curs.y;
   }
 
   // Check if the cursor is below the visible window and adjust
   if (cursor_below_visible_window()) {
-    editor.curs.row = editor.curs.y - editor.win.rows + 1;
+    editor.curs.row_off = editor.curs.y - editor.win.rows + 1;
   }
 
   if (cursor_left_of_visible_window()) {
-    editor.curs.col = editor.renderx;
+    editor.curs.col_off = editor.curs.render_x;
   }
 
   if (cursor_right_of_visible_window()) {
-    editor.curs.col = editor.renderx - editor.win.cols + 1;
+    editor.curs.col_off = editor.curs.render_x - editor.win.cols + 1;
   }
 }
 
@@ -72,7 +73,7 @@ window_draw_splash (buffer_t* buf) {
 
   int padding = (editor.win.cols - splash_len) / 2;
   if (padding) {
-    buffer_append(buf, editor.config.ln_prefix);
+    buffer_append(buf, editor.conf.ln_prefix);
     padding--;
   }
 
@@ -87,8 +88,8 @@ static void
 window_draw_status_bar (buffer_t* buf) {
   buffer_append(buf, ESCAPE_SEQ_INVERT_COLOR);
 
-  buffer_append(buf, editor.sbar.msg);
-  for (unsigned int len = 0; len < editor.win.cols - strlen(editor.sbar.msg); len++) {
+  buffer_append(buf, editor.s_bar.msg);
+  for (unsigned int len = 0; len < editor.win.cols - strlen(editor.s_bar.msg); len++) {
     buffer_append(buf, " ");
   }
 
@@ -97,15 +98,15 @@ window_draw_status_bar (buffer_t* buf) {
 
 static void
 window_draw_command_bar (buffer_t* buf) {
-  buffer_append(buf, editor.cbar.msg);
-  for (unsigned int len = 0; len < editor.win.cols - strlen(editor.sbar.msg); len++) {
+  buffer_append(buf, editor.c_bar.msg);
+  for (unsigned int len = 0; len < editor.win.cols - strlen(editor.s_bar.msg); len++) {
     buffer_append(buf, " ");
   }
 }
 
 static void
-window_draw_row (buffer_t* buf, row_buffer_t* row) {
-  int len = row->renderbuf_sz;
+window_draw_row (buffer_t* buf, line_buffer_t* row) {
+  int len = row->render_buf_sz;
   if (len < 0) {
     len = 0;
   }
@@ -113,13 +114,13 @@ window_draw_row (buffer_t* buf, row_buffer_t* row) {
     len = editor.win.cols;
   }
 
-  buffer_append_with(buf, row->renderbuf, len);
+  buffer_append_with(buf, row->render_buf, len);
 }
 
 static void
 window_draw_rows (buffer_t* buf) {
   unsigned int lineno = 0;
-  line_pad            = log10(editor.buf.num_rows) + 1;
+  line_pad            = log10(editor.buf.num_lines) + 1;
   if (line_pad < DEFAULT_LNPAD) {
     line_pad = DEFAULT_LNPAD;
   }
@@ -127,14 +128,14 @@ window_draw_rows (buffer_t* buf) {
   // For every row in the entire window...
   for (unsigned int y = 0; y < editor.win.rows; y++) {
     // Grab the visible row
-    int visible_row_idx = y + editor.curs.row;
+    int visible_row_idx = y + editor.scroll.row_offset;
     // If the visible row index is > the number of buffered rows...
-    if (visible_row_idx >= editor.buf.num_rows) {
+    if (visible_row_idx >= editor.buf.num_lines) {
       // If no content...
-      if (editor.buf.num_rows == 0 && y == editor.win.rows / 3) {
+      if (editor.buf.num_lines == 0 && y == editor.win.rows / 3) {
         window_draw_splash(buf);
       } else {
-        buffer_append(buf, editor.config.ln_prefix);
+        buffer_append(buf, editor.conf.ln_prefix);
       }
     } else {
       char* lineno_str = s_fmt("%*ld ", line_pad, ++lineno);
@@ -150,7 +151,7 @@ window_draw_rows (buffer_t* buf) {
       free(lineno_str);
 
       // Has row content; render it...
-      row_buffer_t current_row = editor.buf.rows[visible_row_idx];
+      line_buffer_t current_row = editor.buf.lines[visible_row_idx];
 
       // Highlight the current row where the cursor is
       // if (visible_row_idx == editor.curs.y) {
@@ -161,7 +162,7 @@ window_draw_rows (buffer_t* buf) {
 
       // if (visible_row_idx == editor.curs.y) {
       //   // If it's the current row, reset the highlight after drawing the row
-      //   int padding_len = editor.win.cols - (current_row.renderbuf_sz +
+      //   int padding_len = editor.win.cols - (current_row.render_buf_sz +
       //   line_pad + 1); if (padding_len > 0) {
       //     for (int i = 0; i < padding_len; i++) {
       //       buffer_append(buf, " ");  // Highlight entire row till the end
@@ -209,7 +210,7 @@ void
 window_set_sbar_msg (const char* fmt, ...) {
   va_list ap;
   va_start(ap, fmt);
-  vsnprintf(editor.sbar.msg, sizeof(editor.sbar.msg), fmt, ap);
+  vsnprintf(editor.s_bar.msg, sizeof(editor.s_bar.msg), fmt, ap);
   va_end(ap);
 }
 
@@ -217,6 +218,6 @@ void
 window_set_cbar_msg (const char* fmt, ...) {
   va_list ap;
   va_start(ap, fmt);
-  vsnprintf(editor.cbar.msg, sizeof(editor.cbar.msg), fmt, ap);
+  vsnprintf(editor.c_bar.msg, sizeof(editor.c_bar.msg), fmt, ap);
   va_end(ap);
 }

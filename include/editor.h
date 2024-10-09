@@ -9,51 +9,54 @@
 
 typedef struct {
   /**
-   * Raw row state
+   * Raw line state
    */
   char*        raw;
   /**
-   * Raw row state size/length
+   * Raw line state size/length
    */
   unsigned int raw_sz;
   /**
    * Actual chars to render on the screen
    */
-  char*        renderbuf;
+  char*        render_buf;
   /**
    * Size of the render buffer
    */
-  unsigned int renderbuf_sz;
-} row_buffer_t;
+  unsigned int render_buf_sz;
+} line_buffer_t;
 
 typedef struct {
-  // Number of rows in the entire editor buffer
-  unsigned int  num_rows;
-  // Actual row buffers
-  row_buffer_t* rows;
+  // Number of lines in the entire editor buffer
+  unsigned int   num_lines;
+  // Actual line buffers
+  line_buffer_t* lines;
 } buffer_state_t;
 
 typedef struct {
   // TODO:
   char msg[64];
-} sbar_state_t;
+} s_bar_state_t;
 
 typedef struct {
   // TODO:
   char msg[64];
-} cmdbar_state_t;
+} c_bar_state_t;
+
+typedef struct {
+  unsigned int row_offset;
+} scroll_state_t;
 
 typedef struct {
   cursor_t       curs;
   window_t       win;
   buffer_state_t buf;
+  scroll_state_t scroll;
   tty_t          tty;
-  config_t       config;
-  file_handle_t  f;
-  sbar_state_t   sbar;
-  cmdbar_state_t cbar;
-  // ???
-  unsigned int   renderx;
+  config_t       conf;
+  file_handle_t  fs;
+  s_bar_state_t  s_bar;
+  c_bar_state_t  c_bar;
 } editor_t;
 
 void editor_init(void);

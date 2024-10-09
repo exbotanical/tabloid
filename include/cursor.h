@@ -13,10 +13,14 @@ typedef struct {
   unsigned int x;
   // y coordinate of cursor
   unsigned int y;
-  // Row that the cursor is on
-  unsigned int row;
-  // Column that the cursor is on
-  unsigned int col;
+  // Row (y) offset used for scroll
+  unsigned int row_off;
+  // Column (x) offset used for scroll
+  unsigned int col_off;
+  // Cursor relative to the render buffer
+  // render_x will likely equal x unless we've rendered something differently
+  // than its underlying source (e.g. tabs)
+  unsigned int render_x;
 } cursor_t;
 
 bool cursor_on_content_line(void);
