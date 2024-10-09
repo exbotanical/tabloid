@@ -82,7 +82,7 @@ cursor_move_left (void) {
   } else if (!cursor_on_first_line()) {
     // Move to end of prev line on left from col 0
     editor.curs.y--;
-    editor.curs.x = editor.buf.lines[editor.curs.y].raw_sz;
+    editor.curs.x = editor.buf.lines[editor.curs.y].render_buf_sz;
   }
 }
 
@@ -91,9 +91,9 @@ cursor_move_right (void) {
   line_buffer_t *row = (editor.curs.y >= editor.buf.num_lines)
                          ? NULL
                          : &editor.buf.lines[editor.curs.y];
-  if (row && editor.curs.x < row->raw_sz) {
+  if (row && editor.curs.x < row->render_buf_sz) {
     editor.curs.x++;
-  } else if (row && editor.curs.x == row->raw_sz && !cursor_on_last_line()) {
+  } else if (row && editor.curs.x == row->render_buf_sz && !cursor_on_last_line()) {
     // Move to beginning of next line on right from last col
     editor.curs.y++;
     editor.curs.x = 0;
@@ -208,7 +208,7 @@ cursor_move_begin (void) {
 void
 cursor_move_end (void) {
   if (editor.curs.y < editor.buf.num_lines) {
-    editor.curs.x = editor.buf.lines[editor.curs.y].raw_sz;
+    editor.curs.x = editor.buf.lines[editor.curs.y].render_buf_sz;
   }
 }
 
@@ -218,7 +218,7 @@ cursor_snap_to_end (void) {
                            ? NULL
                            : &editor.buf.lines[editor.curs.y];
 
-  unsigned int row_len = row ? row->raw_sz : 0;
+  unsigned int row_len = row ? row->render_buf_sz : 0;
   if (editor.curs.x > row_len) {
     editor.curs.x = row_len;
   }
