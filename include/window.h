@@ -3,6 +3,9 @@
 
 #define DEFAULT_LNPAD 3
 
+#define REAL_RENDER_X(render_x) \
+  (render_x + (line_pad > 0 ? line_pad : DEFAULT_LNPAD) + 1)
+
 typedef struct {
   // Num rows in the window
   unsigned int rows;

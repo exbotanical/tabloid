@@ -43,12 +43,22 @@ cursor_below_visible_window (void) {
 
 bool
 cursor_left_of_visible_window (void) {
-  return editor.curs.render_x < editor.curs.col_off;
+  return editor.curs.x < editor.curs.col_off;
 }
 
 bool
 cursor_right_of_visible_window (void) {
-  return editor.curs.render_x >= editor.curs.col_off + editor.win.cols;
+  return editor.curs.x >= editor.curs.col_off + editor.win.cols;
+}
+
+bool
+cursor_in_cell_zero (void) {
+  return editor.curs.x == 0 && editor.curs.y == 0;
+}
+
+bool
+cursor_not_at_row_begin (void) {
+  return editor.curs.x > 0;
 }
 
 void
@@ -96,7 +106,7 @@ cursor_move_right_word (void) {
                          ? NULL
                          : &editor.buf.lines[editor.curs.y];
 
-  if (editor.curs.x == row->raw_sz && !cursor_on_last_line()) {
+  if (editor.curs.x == row->render_buf_sz && !cursor_on_last_line()) {
     editor.curs.y++;
     editor.curs.x = 0;
     return;
@@ -111,16 +121,16 @@ cursor_move_right_word (void) {
   unsigned int i = editor.curs.x;
 
   // If the very next char is a break char, jump to the start of the next word
-  if (row->raw[i] == ' ' || row->raw[i] == '\t') {
-    for (; i < row->raw_sz; i++) {
-      if (row->raw[i] != ' ' && row->raw[i] != '\t') {
+  if (row->render_buf[i] == ' ') {
+    for (; i < row->render_buf_sz; i++) {
+      if (row->render_buf[i] != ' ') {
         break;
       }
     }
   } else {
     // Otherwise, if we're on a word, jump to the next break char
-    for (; i < row->raw_sz; i++) {
-      if (row->raw[i] == ' ' || row->raw[i] == '\t') {
+    for (; i < row->render_buf_sz; i++) {
+      if (row->render_buf[i] == ' ') {
         break;
       }
     }
@@ -148,22 +158,23 @@ cursor_move_left_word (void) {
 
   unsigned int i = editor.curs.x;
 
+  // TODO: array or hashmap of break chars
   // If the preceding char is a break char, jump to the end of the next word
-  if (row->raw[i - 1] == ' ' || row->raw[i - 1] == '\t') {
+  if (row->render_buf[i - 1] == ' ') {
     for (; i > 0; i--) {
-      if (row->raw[i - 1] != ' ' && row->raw[i - 1] != '\t') {
+      if (row->render_buf[i - 1] != ' ') {
         break;
       }
     }
   } else {
     // Otherwise, if we're on a word, jump to the prev break char
     for (; i > 0; i--) {
-      if (row->raw[i - 1] == ' ' || row->raw[i - 1] == '\t') {
+      if (row->render_buf[i - 1] == ' ') {
         break;
       }
     }
   }
-
+  logger.write("i is %d\n", i);
   editor.curs.x = i;
 }
 
@@ -252,7 +263,7 @@ cursor_set_position (buffer_t *buf) {
     sizeof(curs),
     ESCAPE_SEQ_CURSOR_POS_FMT,
     (editor.curs.y - editor.curs.row_off) + 1,
-    (editor.curs.render_x - editor.curs.col_off) + 1
+    (editor.curs.x - editor.curs.col_off) + 1
   );
 
   // If blinking block:

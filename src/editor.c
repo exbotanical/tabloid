@@ -133,18 +133,18 @@ editor_insert_char (int c) {
 void
 editor_del_char (void) {
   // If past the end of the file...
-  if (editor.curs.y == editor.buf.num_lines) {
+  if (!cursor_on_content_line()) {
     return;
   }
 
   // If at the beginning of the first line...
-  if (editor.curs.x == 0 && editor.curs.y == 0) {
+  if (cursor_in_cell_zero()) {
     return;
   }
 
   line_buffer_t *row = &editor.buf.lines[editor.curs.y];
   // If char to the left of the cursor...
-  if (editor.curs.x > 0) {
+  if (cursor_not_at_row_begin()) {
     editor_row_del_char(row, editor.curs.x - 1);
     editor.curs.x--;
   } else {

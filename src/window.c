@@ -32,16 +32,15 @@ get_render_x (line_buffer_t* row, unsigned int cursx) {
     render_x++;
   }
 
-  return render_x + (line_pad > 0 ? line_pad : DEFAULT_LNPAD) + 1;
+  return render_x;
 }
 
 static void
 window_scroll (void) {
-  // editor.curs.render_x = 0;
-  if (cursor_on_content_line()) {
-    editor.curs.render_x
-      = get_render_x(&editor.buf.lines[editor.curs.y], editor.curs.x);
-  }
+  // if (cursor_on_content_line()) {
+  //   editor.curs.render_x
+  //     = get_render_x(&editor.buf.lines[editor.curs.y], editor.curs.x);
+  // }
 
   // Check if the cursor is above the visible window; if so, scroll up to it.
   if (cursor_above_visible_window()) {
@@ -54,11 +53,11 @@ window_scroll (void) {
   }
 
   if (cursor_left_of_visible_window()) {
-    editor.curs.col_off = editor.curs.render_x;
+    editor.curs.col_off = editor.curs.x;
   }
 
   if (cursor_right_of_visible_window()) {
-    editor.curs.col_off = editor.curs.render_x - editor.win.cols + 1;
+    editor.curs.col_off = editor.curs.x - editor.win.cols + 1;
   }
 }
 
@@ -106,7 +105,7 @@ window_draw_command_bar (buffer_t* buf) {
 
 static void
 window_draw_row (buffer_t* buf, line_buffer_t* row) {
-  int len = row->render_buf_sz;
+  int len = row->render_buf_sz - (editor.curs.col_off);
   if (len < 0) {
     len = 0;
   }
@@ -114,7 +113,7 @@ window_draw_row (buffer_t* buf, line_buffer_t* row) {
     len = editor.win.cols;
   }
 
-  buffer_append_with(buf, row->render_buf, len);
+  buffer_append_with(buf, &row->render_buf[editor.curs.col_off], len);
 }
 
 static void
@@ -143,7 +142,7 @@ window_draw_rows (buffer_t* buf) {
       // if (visible_row_idx == editor.curs.y) {
       //   buffer_append(buf, "\x1b[33m");
       // }
-      buffer_append(buf, lineno_str);
+      // buffer_append(buf, lineno_str);
       // if (visible_row_idx == editor.curs.y) {
       //   buffer_append(buf, ESCAPE_SEQ_NORM_COLOR);
       // }

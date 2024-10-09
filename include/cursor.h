@@ -13,9 +13,9 @@ typedef struct {
   unsigned int x;
   // y coordinate of cursor
   unsigned int y;
-  // Row (y) offset used for scroll
+  // Row (y) offset used for scroll i.e. number of rows past the window size
   unsigned int row_off;
-  // Column (x) offset used for scroll
+  // Column (x) offset used for scroll i.e. number of columns past the window size
   unsigned int col_off;
   // Cursor relative to the render buffer
   // render_x will likely equal x unless we've rendered something differently
@@ -30,6 +30,8 @@ bool cursor_above_visible_window(void);
 bool cursor_below_visible_window(void);
 bool cursor_left_of_visible_window(void);
 bool cursor_right_of_visible_window(void);
+bool cursor_in_cell_zero(void);
+bool cursor_not_at_row_begin(void);
 
 void cursor_move_down(void);
 void cursor_move_up(void);
