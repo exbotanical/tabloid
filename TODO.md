@@ -20,6 +20,8 @@
 - [ ] current row highlight
 - [ ] handle screen size change
 - [ ] handle wrap on out-of-bounds long line (e.g. wrap around but maintain lineno)
+  - [ ] OK doing this is REALLY fucking difficult. Do it later.
+    - [ ] Double note: So I read the vim and neovim source code and holy fuck the implementation is bonkers. They essentially implement a virtualization layer (yes, like paging in an operating system) and then manage blocks of text buffers underneath the UI. Code is too cryptic to easily discern how they handle the cursor logic on top of this. Do this later.
 - [ ] Keybindings:
   - [ ] cut
   - [ ] copy
