@@ -44,14 +44,9 @@ typedef struct {
 } c_bar_state_t;
 
 typedef struct {
-  unsigned int row_offset;
-} scroll_state_t;
-
-typedef struct {
   cursor_t       curs;
   window_t       win;
   buffer_state_t buf;
-  scroll_state_t scroll;
   tty_t          tty;
   config_t       conf;
   file_handle_t  fs;

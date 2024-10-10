@@ -118,7 +118,7 @@ window_draw_row (buffer_t* buf, line_buffer_t* row) {
 
 static void
 window_draw_rows (buffer_t* buf) {
-  unsigned int lineno = 0;
+  unsigned int lineno = editor.curs.row_off;
   line_pad            = log10(editor.buf.num_lines) + 1;
   if (line_pad < DEFAULT_LNPAD) {
     line_pad = DEFAULT_LNPAD;
@@ -127,11 +127,12 @@ window_draw_rows (buffer_t* buf) {
   // For every row in the entire window...
   for (unsigned int y = 0; y < editor.win.rows; y++) {
     // Grab the visible row
-    int visible_row_idx = y + editor.scroll.row_offset;
+    int visible_row_idx = y + editor.curs.row_off;
     // If the visible row index is > the number of buffered rows...
     if (visible_row_idx >= editor.buf.num_lines) {
       // If no content...
-      if (editor.buf.num_lines == 0 && y == editor.win.rows / 3) {
+      // TODO: figure out 0 vs 1
+      if (editor.buf.num_lines == 1 && y == editor.win.rows / 3) {
         window_draw_splash(buf);
       } else {
         buffer_append(buf, editor.conf.ln_prefix);
