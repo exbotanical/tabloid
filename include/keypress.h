@@ -21,8 +21,7 @@
 #define ESCAPE_SEQ_NORM_COLOR               ESCAPE_SEQ "[m"
 
 typedef enum {
-  BACKSPACE = 127,
-  ENTER,
+  BACKSPACE  = 127,
 
   ARROW_LEFT = 1000,
   ARROW_RIGHT,
@@ -39,6 +38,7 @@ typedef enum {
   HOME,
   END,
 
+  ENTER,
   DELETE,
 
   CTRL_A,

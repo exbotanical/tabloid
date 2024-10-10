@@ -121,17 +121,13 @@ keypress_handle (void) {
 
   switch (c) {
     case UNKNOWN: break;
-    // TODO: dyn
-    case CTRL_Q: {
-      exit(0);
-    }
+    case CTRL_Q: exit(0);
 
-    // Enter key
     case ENTER: editor_insert_newline(); break;
+    case BACKSPACE: editor_del_char(); break;
 
     case CTRL_A: cursor_move_begin(); break;
     case CTRL_E: cursor_move_end(); break;
-    case BACKSPACE: editor_del_char(); break;
 
     case DELETE:
       cursor_move_right();
@@ -188,8 +184,6 @@ keypress_handle (void) {
       cursor_move_down();
       break;
     }
-
-    case '\x1b': break;
 
     default: {
       editor_insert_char(c);

@@ -166,7 +166,7 @@ window_draw_rows (buffer_t* buf) {
 
       if (is_current_line) {
         // If it's the current row, reset the highlight after drawing the row
-        int padding_len = editor.win.cols - (current_row.render_buf_sz + line_pad + 1);
+        int padding_len = (editor.win.cols + editor.curs.col_off) - (current_row.render_buf_sz + line_pad + 1);
         if (padding_len > 0) {
           for (int i = 0; i < padding_len; i++) {
             buffer_append(buf, " ");  // Highlight entire row till the end
