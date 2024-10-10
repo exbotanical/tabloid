@@ -57,7 +57,7 @@ window_scroll (void) {
   }
 
   if (cursor_right_of_visible_window()) {
-    editor.curs.col_off = editor.curs.x - editor.win.cols + 1;
+    editor.curs.col_off = editor.curs.x - (editor.win.cols - (line_pad + 1)) + 1;
   }
 }
 
@@ -109,8 +109,8 @@ window_draw_row (buffer_t* buf, line_buffer_t* row) {
   if (len < 0) {
     len = 0;
   }
-  if (len > editor.win.cols) {
-    len = editor.win.cols;
+  if (len > (editor.win.cols - (line_pad + 1))) {
+    len = (editor.win.cols - (line_pad + 1));
   }
 
   buffer_append_with(buf, &row->render_buf[editor.curs.col_off], len);
@@ -142,7 +142,7 @@ window_draw_rows (buffer_t* buf) {
       // if (visible_row_idx == editor.curs.y) {
       //   buffer_append(buf, "\x1b[33m");
       // }
-      // buffer_append(buf, lineno_str);
+      buffer_append(buf, lineno_str);
       // if (visible_row_idx == editor.curs.y) {
       //   buffer_append(buf, ESCAPE_SEQ_NORM_COLOR);
       // }

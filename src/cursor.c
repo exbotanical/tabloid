@@ -48,7 +48,7 @@ cursor_left_of_visible_window (void) {
 
 bool
 cursor_right_of_visible_window (void) {
-  return editor.curs.x >= editor.curs.col_off + editor.win.cols;
+  return editor.curs.x >= editor.curs.col_off + (editor.win.cols - (line_pad + 1));
 }
 
 bool
@@ -174,7 +174,7 @@ cursor_move_left_word (void) {
       }
     }
   }
-  logger.write("i is %d\n", i);
+
   editor.curs.x = i;
 }
 
@@ -263,7 +263,7 @@ cursor_set_position (buffer_t *buf) {
     sizeof(curs),
     ESCAPE_SEQ_CURSOR_POS_FMT,
     (editor.curs.y - editor.curs.row_off) + 1,
-    (editor.curs.x - editor.curs.col_off) + 1
+    ((editor.curs.x + line_pad + 1) - editor.curs.col_off) + 1
   );
 
   // If blinking block:
