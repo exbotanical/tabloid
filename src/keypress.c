@@ -23,15 +23,15 @@ keypress_read (void) {
   }
 
   // If the char is an escape sequence...
-  if (c == ESCAPE_SEQ_CHAR) {
+  if (c == ESC_SEQ_CHAR) {
     char seq[5];
 
     // Nothing else; just an esc seq literal
     if (read(STDIN_FILENO, &seq[0], 1) != 1) {
-      return ESCAPE_SEQ_CHAR;
+      return ESC_SEQ_CHAR;
     }
     if (read(STDIN_FILENO, &seq[1], 1) != 1) {
-      return ESCAPE_SEQ_CHAR;
+      return ESC_SEQ_CHAR;
     }
 
     // If the first byte is a [...
@@ -39,7 +39,7 @@ keypress_read (void) {
       // If the second byte is a digit...
       if (seq[1] >= '0' && seq[1] <= '9') {
         if (read(STDIN_FILENO, &seq[2], 1) != 1) {
-          return ESCAPE_SEQ_CHAR;
+          return ESC_SEQ_CHAR;
         }
 
         if (seq[2] == '~') {
@@ -56,13 +56,13 @@ keypress_read (void) {
 
         if (seq[2] == ';') {
           if (read(STDIN_FILENO, &seq[3], 1) != 1) {
-            return ESCAPE_SEQ_CHAR;
+            return ESC_SEQ_CHAR;
           }
 
           // ESC-[1;5D
           if (seq[3] == '5') {
             if (read(STDIN_FILENO, &seq[4], 1) != 1) {
-              return ESCAPE_SEQ_CHAR;
+              return ESC_SEQ_CHAR;
             }
 
             switch (seq[4]) {
@@ -92,7 +92,7 @@ keypress_read (void) {
       }
     }
 
-    return ESCAPE_SEQ_CHAR;
+    return ESC_SEQ_CHAR;
   }
 
   switch (c) {

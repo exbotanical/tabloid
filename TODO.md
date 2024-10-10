@@ -36,6 +36,7 @@
   - [ ] select match sequential (e.g. ctrl+d ++)
   - [ ] move row (ctrl up/down)
   - [ ] duplicate row (binding -> ???)
+  - [ ] ctrl+u delete entire line
 - [ ] Multi-cursor editing
   - [ ] dupe cursor up/down
 - [ ] Explore gap buffer, piece table, or rope for optimized storage

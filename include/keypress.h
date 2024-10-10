@@ -1,24 +1,27 @@
 #ifndef KEYPRESS_H
 #define KEYPRESS_H
 
-#define CTRL_KEY(k)                         ((k) & 0x1F)
+#define CTRL_KEY(k)                      ((k) & 0x1F)
 
 // https://vt100.net/docs/vt100-ug/chapter3.html
-#define ESCAPE_SEQ_CHAR                     '\x1b'
-#define ESCAPE_SEQ                          "\x1b"
-#define ESCAPE_SEQ_CLEAR_SCREEN             ESCAPE_SEQ "[2J"
-#define ESCAPE_SEQ_CLEAR_SCROLLBUF          ESCAPE_SEQ "[3J"
-#define ESCAPE_SEQ_CURSOR_POS               ESCAPE_SEQ "[H"
-#define ESCAPE_SEQ_CURSOR_POS_FMT           ESCAPE_SEQ "[%d;%dH"
+#define ESC_SEQ_CHAR                     '\x1b'
+#define ESC_SEQ                          "\x1b"
+#define ESC_SEQ_CLEAR_SCREEN             ESC_SEQ "[2J"
+#define ESC_SEQ_CLEAR_SCROLLBUF          ESC_SEQ "[3J"
+#define ESC_SEQ_CURSOR_POS               ESC_SEQ "[H"
+#define ESC_SEQ_CURSOR_POS_FMT           ESC_SEQ "[%d;%dH"
 
-#define ESCAPE_SEQ_CURSOR_MAX_FWD           ESCAPE_SEQ "[999C"
-#define ESCAPE_SEQ_CURSOR_MAX_DWN           ESCAPE_SEQ "[999B"
-#define ESCAPE_SEQ_CURSOR_HIDE              ESCAPE_SEQ "[?25l"
-#define ESCAPE_SEQ_CURSOR_SHOW              ESCAPE_SEQ "[?25h"
-#define ESCAPE_SEQ_ERASE_LN_RIGHT_OF_CURSOR ESCAPE_SEQ "[K"
+#define ESC_SEQ_CURSOR_MAX_FWD           ESC_SEQ "[999C"
+#define ESC_SEQ_CURSOR_MAX_DWN           ESC_SEQ "[999B"
+#define ESC_SEQ_CURSOR_HIDE              ESC_SEQ "[?25l"
+#define ESC_SEQ_CURSOR_SHOW              ESC_SEQ "[?25h"
+#define ESC_SEQ_ERASE_LN_RIGHT_OF_CURSOR ESC_SEQ "[K"
 
-#define ESCAPE_SEQ_INVERT_COLOR             ESCAPE_SEQ "[7m"
-#define ESCAPE_SEQ_NORM_COLOR               ESCAPE_SEQ "[m"
+#define ESC_SEQ_INVERT_COLOR             ESC_SEQ "[7m"
+#define ESC_SEQ_NORM_COLOR               ESC_SEQ "[m"
+
+#define ESC_SEQ_COLOR(num)               ESC_SEQ "[38;5;" #num "m"
+#define ESC_SEQ_BG_COLOR(num)            ESC_SEQ "[48;5;" #num "m"
 
 typedef enum {
   BACKSPACE  = 127,

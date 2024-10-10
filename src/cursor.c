@@ -229,7 +229,7 @@ cursor_get_position (unsigned int *rows, unsigned int *cols) {
   char         buf[32];
   unsigned int i = 0;
 
-  if (write(STDOUT_FILENO, ESCAPE_SEQ "[6n", 4) != 4) {
+  if (write(STDOUT_FILENO, ESC_SEQ "[6n", 4) != 4) {
     return -1;
   }
 
@@ -261,7 +261,7 @@ cursor_set_position (buffer_t *buf) {
   snprintf(
     curs,
     sizeof(curs),
-    ESCAPE_SEQ_CURSOR_POS_FMT,
+    ESC_SEQ_CURSOR_POS_FMT,
     (editor.curs.y - editor.curs.row_off) + 1,
     ((editor.curs.x + line_pad + 1) - editor.curs.col_off) + 1
   );

@@ -62,37 +62,15 @@ window_scroll (void) {
 }
 
 static void
-window_draw_splash (buffer_t* buf) {
-  char splash[80];
-  int splash_len = snprintf(splash, sizeof(splash), "Tabloid - version %s", TABLOID_VERSION);
-
-  if (splash_len > editor.win.cols) {
-    splash_len = editor.win.cols;
-  }
-
-  int padding = (editor.win.cols - splash_len) / 2;
-  if (padding) {
-    buffer_append(buf, editor.conf.ln_prefix);
-    padding--;
-  }
-
-  while (padding--) {
-    buffer_append(buf, " ");
-  }
-
-  buffer_append_with(buf, splash, splash_len);
-}
-
-static void
 window_draw_status_bar (buffer_t* buf) {
-  buffer_append(buf, ESCAPE_SEQ_INVERT_COLOR);
+  buffer_append(buf, ESC_SEQ_INVERT_COLOR);
 
   buffer_append(buf, editor.s_bar.msg);
   for (unsigned int len = 0; len < editor.win.cols - strlen(editor.s_bar.msg); len++) {
     buffer_append(buf, " ");
   }
 
-  buffer_append(buf, ESCAPE_SEQ_NORM_COLOR);
+  buffer_append(buf, ESC_SEQ_NORM_COLOR);
 }
 
 static void
@@ -130,26 +108,17 @@ window_draw_rows (buffer_t* buf) {
     int visible_row_idx = y + editor.curs.row_off;
     // If the visible row index is > the number of buffered rows...
     if (visible_row_idx >= editor.buf.num_lines) {
-      // If no content...
-      // TODO: figure out 0 vs 1
-      if (editor.buf.num_lines == 1 && y == editor.win.rows / 3) {
-        window_draw_splash(buf);
-      } else {
-        buffer_append(buf, editor.conf.ln_prefix);
-      }
+      buffer_append(buf, editor.conf.ln_prefix);
     } else {
       bool  is_current_line = visible_row_idx == editor.curs.y;
       char* lineno_str      = s_fmt("%*ld ", line_pad, ++lineno);
 
       if (is_current_line) {
-        buffer_append(buf, "\x1b[33m");
-
-        // \u001b[38;5;1m
-        // \u001b[38;5;${ID}m
+        buffer_append(buf, ESC_SEQ_COLOR(3));
       }
       buffer_append(buf, lineno_str);
       if (is_current_line) {
-        buffer_append(buf, ESCAPE_SEQ_NORM_COLOR);
+        buffer_append(buf, ESC_SEQ_NORM_COLOR);
       }
 
       free(lineno_str);
@@ -159,7 +128,7 @@ window_draw_rows (buffer_t* buf) {
 
       // Highlight the current row where the cursor is
       if (is_current_line) {
-        buffer_append(buf, "\x1b[48;5;238m");
+        buffer_append(buf, ESC_SEQ_BG_COLOR(238));
       }
 
       window_draw_row(buf, &current_row);
@@ -172,12 +141,12 @@ window_draw_rows (buffer_t* buf) {
             buffer_append(buf, " ");  // Highlight entire row till the end
           }
         }
-        buffer_append(buf, ESCAPE_SEQ_NORM_COLOR);
+        buffer_append(buf, ESC_SEQ_NORM_COLOR);
       }
     }
 
     // Clear line to the right of the cursor
-    buffer_append(buf, ESCAPE_SEQ_ERASE_LN_RIGHT_OF_CURSOR);
+    buffer_append(buf, ESC_SEQ_ERASE_LN_RIGHT_OF_CURSOR);
     buffer_append(buf, "\r\n");
   }
 }
@@ -189,8 +158,8 @@ window_refresh (void) {
   buffer_t* buf = buffer_init(NULL);
 
   // Hide and later show the cursor to prevent flickering when drawing the grid
-  buffer_append(buf, ESCAPE_SEQ_CURSOR_HIDE);
-  buffer_append(buf, ESCAPE_SEQ_CURSOR_POS);
+  buffer_append(buf, ESC_SEQ_CURSOR_HIDE);
+  buffer_append(buf, ESC_SEQ_CURSOR_POS);
 
   window_draw_rows(buf);
   window_draw_status_bar(buf);
@@ -198,7 +167,7 @@ window_refresh (void) {
 
   cursor_set_position(buf);
 
-  buffer_append(buf, ESCAPE_SEQ_CURSOR_SHOW);
+  buffer_append(buf, ESC_SEQ_CURSOR_SHOW);
 
   write(STDOUT_FILENO, buffer_state(buf), buffer_size(buf));
   buffer_free(buf);
@@ -206,8 +175,8 @@ window_refresh (void) {
 
 void
 window_clear (void) {
-  write(STDOUT_FILENO, ESCAPE_SEQ_CLEAR_SCREEN, 4);
-  write(STDOUT_FILENO, ESCAPE_SEQ_CURSOR_POS, 3);
+  write(STDOUT_FILENO, ESC_SEQ_CLEAR_SCREEN, 4);
+  write(STDOUT_FILENO, ESC_SEQ_CURSOR_POS, 3);
 }
 
 void

@@ -88,7 +88,7 @@ tty_get_window_sz (unsigned int *rows, unsigned int *cols) {
   if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) == -1 || ws.ws_col == 0) {
     // Fallback method - we move the cursor to the bottom right corner and query
     // its position to get the x, y
-    if (write(STDOUT_FILENO, ESCAPE_SEQ_CURSOR_MAX_FWD ESCAPE_SEQ_CURSOR_MAX_DWN, 12) != 12) {
+    if (write(STDOUT_FILENO, ESC_SEQ_CURSOR_MAX_FWD ESC_SEQ_CURSOR_MAX_DWN, 12) != 12) {
       return -1;
     }
     return cursor_get_position(rows, cols);
@@ -102,5 +102,5 @@ tty_get_window_sz (unsigned int *rows, unsigned int *cols) {
 
 void
 tty_clear (void) {
-  write(STDOUT_FILENO, ESCAPE_SEQ_CURSOR_POS ESCAPE_SEQ_CLEAR_SCREEN ESCAPE_SEQ_CLEAR_SCROLLBUF, 12);
+  write(STDOUT_FILENO, ESC_SEQ_CURSOR_POS ESC_SEQ_CLEAR_SCREEN ESC_SEQ_CLEAR_SCROLLBUF, 12);
 }
