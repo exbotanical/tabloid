@@ -138,15 +138,19 @@ window_draw_rows (buffer_t* buf) {
         buffer_append(buf, editor.conf.ln_prefix);
       }
     } else {
-      char* lineno_str = s_fmt("%*ld ", line_pad, ++lineno);
+      bool  is_current_line = visible_row_idx == editor.curs.y;
+      char* lineno_str      = s_fmt("%*ld ", line_pad, ++lineno);
 
-      // if (visible_row_idx == editor.curs.y) {
-      //   buffer_append(buf, "\x1b[33m");
-      // }
+      if (is_current_line) {
+        buffer_append(buf, "\x1b[33m");
+
+        // \u001b[38;5;1m
+        // \u001b[38;5;${ID}m
+      }
       buffer_append(buf, lineno_str);
-      // if (visible_row_idx == editor.curs.y) {
-      //   buffer_append(buf, ESCAPE_SEQ_NORM_COLOR);
-      // }
+      if (is_current_line) {
+        buffer_append(buf, ESCAPE_SEQ_NORM_COLOR);
+      }
 
       free(lineno_str);
 
@@ -154,22 +158,22 @@ window_draw_rows (buffer_t* buf) {
       line_buffer_t current_row = editor.buf.lines[visible_row_idx];
 
       // Highlight the current row where the cursor is
-      // if (visible_row_idx == editor.curs.y) {
-      //   buffer_append(buf, ESCAPE_SEQ_INVERT_COLOR);
-      // }
+      if (is_current_line) {
+        buffer_append(buf, "\x1b[48;5;238m");
+      }
 
       window_draw_row(buf, &current_row);
 
-      // if (visible_row_idx == editor.curs.y) {
-      //   // If it's the current row, reset the highlight after drawing the row
-      //   int padding_len = editor.win.cols - (current_row.render_buf_sz +
-      //   line_pad + 1); if (padding_len > 0) {
-      //     for (int i = 0; i < padding_len; i++) {
-      //       buffer_append(buf, " ");  // Highlight entire row till the end
-      //     }
-      //   }
-      //   buffer_append(buf, ESCAPE_SEQ_NORM_COLOR);
-      // }
+      if (is_current_line) {
+        // If it's the current row, reset the highlight after drawing the row
+        int padding_len = editor.win.cols - (current_row.render_buf_sz + line_pad + 1);
+        if (padding_len > 0) {
+          for (int i = 0; i < padding_len; i++) {
+            buffer_append(buf, " ");  // Highlight entire row till the end
+          }
+        }
+        buffer_append(buf, ESCAPE_SEQ_NORM_COLOR);
+      }
     }
 
     // Clear line to the right of the cursor

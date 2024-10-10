@@ -67,7 +67,6 @@ editor_insert_row (int at, char *s, size_t len) {
   editor_refresh_row(&editor.buf.lines[at]);
 
   editor.buf.num_lines++;
-  // dirty++
 }
 
 static void
@@ -83,7 +82,6 @@ editor_row_concat (line_buffer_t *row, char *s, size_t len) {
   row->raw_sz           += len;
   row->raw[row->raw_sz]  = '\0';
   editor_refresh_row(row);
-  // dirty++
 }
 
 static void
@@ -98,7 +96,6 @@ editor_del_row (int at) {
     sizeof(line_buffer_t) * (editor.buf.num_lines - at - 1)
   );
   editor.buf.num_lines--;
-  // dirty++
 }
 
 static void
@@ -121,7 +118,6 @@ editor_row_del_char (line_buffer_t *row, int at) {
   memmove(&row->raw[at], &row->raw[at + 1], row->raw_sz - at);
   row->raw_sz--;
   editor_refresh_row(row);
-  // dirty++
 }
 
 void

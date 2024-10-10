@@ -21,7 +21,8 @@
 #define ESCAPE_SEQ_NORM_COLOR               ESCAPE_SEQ "[m"
 
 typedef enum {
-  BACKSPACE  = 127,
+  BACKSPACE = 127,
+  ENTER,
 
   ARROW_LEFT = 1000,
   ARROW_RIGHT,
@@ -38,7 +39,13 @@ typedef enum {
   HOME,
   END,
 
-  DELETE
+  DELETE,
+
+  CTRL_A,
+  CTRL_E,
+  CTRL_Q,
+
+  UNKNOWN
 } Key;
 
 void keypress_handle(void);

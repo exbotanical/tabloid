@@ -95,6 +95,23 @@ keypress_read (void) {
     return ESCAPE_SEQ_CHAR;
   }
 
+  switch (c) {
+    case CTRL_KEY('a'): return CTRL_A;
+    case CTRL_KEY('e'): return CTRL_E;
+    case CTRL_KEY('q'): return CTRL_Q;
+    // Ctrl+h aka ctrl code 8 aka backspace
+    case CTRL_KEY('h'): return BACKSPACE;
+  }
+
+  if (c == '\r') {
+    return ENTER;
+  }
+
+  // Ignore unknown ctrl sequences
+  if (CTRL_KEY(c) == c) {
+    return UNKNOWN;
+  }
+
   return c;
 }
 
@@ -103,17 +120,18 @@ keypress_handle (void) {
   int c = keypress_read();
 
   switch (c) {
+    case UNKNOWN: break;
     // TODO: dyn
-    case CTRL_KEY('q'): {
+    case CTRL_Q: {
       exit(0);
     }
 
-      // Enter key
-    case '\r': editor_insert_newline(); break;
+    // Enter key
+    case ENTER: editor_insert_newline(); break;
 
-    case BACKSPACE:
-    // Ctrl+h aka ctrl code 8 aka backspace
-    case CTRL_KEY('h'): editor_del_char(); break;
+    case CTRL_A: cursor_move_begin(); break;
+    case CTRL_E: cursor_move_end(); break;
+    case BACKSPACE: editor_del_char(); break;
 
     case DELETE:
       cursor_move_right();
@@ -171,15 +189,9 @@ keypress_handle (void) {
       break;
     }
 
-    case CTRL_KEY('l'):
     case '\x1b': break;
 
     default: {
-      // Ignore unknown ctrl sequences
-      if ((c & 0x1F) == c) {
-        break;
-      }
-
       editor_insert_char(c);
       break;
     }

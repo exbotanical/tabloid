@@ -17,7 +17,7 @@
 - [ ] bounded / max size guards (e.g. max file size or max num lines - temporary)
 - [x] unit tests
 - [ ] integ tests
-- [ ] current row highlight
+- [x] current row highlight
 - [ ] handle screen size change
 - [ ] handle wrap on out-of-bounds long line (e.g. wrap around but maintain lineno)
   - [ ] OK doing this is REALLY fucking difficult. Do it later.
@@ -38,3 +38,4 @@
   - [ ] duplicate row (binding -> ???)
 - [ ] Multi-cursor editing
   - [ ] dupe cursor up/down
+- [ ] Explore gap buffer, piece table, or rope for optimized storage
