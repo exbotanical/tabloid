@@ -39,4 +39,6 @@
   - [ ] ctrl+u delete entire line
 - [ ] Multi-cursor editing
   - [ ] dupe cursor up/down
-- [ ] Explore gap buffer, piece table, or rope for optimized storage
+- [x] Explore gap buffer, piece table, or rope for optimized storage
+  - [ ] OK let's do a piece table!
+- [ ] unicode!
