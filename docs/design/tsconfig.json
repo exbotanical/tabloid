@@ -1,0 +1,21 @@
+{
+  "include": ["*.ts"],
+  "compilerOptions": {
+    "composite": true,
+    "rootDir": ".",
+    "declaration": true,
+    "declarationDir": ".build",
+    "module": "ESNext",
+    "lib": ["ESNext"],
+    "target": "ES2015",
+    "strict": true,
+    "moduleResolution": "node",
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "types": ["vitest/importMeta", "node"]
+  }
+}
