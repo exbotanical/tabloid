@@ -9,89 +9,74 @@ enum Action {
 }
 
 class EventStack {
-  private evs: PieceDescriptorRange[] = []
+  private eventCaptures: PieceDescriptorRange[] = []
 
-  constructor() {}
   empty() {
-    return this.evs.length === 0
+    return this.eventCaptures.length === 0
   }
 
   last() {
-    return this.evs[this.evs.length - 1]
+    return this.eventCaptures[this.eventCaptures.length - 1]
   }
 
   pop() {
-    return this.evs.pop()
+    return this.eventCaptures.pop()
   }
 
   push(evRange: PieceDescriptorRange) {
-    this.evs.push(evRange)
+    this.eventCaptures.push(evRange)
   }
 
   clear() {
-    this.evs = []
+    this.eventCaptures = []
+  }
+
+  back(index: number) {
+    const length = this.eventCaptures.length
+    if (length > 0 && index < length) {
+      return this.eventCaptures[length - index - 1]
+    }
+    throw Error(`invalid index ${index}`)
   }
 }
 
 class SeqBuffer {
-  buffer: string
-  length: number = 0
-  maxSize: number = 0
-  id: number = 0
-  constructor(buffer: string) {
-    this.buffer = buffer
-  }
+  length = 0
+  maxSize = 0
+  id = 0
+  constructor(public buffer: string) {}
 }
 
 let id = -2
 class PieceDescriptor {
-  next?: PieceDescriptor
-  prev?: PieceDescriptor
-  id = id++
-  length: number
+  readonly id = id++
+
   constructor(
-    readonly offset = 0,
-    length = 0,
-    readonly buffer = 0,
-    next?: PieceDescriptor,
-    prev?: PieceDescriptor,
-  ) {
-    this.length = length
-    // TODO: cleanup
-    if (next) {
-      this.next = next
-    }
-    if (prev) {
-      this.prev = prev
-    }
-  }
+    public offset = 0,
+    public length = 0,
+    public buffer = 0,
+    public next?: PieceDescriptor,
+    public prev?: PieceDescriptor,
+  ) {}
 }
 
 class PieceDescriptorRange {
-  first?: PieceDescriptor
-  last?: PieceDescriptor
   boundary = true
-  seqLength: number
-  length: number
 
   constructor(
-    seqLength = 0,
-    readonly index = 0,
-    length = 0,
-    first?: PieceDescriptor,
-    last?: PieceDescriptor,
-  ) {
-    this.seqLength = seqLength
-    this.length = length
-    this.first = first
-    this.last = last
-  }
+    public seqLength = 0,
+    public index = 0,
+    public length = 0,
+    public first?: PieceDescriptor,
+    public last?: PieceDescriptor,
+  ) {}
 
   append(pd: PieceDescriptor) {
     if (!this.first) {
       this.first = pd
     } else {
       assert(this.last != null)
+
       this.last.next = pd
       pd.prev = this.last
     }
@@ -118,7 +103,7 @@ class PieceDescriptorRange {
   }
 
   prependRange(range: PieceDescriptorRange) {
-    if (range.boundary == false) {
+    if (!range.boundary) {
       if (this.boundary) {
         this.first = range.first
         this.last = range.last
@@ -142,21 +127,18 @@ class PieceDescriptorRange {
 }
 
 class PieceTable {
-  private head: PieceDescriptor = new PieceDescriptor()
-  private tail: PieceDescriptor = new PieceDescriptor()
-
+  private readonly undoStack: EventStack = new EventStack()
+  private readonly redoStack: EventStack = new EventStack()
   private frag1: PieceDescriptor | undefined
   private frag2: PieceDescriptor | undefined
-
-  private undoStack: EventStack = new EventStack()
-  private redoStack: EventStack = new EventStack()
-
+  private head: PieceDescriptor = new PieceDescriptor()
+  private tail: PieceDescriptor = new PieceDescriptor()
   private seqLength = 0
   private addBufferId = -1
   private bufferList: SeqBuffer[] = []
+  private lastAction = Action.SENTINEL
+  private lastActionIndex = 0
 
-  lastAction = Action.SENTINEL
-  lastActionIndex = 0
   constructor() {
     this.head.next = this.tail
     this.tail.prev = this.head
@@ -164,9 +146,11 @@ class PieceTable {
 
   init(piece: string) {
     const length = piece.length
-    const b = this.allocAddBuffer(length)
-    b.buffer += piece
-    b.length = length
+    const addBuffer = this.allocAddBuffer(length)
+
+    addBuffer.buffer += piece
+    addBuffer.length = length
+
     const id = this.bufferList.length - 1
 
     const pd = new PieceDescriptor(0, length, id, this.tail, this.head)
@@ -177,25 +161,25 @@ class PieceTable {
     this.recordAction(Action.SENTINEL, 0)
   }
 
+  size() {
+    return this.seqLength
+  }
+
   insert(index: number, piece: string) {
     const length = piece.length
     if (index > this.seqLength) {
       return
     }
 
-    const r = this.descFromIndex(index)
-    if (!r) return
-
-    const [pd, pdIndex] = r
+    const [pd, pdIndex] = this.descFromIndex(index)
     const addBufOffset = this.importBuffer(piece, length)
 
     this.redoStack.clear()
 
     const insertOff = index - pdIndex
     const newPds = new PieceDescriptorRange()
-    let oldPds = new PieceDescriptorRange()
 
-    // Inserting at the end of a preceding insertion - at a pd boundary
+    // Inserting at the end of a prior insertion - at a pd boundary
     if (insertOff === 0 && this.canOptimize(Action.INSERT, index)) {
       assert(pd.prev != null)
       // Extend the last pd's length
@@ -205,14 +189,16 @@ class PieceTable {
 
       // Inserting at a pd boundary
     } else if (insertOff === 0) {
-      oldPds = this.initUndoRange(index, length)
+      const oldPds = this.initUndoRange(index, length)
 
       oldPds.asBoundary(pd.prev, pd)
+
       newPds.append(new PieceDescriptor(addBufOffset, length, this.addBufferId))
 
       this.swapDescRanges(oldPds, newPds)
+      // Inserting in the middle of a piece
     } else {
-      oldPds = this.initUndoRange(index, length)
+      const oldPds = this.initUndoRange(index, length)
 
       oldPds.append(pd)
       newPds.append(new PieceDescriptor(pd.offset, insertOff, pd.buffer))
@@ -246,24 +232,64 @@ class PieceTable {
     let [pd, pdIndex] = this.descFromIndex(index)
 
     const rmOffset = index - pdIndex
-    let rmLength = length
-    const appendPdRange = true
 
-    const ev = this.initUndoRange(index, length)
+    let rmLength = length
+    let appendPdRange = false
+
+    let ev
 
     const newPds = new PieceDescriptorRange()
     const oldPds = new PieceDescriptorRange()
 
+    // Forward-delete
     if (index === pdIndex && this.canOptimize(Action.DELETE, index)) {
+      ev = this.undoStack.back(0)
+      ev.length += length
+      appendPdRange = true
+
+      if (this.frag2) {
+        if (length < this.frag2.length) {
+          this.frag2.length -= length
+          this.frag2.offset += length
+          this.seqLength -= length
+          return
+        } else {
+          rmLength -= pd.length
+          pd = pd.next!
+          this.deleteFromDesc(this.frag2)
+        }
+      }
+      // Backward delete
     } else if (
       index + length === pdIndex + pd.length &&
       this.canOptimize(Action.DELETE, index + length)
     ) {
+      ev = this.undoStack.last()
+      ev.length += length
+      ev.index -= index
+      appendPdRange = false
+
+      if (this.frag1) {
+        if (length < this.frag1.length) {
+          this.frag1.length -= length
+          this.frag1.offset += 0
+          this.seqLength -= length
+          return
+        } else {
+          rmLength -= this.frag1.length
+          this.deleteFromDesc(this.frag1)
+        }
+      }
     } else {
+      appendPdRange = true
+      this.frag1 = this.frag2 = undefined
+
+      ev = this.initUndoRange(index, length)
     }
 
     this.redoStack.clear()
 
+    // Deletion starts midway through a piece
     if (rmOffset !== 0) {
       newPds.append(new PieceDescriptor(pd.offset, rmOffset, pd.buffer))
       this.frag1 = newPds.first
@@ -324,10 +350,17 @@ class PieceTable {
     return this.doStackEvent(this.redoStack, this.undoStack)
   }
 
+  deleteFromDesc(pd: PieceDescriptor) {
+    assert(pd.prev != null)
+    assert(pd.next != null)
+
+    pd.prev.next = pd.next
+    pd.next.prev = pd.prev
+  }
+
   doStackEvent(src: EventStack, dest: EventStack) {
     if (src.empty()) return
     this.recordAction(Action.SENTINEL, 0)
-
     let range
 
     do {
@@ -470,7 +503,7 @@ class PieceTable {
       }
     }
 
-    let tmp = range.seqLen
+    let tmp = range.seqLength
     range.seqLength = this.seqLength
     this.seqLength = tmp
   }
@@ -510,11 +543,9 @@ class PieceTable {
     return this.lastAction === action && this.lastActionIndex === index
   }
 
-  debug() {
-    let length = this.seqLength
-
+  render(index = 0, length = this.seqLength) {
+    // Cache
     let s = ''
-    const index = 0
     let total = 0
 
     let [pd, pdIndex] = this.descFromIndex(index)
@@ -523,7 +554,6 @@ class PieceTable {
     while (length && pd !== this.tail) {
       const l = Math.min(pd.length - pdOffset, length)
       const src = this.bufferList[pd.buffer].buffer
-      console.log({ HERE: pd.id })
       const start = pd.offset + pdOffset
       const end = start + l
       s += src.substring(start, end)
@@ -533,14 +563,15 @@ class PieceTable {
       pdOffset = 0
       pd = pd.next!
     }
-    console.log({ s })
+
+    return s
   }
 }
 
 if (import.meta.vitest) {
-  const { it } = import.meta.vitest
+  const { test } = import.meta.vitest
 
-  it('test', () => {
+  test('piece table', () => {
     const pt = new PieceTable()
     pt.init('hello world')
     pt.insert(3, 'goodbye')
@@ -555,9 +586,136 @@ if (import.meta.vitest) {
     // hello world
     pt.redo()
     // world
+    pt.insert(5, '   xx')
+    pt.insert(5, '   yy')
 
-    pt.debug()
+    // console.log({ s: pt.render() })
+  })
+
+  test('editor', () => {
+    const gridSize = {
+      cols: 100,
+      rows: 10,
+    }
+
+    const editorGrid = ['hello', 'world', 'this', 'is a line']
+    const raw = editorGrid.join('\n')
+    //               1     1
+    //        6      2     7
+    // 'hello\nworld\nthis\nis a line'
+
+    const pt = new PieceTable()
+    pt.init(raw)
+
+    let lineStarts: number[] = []
+
+    let lineBuffer = ''
+    function initLineBuffer() {
+      lineBuffer = ''
+      const docSize = pt.size()
+
+      let offsetChars = 0
+      let lineStart = 0
+      let numLines = 0
+      lineStarts = []
+
+      for (; offsetChars < docSize; ) {
+        const char = pt.render(offsetChars++, 1)
+        lineBuffer += char
+
+        if (char === '\n') {
+          lineStarts[numLines] = lineStart
+          lineStart = offsetChars
+          numLines++
+        }
+      }
+
+      lineStarts[numLines++] = lineStart
+      lineStarts[numLines] = offsetChars
+    }
+
+    function paint() {
+      for (let row = 0; row < gridSize.rows; row++) {
+        const line = getline(row)
+
+        if (!line) continue
+        for (let col = 0; col < gridSize.cols; col++) {
+          const char = line[col]
+          if (char) {
+            process.stdout.write(char)
+          } else break
+        }
+      }
+    }
+
+    function paintDivider() {
+      process.stdout.write('\n')
+      process.stdout.write('\n')
+      process.stdout.write('---')
+      process.stdout.write('\n')
+      process.stdout.write('\n')
+    }
+
+    function getAbsoluteChar({ x, y }: { x: number; y: number }) {
+      return lineStarts[y] + x
+    }
+
+    function insert(cursor: { x: number; y: number }, char: string) {
+      pt.insert(getAbsoluteChar(cursor), char)
+      initLineBuffer()
+    }
+
+    function remove(cursor: { x: number; y: number }) {
+      pt.delete(getAbsoluteChar(cursor), 1)
+      initLineBuffer()
+    }
+
+    function getline(lineno: number) {
+      // We don't actually process the last line start - it's just there so we can grab an offset with the lineno+1 lookahead
+      if (lineStarts.length <= lineno + 1) {
+        return null
+      }
+
+      const lineLength = lineStarts[lineno + 1] - lineStarts[lineno]
+
+      return lineBuffer.substring(
+        lineStarts[lineno],
+        lineStarts[lineno] + lineLength,
+      )
+    }
+
+    initLineBuffer()
+    paint()
+    paintDivider()
+
+    // Let's make some edits...
+    insert({ x: 5, y: 0 }, 'x')
+
+    paint()
+    paintDivider()
+
+    insert({ x: 1, y: 1 }, 'x')
+    insert({ x: 3, y: 1 }, 'x')
+    insert({ x: 3, y: 3 }, 'x')
+    insert({ x: 5, y: 3 }, 'x')
+
+    paint()
+    paintDivider()
+
+    remove({ x: 5, y: 0 })
+    remove({ x: 2, y: 1 })
+    remove({ x: 4, y: 3 })
+    insert({ x: 3, y: 3 }, 'x')
+
+    paint()
+    paintDivider()
   })
 }
 
 // TODO: cleanup
+
+// lineStarts: [ 0, 6, 12, 17, 26 ],
+// full: 'hello\nworld\nthis\nis a line'
+
+// lineStarts: [ 0, 7, 13, 18, 27 ],
+// full: 'hellox\nworld\nthis\nis a line'
