@@ -53,6 +53,9 @@ test_piece_table (void) {
   piece_table_insert(pt, 5, "   yy");
   piece_table_render(pt, 0, pt->seq_length, buffer);
   is(buffer, "world   yy   xx", "inserts even more text");
+
+  piece_table_free(pt);
+  free(buffer);
 }
 
 void

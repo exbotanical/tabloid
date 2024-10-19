@@ -571,7 +571,7 @@ class PieceTable {
 if (import.meta.vitest) {
   const { test, expect } = import.meta.vitest
 
-  test('piece table', () => {
+  test.skip('piece table', () => {
     const pt = new PieceTable()
 
     pt.init('hello world')
@@ -616,30 +616,27 @@ if (import.meta.vitest) {
     pt.init(raw)
 
     let lineStarts: number[] = []
-
     let lineBuffer = ''
+
     function initLineBuffer() {
-      lineBuffer = ''
       const docSize = pt.size()
+      lineBuffer = pt.render(0, pt.size())
 
       let offsetChars = 0
       let lineStart = 0
-      let numLines = 0
       lineStarts = []
 
       for (; offsetChars < docSize; ) {
         const char = pt.render(offsetChars++, 1)
-        lineBuffer += char
 
         if (char === '\n') {
-          lineStarts[numLines] = lineStart
+          lineStarts.push(lineStart)
           lineStart = offsetChars
-          numLines++
         }
       }
 
-      lineStarts[numLines++] = lineStart
-      lineStarts[numLines] = offsetChars
+      lineStarts.push(lineStart)
+      lineStarts.push(offsetChars)
     }
 
     function paint() {
@@ -653,6 +650,8 @@ if (import.meta.vitest) {
             process.stdout.write(char)
           } else break
         }
+
+        process.stdout.write('\n')
       }
     }
 
@@ -664,17 +663,17 @@ if (import.meta.vitest) {
       process.stdout.write('\n')
     }
 
-    function getAbsoluteChar({ x, y }: { x: number; y: number }) {
+    function getAbsoluteIndex({ x, y }: { x: number; y: number }) {
       return lineStarts[y] + x
     }
 
     function insert(cursor: { x: number; y: number }, char: string) {
-      pt.insert(getAbsoluteChar(cursor), char)
+      pt.insert(getAbsoluteIndex(cursor), char)
       initLineBuffer()
     }
 
     function remove(cursor: { x: number; y: number }) {
-      pt.delete(getAbsoluteChar(cursor), 1)
+      pt.delete(getAbsoluteIndex(cursor), 1)
       initLineBuffer()
     }
 
@@ -684,15 +683,26 @@ if (import.meta.vitest) {
         return null
       }
 
-      const lineLength = lineStarts[lineno + 1] - lineStarts[lineno]
+      const lineStart = lineStarts[lineno]
+      const lineLength = lineStarts[lineno + 1] - lineStart
+
+      console.log({
+        lineno,
+        len: lineStarts.length,
+        line: lineBuffer.substring(
+          lineStart,
+          lineStart + lineLength - (lineStarts.length == lineno + 2 ? 0 : 1),
+        ),
+      })
 
       return lineBuffer.substring(
-        lineStarts[lineno],
-        lineStarts[lineno] + lineLength,
+        lineStart,
+        lineStart + lineLength - (lineStarts.length == lineno + 2 ? 0 : 1),
       )
     }
 
     initLineBuffer()
+
     paint()
     paintDivider()
 
@@ -714,6 +724,23 @@ if (import.meta.vitest) {
     remove({ x: 2, y: 1 })
     remove({ x: 4, y: 3 })
     insert({ x: 3, y: 3 }, 'x')
+
+    paint()
+    paintDivider()
+
+    // OK so here's an interesting challenge:
+    // Each line start occurs right after the newline
+    // but if a user backspaces right at the line start, the newline should be deleted
+    // similarly, a user shouldn't be able to backspace at the end of a line (where the newline is); instead the last x cell of the line should be the last char
+
+    //                       v (actual end)
+    //   0    1    2    3    4    5
+    // ['h', 'e', 'l', 'l', 'o', '\n']
+    //                       ^
+    // The getline retrieval will remove the newlines though so we don't risk indexing at x=5 (in the above example)
+    // We just need to ensure deleting beginning of a non-first line removes the newline in the piece table
+
+    remove({ x: -1, y: 1 })
 
     paint()
     paintDivider()

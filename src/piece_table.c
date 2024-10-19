@@ -251,23 +251,10 @@ piece_table_free (piece_table_t* self) {
     self->head = self->head->next;
   }
 
-  // TODO: remove
-  while (self->tail) {
-    piece_descriptor_t* d = self->tail;
-    piece_descriptor_free(d);
-    self->tail = self->tail->next;
-  }
-
   while (self->frag_1) {
     piece_descriptor_t* d = self->frag_1;
     piece_descriptor_free(d);
     self->frag_1 = self->frag_1->next;
-  }
-
-  while (self->frag_2) {
-    piece_descriptor_t* d = self->frag_2;
-    piece_descriptor_free(d);
-    self->frag_2 = self->frag_2->next;
   }
 
   free(self);
