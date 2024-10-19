@@ -25,6 +25,7 @@
 - [ ] Keybindings:
   - [ ] cut
   - [ ] copy
+    - [ ] copy full line preceding cursor when no select
   - [ ] paste
   - [ ] delete (ctrl+k)
   - [ ] delete word (ctrl+backspace)
