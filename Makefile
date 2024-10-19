@@ -1,6 +1,6 @@
 include Makefile.config
 
-.PHONY: all test unit_test integ_test clean fmt
+.PHONY: all test unit_test unit_test_dev integ_test clean fmt
 .DELETE_ON_ERROR:
 
 UNIT_TARGET := unit_test
@@ -35,6 +35,9 @@ unit_test: $(UNIT_TESTS) $(TEST_DEPS) $(DEPS) $(SRC_NOMAIN)
 	$(CC) $(CFLAGS) $^ $(LIBS) -o $(UNIT_TARGET)
 	@./$(UNIT_TARGET)
 	@$(MAKE) clean
+
+unit_test_dev:
+	ls $(SRCDIR)/*.{h,c} $(TESTDIR)/**/*.{h,c} | entr -s 'make -s unit_test'
 
 integ_test: $(TARGET)
 	@$(MAKE) clean
