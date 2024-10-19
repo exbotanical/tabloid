@@ -350,15 +350,32 @@ class PieceTable {
     return this.doStackEvent(this.redoStack, this.undoStack)
   }
 
-  deleteFromDesc(pd: PieceDescriptor) {
-    assert(pd.prev != null)
-    assert(pd.next != null)
+  render(index = 0, length = this.seqLength) {
+    // TODO: cache
+    let s = ''
+    let total = 0
 
-    pd.prev.next = pd.next
-    pd.next.prev = pd.prev
+    let [pd, pdIndex] = this.descFromIndex(index)
+    let pdOffset = index - pdIndex
+
+    while (length && pd !== this.tail) {
+      const l = Math.min(pd.length - pdOffset, length)
+      const src = this.bufferList[pd.buffer].buffer
+      const start = pd.offset + pdOffset
+      const end = start + l
+
+      s += src.substring(start, end)
+
+      length -= l
+      total += l
+      pdOffset = 0
+      pd = pd.next!
+    }
+
+    return s
   }
 
-  doStackEvent(src: EventStack, dest: EventStack) {
+  private doStackEvent(src: EventStack, dest: EventStack) {
     if (src.empty()) return
     this.recordAction(Action.SENTINEL, 0)
     let range
@@ -387,7 +404,7 @@ class PieceTable {
     return buf
   }
 
-  private allocAddBuffer(maxSize: number) {
+  private allocAddBuffer(maxSize: number): SeqBuffer {
     const buf = this.allocBuffer(maxSize)
     this.addBufferId = buf.id
     return buf
@@ -400,7 +417,6 @@ class PieceTable {
       // Ensure no old pds use this buffer
       this.recordAction(Action.SENTINEL, 0)
     }
-
     buf.buffer += s
 
     const ret = buf.length
@@ -534,62 +550,54 @@ class PieceTable {
     throw Error('descFromIndex')
   }
 
-  recordAction(action: Action, index: number) {
+  private deleteFromDesc(pd: PieceDescriptor) {
+    assert(pd.prev != null)
+    assert(pd.next != null)
+
+    pd.prev.next = pd.next
+    pd.next.prev = pd.prev
+  }
+
+  private recordAction(action: Action, index: number) {
     this.lastAction = action
     this.lastActionIndex = index
   }
 
-  canOptimize(action: Action, index: number) {
+  private canOptimize(action: Action, index: number) {
     return this.lastAction === action && this.lastActionIndex === index
-  }
-
-  render(index = 0, length = this.seqLength) {
-    // Cache
-    let s = ''
-    let total = 0
-
-    let [pd, pdIndex] = this.descFromIndex(index)
-    let pdOffset = index - pdIndex
-
-    while (length && pd !== this.tail) {
-      const l = Math.min(pd.length - pdOffset, length)
-      const src = this.bufferList[pd.buffer].buffer
-      const start = pd.offset + pdOffset
-      const end = start + l
-      s += src.substring(start, end)
-
-      length -= l
-      total += l
-      pdOffset = 0
-      pd = pd.next!
-    }
-
-    return s
   }
 }
 
 if (import.meta.vitest) {
-  const { test } = import.meta.vitest
+  const { test, expect } = import.meta.vitest
 
   test('piece table', () => {
     const pt = new PieceTable()
+
     pt.init('hello world')
     pt.insert(3, 'goodbye')
-    // helgoodbyelo world
-    pt.insert(6, 'xx')
-    // helgooxxdbyelo world
-    pt.delete(3, 9)
-    // hello world
-    pt.delete(0, 6)
-    // world
-    pt.undo()
-    // hello world
-    pt.redo()
-    // world
-    pt.insert(5, '   xx')
-    pt.insert(5, '   yy')
+    expect(pt.render()).toEqual('helgoodbyelo world')
 
-    // console.log({ s: pt.render() })
+    pt.insert(6, 'xx')
+    expect(pt.render()).toEqual('helgooxxdbyelo world')
+
+    pt.delete(3, 9)
+    expect(pt.render()).toEqual('hello world')
+
+    pt.delete(0, 6)
+    expect(pt.render()).toEqual('world')
+
+    pt.undo()
+    expect(pt.render()).toEqual('hello world')
+
+    pt.redo()
+    expect(pt.render()).toEqual('world')
+
+    pt.insert(5, '   xx')
+    expect(pt.render()).toEqual('world   xx')
+
+    pt.insert(5, '   yy')
+    expect(pt.render()).toEqual('world   yy   xx')
   })
 
   test('editor', () => {
@@ -711,8 +719,6 @@ if (import.meta.vitest) {
     paintDivider()
   })
 }
-
-// TODO: cleanup
 
 // lineStarts: [ 0, 6, 12, 17, 26 ],
 // full: 'hello\nworld\nthis\nis a line'

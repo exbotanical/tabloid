@@ -7,5 +7,6 @@
 #include "libtap/libtap.h"
 
 void run_cursor_tests(void);
+void run_piece_table_tests(void);
 
 #endif /* TESTS_H */
