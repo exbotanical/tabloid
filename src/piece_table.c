@@ -4,19 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define max(a, b)           \
-  ({                        \
-    __typeof__(a) _a = (a); \
-    __typeof__(b) _b = (b); \
-    _a > _b ? _a : _b;      \
-  })
-
-#define min(a, b)           \
-  ({                        \
-    __typeof__(a) _a = (a); \
-    __typeof__(b) _b = (b); \
-    _a < _b ? _a : _b;      \
-  })
+#include "calc.h"
 
 seq_buffer_t*
 seq_buffer_init (void) {
