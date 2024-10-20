@@ -5,8 +5,16 @@
 #include "piece_table.h"
 
 typedef struct {
-  array_t       *line_starts;
-  buffer_t      *line_buffer;
+  unsigned int line_start;
+  unsigned int line_length;
+} line_info_t;
+
+typedef struct {
+  // array_t<line_info_t>
+  array_t       *line_info;
+  // array_t<char*>
+  array_t       *line_buffer;
+  buffer_t      *tmp_buffer;
   piece_table_t *pt;
 } render_state_t;
 

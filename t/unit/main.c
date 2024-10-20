@@ -6,7 +6,7 @@ file_handle_t logger;
 
 int
 main () {
-  plan(205);
+  plan(208);
 
   run_cursor_tests();
   run_piece_table_tests();
