@@ -195,6 +195,8 @@ editor_init (void) {
   editor.s_bar.msg[0]    = '\0';
   editor.c_bar.msg[0]    = '\0';
 
+  editor.r               = *render_state_init(NULL);
+
   editor_insert_row(editor.curs.y, "", 0);
 }
 

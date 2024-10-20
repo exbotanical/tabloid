@@ -13,23 +13,28 @@ render_state_reset (render_state_t *self) {
 }
 
 render_state_t *
-render_state_init (void) {
+render_state_init (char *initial) {
   render_state_t *self = malloc(sizeof(render_state_t));
   self->line_starts    = array_init();
   self->line_buffer    = buffer_init(NULL);
+  self->pt             = piece_table_init();
+
+  piece_table_setup(self->pt, initial);
+
   return self;
 }
 
 void
 render_state_free (render_state_t *self) {
+  piece_table_free(self->pt);
   buffer_free(self->line_buffer);
   array_free(self->line_starts, NULL);
   free(self);
 }
 
 void
-render_state_refresh (render_state_t *self, piece_table_t *pt) {
-  unsigned int doc_size = piece_table_size(pt);
+render_state_refresh (render_state_t *self) {
+  unsigned int doc_size = piece_table_size(self->pt);
   render_state_reset(self);
 
   unsigned int offset_chars = 0;
@@ -38,7 +43,7 @@ render_state_refresh (render_state_t *self, piece_table_t *pt) {
 
   for (; offset_chars < doc_size;) {
     char c[2];
-    piece_table_render(pt, offset_chars++, 1, c);
+    piece_table_render(self->pt, offset_chars++, 1, c);
     buffer_append(self->line_buffer, c);
 
     if (c[0] == '\n') {
@@ -95,15 +100,15 @@ get_absolute_index (render_state_t *self, int x, int y) {
 }
 
 void
-render_state_insert (render_state_t *self, piece_table_t *pt, int x, int y, char *insert_chars) {
+render_state_insert (render_state_t *self, int x, int y, char *insert_chars) {
   unsigned int absolute_index = get_absolute_index(self, x, y);
-  piece_table_insert(pt, absolute_index, insert_chars);
-  render_state_refresh(self, pt);
+  piece_table_insert(self->pt, absolute_index, insert_chars);
+  render_state_refresh(self);
 }
 
 void
-render_state_delete (render_state_t *self, piece_table_t *pt, int x, int y) {
+render_state_delete (render_state_t *self, int x, int y) {
   unsigned int absolute_index = get_absolute_index(self, x, y);
-  piece_table_delete(pt, absolute_index, 1);
-  render_state_refresh(self, pt);
+  piece_table_delete(self->pt, absolute_index, 1);
+  render_state_refresh(self);
 }

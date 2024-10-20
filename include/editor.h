@@ -4,6 +4,7 @@
 #include "config.h"
 #include "cursor.h"
 #include "file.h"
+#include "line_buffer.h"
 #include "tty.h"
 #include "window.h"
 
@@ -52,6 +53,7 @@ typedef struct {
   file_handle_t  fs;
   s_bar_state_t  s_bar;
   c_bar_state_t  c_bar;
+  render_state_t r;
 } editor_t;
 
 void editor_init(void);

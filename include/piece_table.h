@@ -6,10 +6,10 @@
 #include "libutil/libutil.h"
 
 typedef enum {
-  SENTINEL,
-  INSERT,
-  DELETE,
-  REPLACE,
+  PT_SENTINEL,
+  PT_INSERT,
+  PT_DELETE,
+  PT_REPLACE,
 } piece_table_event;
 
 typedef struct {

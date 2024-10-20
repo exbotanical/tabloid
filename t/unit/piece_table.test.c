@@ -10,7 +10,7 @@ test_piece_table (void) {
   char* buffer      = malloc(1000);
 
   piece_table_t* pt = piece_table_init();
-  piece_table_setup(pt, "hello world");  // TODO: null piece test
+  piece_table_setup(pt, "hello world");
   piece_table_render(pt, 0, pt->seq_length, buffer);
   is(buffer, "hello world", "renders the correct initial string");
   buffer_reset();
@@ -59,6 +59,36 @@ test_piece_table (void) {
 }
 
 void
+test_piece_table_no_initial (void) {
+#define buffer_reset() memset(buffer, 0, 1000)
+  char* buffer      = malloc(1000);
+
+  piece_table_t* pt = piece_table_init();
+  piece_table_setup(pt, NULL);
+  piece_table_render(pt, 0, pt->seq_length, buffer);
+  is(buffer, "", "renders an empty initial string");
+
+  piece_table_free(pt);
+  free(buffer);
+}
+
+void
+test_piece_table_empty_initial (void) {
+#define buffer_reset() memset(buffer, 0, 1000)
+  char* buffer      = malloc(1000);
+
+  piece_table_t* pt = piece_table_init();
+  piece_table_setup(pt, "");
+  piece_table_render(pt, 0, pt->seq_length, buffer);
+  is(buffer, "", "renders an empty initial string");
+
+  piece_table_free(pt);
+  free(buffer);
+}
+
+void
 run_piece_table_tests (void) {
   test_piece_table();
+  test_piece_table_no_initial();
+  test_piece_table_empty_initial();
 }
