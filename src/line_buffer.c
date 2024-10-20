@@ -26,6 +26,7 @@ render_state_reset (render_state_t *self) {
 
   self->tmp_buffer  = buffer_init(NULL);
   self->line_info   = array_init();
+  self->num_lines   = 0;
   self->line_buffer = array_init();
 }
 
@@ -33,6 +34,7 @@ render_state_t *
 render_state_init (char *initial) {
   render_state_t *self = malloc(sizeof(render_state_t));
   self->line_info      = array_init();
+  self->num_lines      = 0;
   self->line_buffer    = array_init();
   self->tmp_buffer     = buffer_init(NULL);
   self->pt             = piece_table_init();
@@ -83,36 +85,13 @@ render_state_refresh (render_state_t *self) {
     line_info_t *li = line_info_init(line_start, line_length);
     array_push(self->line_info, (void *)li);
   }
+
+  self->num_lines = num_lines;
 }
-
-// void
-// render_state_refresh (render_state_t *self) {
-//   unsigned int doc_size = piece_table_size(self->pt);
-//   render_state_reset(self);
-
-//   unsigned int offset_chars = 0;
-//   unsigned int line_start   = 0;
-//   unsigned int num_lines    = 0;
-
-//   for (; offset_chars < doc_size;) {
-//     char c[2];
-//     piece_table_render(self->pt, offset_chars++, 1, c);
-//     buffer_append(self->line_buffer, c);
-
-//     if (c[0] == '\n') {
-//       array_push(self->line_starts, (void *)line_start);
-//       line_start = offset_chars;
-//     }
-//   }
-
-//   array_push(self->line_starts, (void *)line_start);
-//   array_push(self->line_starts, (void *)offset_chars);
-// }
 
 void
 render_state_get_line (render_state_t *self, unsigned int lineno, char *buffer) {
-  unsigned int num_lines = array_size(self->line_info);
-  assert(num_lines > lineno);  // TODO:
+  assert(self->num_lines > lineno);  // TODO:
 
   line_info_t *line_info   = (line_info_t *)array_get(self->line_info, lineno);
   unsigned int line_start  = line_info->line_start;

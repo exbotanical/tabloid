@@ -12,6 +12,7 @@ typedef struct {
 typedef struct {
   // array_t<line_info_t>
   array_t       *line_info;
+  unsigned int   num_lines;
   // array_t<char*>
   array_t       *line_buffer;
   buffer_t      *tmp_buffer;

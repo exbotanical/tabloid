@@ -12,6 +12,8 @@ test_line_buffer (void) {
   render_state_refresh(rs);
 
   ok(array_size(rs->line_info) == 4, "has 4 lines");
+  ok(rs->num_lines == 4, "num_lines field is correct");
+
   line_info_t* li = array_get(rs->line_info, 0);
   ok(li->line_start == 0, "correct line start 1");
   ok(li->line_length == 5, "correct line length 1");
@@ -38,6 +40,7 @@ test_line_buffer_get_line (void) {
   render_state_refresh(rs);
 
   ok(array_size(rs->line_info) == 4, "has 4 lines");
+  ok(rs->num_lines == 4, "num_lines field is correct");
 
   char buffer[100];
 
@@ -63,6 +66,7 @@ test_line_buffer_get_line (void) {
   render_state_insert(rs, 5, 0, "x");
 
   ok(array_size(rs->line_info) == 4, "has 4 lines");
+  ok(rs->num_lines == 4, "num_lines field is correct");
 
   render_state_get_line(rs, 0, buffer);
   is(buffer, "hellox", "returns the expected line");
@@ -89,6 +93,7 @@ test_line_buffer_get_line (void) {
   render_state_insert(rs, 5, 3, "x");
 
   ok(array_size(rs->line_info) == 4, "has 4 lines");
+  ok(rs->num_lines == 4, "num_lines field is correct");
 
   render_state_get_line(rs, 0, buffer);
   is(buffer, "hellox", "returns the expected line");
@@ -115,6 +120,7 @@ test_line_buffer_get_line (void) {
   render_state_insert(rs, 3, 3, "x");
 
   ok(array_size(rs->line_info) == 4, "has 4 lines");
+  ok(rs->num_lines == 4, "num_lines field is correct");
 
   render_state_get_line(rs, 0, buffer);
   is(buffer, "hello", "returns the expected line");
@@ -135,6 +141,7 @@ test_line_buffer_get_line (void) {
   render_state_delete(rs, -1, 1);
 
   ok(array_size(rs->line_info) == 3, "has 3 lines");
+  ok(rs->num_lines == 3, "num_lines field is correct");
 
   render_state_get_line(rs, 0, buffer);
   is(buffer, "hellowxxrld", "returns the expected line");
