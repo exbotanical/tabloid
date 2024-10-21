@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "globals.h"
+
 static line_info_t *
 line_info_init (unsigned int start, unsigned int length) {
   line_info_t *self = malloc(sizeof(line_info_t));
@@ -26,7 +28,7 @@ render_state_reset (render_state_t *self) {
 
   self->tmp_buffer  = buffer_init(NULL);
   self->line_info   = array_init();
-  self->num_lines   = 0;
+  self->num_lines   = 1;  // TODO: start at 1
   self->line_buffer = array_init();
 }
 
@@ -34,7 +36,7 @@ render_state_t *
 render_state_init (char *initial) {
   render_state_t *self = malloc(sizeof(render_state_t));
   self->line_info      = array_init();
-  self->num_lines      = 0;
+  self->num_lines      = 1;
   self->line_buffer    = array_init();
   self->tmp_buffer     = buffer_init(NULL);
   self->pt             = piece_table_init();
@@ -61,8 +63,15 @@ render_state_refresh (render_state_t *self) {
 
   unsigned int offset_chars = 0;
   unsigned int line_start   = 0;
-  unsigned int num_lines    = doc_size ? 1 : 0;
+  unsigned int num_lines    = 1;
   unsigned int line_length  = 0;
+
+  if (doc_size == 0) {
+    line_info_t *li = line_info_init(0, 0);
+    array_push(self->line_info, (void *)li);
+    self->num_lines = 1;
+    return;
+  }
 
   for (; offset_chars < doc_size;) {
     line_length++;
@@ -97,6 +106,11 @@ render_state_get_line (render_state_t *self, unsigned int lineno, char *buffer) 
   unsigned int line_start  = line_info->line_start;
   unsigned int line_length = line_info->line_length;
 
+  if (line_length == 0) {
+    buffer = "";
+    return;
+  }
+
   char *line = s_substr(buffer_state(self->tmp_buffer), line_start, line_start + line_length, false);
 
   memcpy(buffer, line, strlen(line) + 1);
@@ -107,6 +121,9 @@ render_state_get_line (render_state_t *self, unsigned int lineno, char *buffer) 
 
 static unsigned int
 get_absolute_index (render_state_t *self, int x, int y) {
+  if (array_size(self->line_info) == 0) {
+    return 0;
+  }
   return ((line_info_t *)array_get(self->line_info, y))->line_start + x;
 }
 

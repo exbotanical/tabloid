@@ -41,5 +41,6 @@
 - [ ] Multi-cursor editing
   - [ ] dupe cursor up/down
 - [x] Explore gap buffer, piece table, or rope for optimized storage
-  - [ ] OK let's do a piece table!
+  - [x] OK let's do a piece table!
+- [ ] optimize line buffer
 - [ ] unicode!

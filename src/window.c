@@ -15,33 +15,8 @@
 
 unsigned int line_pad = 0;
 
-/**
- * Convert raw buffer index into a render buffer index.
- *
- * @param row
- * @param cursx
- * @return int
- */
-static int
-get_render_x (line_buffer_t* row, unsigned int cursx) {
-  unsigned int render_x = 0;
-  for (unsigned int i = 0; i < cursx; i++) {
-    if (row->raw[i] == '\t') {
-      render_x += (editor.conf.tab_sz - 1) - (render_x % editor.conf.tab_sz);
-    }
-    render_x++;
-  }
-
-  return render_x;
-}
-
 static void
 window_scroll (void) {
-  // if (cursor_on_content_line()) {
-  //   editor.curs.render_x
-  //     = get_render_x(&editor.buf.lines[editor.curs.y], editor.curs.x);
-  // }
-
   // Check if the cursor is above the visible window; if so, scroll up to it.
   if (cursor_above_visible_window()) {
     editor.curs.row_off = editor.curs.y;
@@ -82,22 +57,27 @@ window_draw_command_bar (buffer_t* buf) {
 }
 
 static void
-window_draw_row (buffer_t* buf, line_buffer_t* row) {
-  int len = row->render_buf_sz - (editor.curs.col_off);
+window_draw_row (buffer_t* buf, line_info_t* row, unsigned int lineno) {
+  int len = row->line_length - (editor.curs.col_off);
   if (len < 0) {
     len = 0;
   }
-  if (len > (editor.win.cols - (line_pad + 1))) {
+
+  if ((unsigned int)len > (editor.win.cols - (line_pad + 1))) {
     len = (editor.win.cols - (line_pad + 1));
   }
 
-  buffer_append_with(buf, &row->render_buf[editor.curs.col_off], len);
+  char line[row->line_length];
+  render_state_get_line(editor.r, lineno, line);
+
+  buffer_append_with(buf, &line[editor.curs.col_off], len);
 }
 
 static void
 window_draw_rows (buffer_t* buf) {
   unsigned int lineno = editor.curs.row_off;
-  line_pad            = log10(editor.buf.num_lines) + 1;
+  line_pad            = log10(editor.r->num_lines) + 1;
+
   if (line_pad < DEFAULT_LNPAD) {
     line_pad = DEFAULT_LNPAD;
   }
@@ -105,9 +85,9 @@ window_draw_rows (buffer_t* buf) {
   // For every row in the entire window...
   for (unsigned int y = 0; y < editor.win.rows; y++) {
     // Grab the visible row
-    int visible_row_idx = y + editor.curs.row_off;
+    unsigned int visible_row_idx = y + editor.curs.row_off;
     // If the visible row index is > the number of buffered rows...
-    if (visible_row_idx >= editor.buf.num_lines) {
+    if (visible_row_idx >= editor.r->num_lines) {
       buffer_append(buf, editor.conf.ln_prefix);
     } else {
       bool  is_current_line = visible_row_idx == editor.curs.y;
@@ -124,18 +104,18 @@ window_draw_rows (buffer_t* buf) {
       free(lineno_str);
 
       // Has row content; render it...
-      line_buffer_t current_row = editor.buf.lines[visible_row_idx];
+      line_info_t* current_row = (line_info_t*)array_get(editor.r->line_info, visible_row_idx);
 
       // Highlight the current row where the cursor is
       if (is_current_line) {
         buffer_append(buf, ESC_SEQ_BG_COLOR(238));
       }
 
-      window_draw_row(buf, &current_row);
+      window_draw_row(buf, current_row, visible_row_idx);
 
       if (is_current_line) {
         // If it's the current row, reset the highlight after drawing the row
-        int padding_len = (editor.win.cols + editor.curs.col_off) - (current_row.render_buf_sz + line_pad + 1);
+        int padding_len = (editor.win.cols + editor.curs.col_off) - (current_row->line_length + line_pad + 1);
         if (padding_len > 0) {
           for (int i = 0; i < padding_len; i++) {
             buffer_append(buf, " ");  // Highlight entire row till the end

@@ -67,6 +67,11 @@ test_piece_table_no_initial (void) {
   piece_table_setup(pt, NULL);
   piece_table_render(pt, 0, pt->seq_length, buffer);
   is(buffer, "", "renders an empty initial string");
+  memset(buffer, 0, 1000);
+
+  piece_table_insert(pt, 0, "hello");
+  piece_table_render(pt, 0, pt->seq_length, buffer);
+  is(buffer, "hello", "renders the appended string");
 
   piece_table_free(pt);
   free(buffer);
@@ -81,6 +86,11 @@ test_piece_table_empty_initial (void) {
   piece_table_setup(pt, "");
   piece_table_render(pt, 0, pt->seq_length, buffer);
   is(buffer, "", "renders an empty initial string");
+  memset(buffer, 0, 1000);
+
+  piece_table_insert(pt, 0, "hello");
+  piece_table_render(pt, 0, pt->seq_length, buffer);
+  is(buffer, "hello", "renders the appended string");
 
   piece_table_free(pt);
   free(buffer);

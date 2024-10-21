@@ -13,7 +13,7 @@ extern editor_t editor;
 
 bool
 cursor_on_content_line (void) {
-  return editor.curs.y < editor.buf.num_lines;
+  return editor.curs.y < editor.r->num_lines;
 }
 
 bool
@@ -28,7 +28,7 @@ cursor_on_first_col (void) {
 
 bool
 cursor_on_last_line (void) {
-  return editor.curs.y == editor.buf.num_lines - 1;
+  return editor.curs.y == editor.r->num_lines - 1;
 }
 
 bool
@@ -63,7 +63,9 @@ cursor_not_at_row_begin (void) {
 
 void
 cursor_move_down (void) {
-  if (editor.curs.y < editor.buf.num_lines - 1) {
+  int y     = editor.curs.y;
+  int max_y = editor.r->num_lines - 1;
+  if (y < max_y) {
     editor.curs.y++;
   }
 }
@@ -82,18 +84,20 @@ cursor_move_left (void) {
   } else if (!cursor_on_first_line()) {
     // Move to end of prev line on left from col 0
     editor.curs.y--;
-    editor.curs.x = editor.buf.lines[editor.curs.y].render_buf_sz;
+    editor.curs.x
+      = ((line_info_t *)array_get(editor.r->line_info, editor.curs.y))->line_length;
   }
 }
 
 void
 cursor_move_right (void) {
-  line_buffer_t *row = (editor.curs.y >= editor.buf.num_lines)
-                         ? NULL
-                         : &editor.buf.lines[editor.curs.y];
-  if (row && editor.curs.x < row->render_buf_sz) {
+  line_info_t *row
+    = (editor.curs.y >= editor.r->num_lines)
+        ? NULL
+        : (line_info_t *)array_get(editor.r->line_info, editor.curs.y);
+  if (row && editor.curs.x < row->line_length) {
     editor.curs.x++;
-  } else if (row && editor.curs.x == row->render_buf_sz && !cursor_on_last_line()) {
+  } else if (row && editor.curs.x == row->line_length && !cursor_on_last_line()) {
     // Move to beginning of next line on right from last col
     editor.curs.y++;
     editor.curs.x = 0;
@@ -102,35 +106,40 @@ cursor_move_right (void) {
 
 void
 cursor_move_right_word (void) {
-  line_buffer_t *row = (editor.curs.y >= editor.buf.num_lines)
-                         ? NULL
-                         : &editor.buf.lines[editor.curs.y];
+  line_info_t *row
+    = (editor.curs.y >= editor.r->num_lines)
+        ? NULL
+        : (line_info_t *)array_get(editor.r->line_info, editor.curs.y);
 
-  if (editor.curs.x == row->render_buf_sz && !cursor_on_last_line()) {
+  if (editor.curs.x == row->line_length && !cursor_on_last_line()) {
     editor.curs.y++;
     editor.curs.x = 0;
     return;
   }
 
   // Jump to end if we're one char away
-  if (editor.curs.x == row->render_buf_sz - 1) {
-    editor.curs.x = row->render_buf_sz;
+  if (editor.curs.x == row->line_length - 1) {
+    editor.curs.x = row->line_length;
     return;
   }
 
   unsigned int i = editor.curs.x;
 
+  // TODO: cache all lines in current window
+  char buf[row->line_length];
+  render_state_get_line(editor.r, editor.curs.y, buf);
+
   // If the very next char is a break char, jump to the start of the next word
-  if (row->render_buf[i] == ' ') {
-    for (; i < row->render_buf_sz; i++) {
-      if (row->render_buf[i] != ' ') {
+  if (buf[i] == ' ') {
+    for (; i < row->line_length; i++) {
+      if (buf[i] != ' ') {
         break;
       }
     }
   } else {
     // Otherwise, if we're on a word, jump to the next break char
-    for (; i < row->render_buf_sz; i++) {
-      if (row->render_buf[i] == ' ') {
+    for (; i < row->line_length; i++) {
+      if (buf[i] == ' ') {
         break;
       }
     }
@@ -141,9 +150,10 @@ cursor_move_right_word (void) {
 
 void
 cursor_move_left_word (void) {
-  line_buffer_t *row = (editor.curs.y >= editor.buf.num_lines)
-                         ? NULL
-                         : &editor.buf.lines[editor.curs.y];
+  line_info_t *row
+    = (editor.curs.y >= editor.r->num_lines)
+        ? NULL
+        : (line_info_t *)array_get(editor.r->line_info, editor.curs.y);
 
   if (editor.curs.x == 0) {
     cursor_move_left();
@@ -158,18 +168,21 @@ cursor_move_left_word (void) {
 
   unsigned int i = editor.curs.x;
 
+  char buf[row->line_length];
+  render_state_get_line(editor.r, editor.curs.y, buf);
+
   // TODO: array or hashmap of break chars
   // If the preceding char is a break char, jump to the end of the next word
-  if (row->render_buf[i - 1] == ' ') {
+  if (buf[i - 1] == ' ') {
     for (; i > 0; i--) {
-      if (row->render_buf[i - 1] != ' ') {
+      if (buf[i - 1] != ' ') {
         break;
       }
     }
   } else {
     // Otherwise, if we're on a word, jump to the prev break char
     for (; i > 0; i--) {
-      if (row->render_buf[i - 1] == ' ') {
+      if (buf[i - 1] == ' ') {
         break;
       }
     }
@@ -195,8 +208,8 @@ cursor_move_bottom (void) {
 
 void
 cursor_move_visible_bottom (void) {
-  editor.curs.y = (editor.curs.y > editor.buf.num_lines)
-                    ? editor.buf.num_lines
+  editor.curs.y = (editor.curs.y > editor.r->num_lines)
+                    ? editor.r->num_lines
                     : editor.curs.row_off + editor.win.rows - 1;
 }
 
@@ -207,20 +220,22 @@ cursor_move_begin (void) {
 
 void
 cursor_move_end (void) {
-  if (editor.curs.y < editor.buf.num_lines) {
-    editor.curs.x = editor.buf.lines[editor.curs.y].render_buf_sz;
+  if (editor.curs.y < editor.r->num_lines) {
+    editor.curs.x
+      = ((line_info_t *)array_get(editor.r->line_info, editor.curs.y))->line_length;
   }
 }
 
 void
 cursor_snap_to_end (void) {
-  line_buffer_t *row   = (editor.curs.y >= editor.buf.num_lines)
-                           ? NULL
-                           : &editor.buf.lines[editor.curs.y];
+  line_info_t *row
+    = (editor.curs.y >= editor.r->num_lines)
+        ? NULL
+        : (line_info_t *)array_get(editor.r->line_info, editor.curs.y);
 
-  unsigned int row_len = row ? row->render_buf_sz : 0;
-  if (editor.curs.x > row_len) {
-    editor.curs.x = row_len;
+  unsigned int length = row ? row->line_length : 0;
+  if (editor.curs.x > length) {
+    editor.curs.x = length;
   }
 }
 

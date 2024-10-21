@@ -480,8 +480,6 @@ piece_table_render (piece_table_t* self, unsigned int index, unsigned int length
     unsigned int copy_len = min(pd->length - pd_offset, length);
     char*        src
       = buffer_state(((seq_buffer_t*)array_get(self->buffer_list, pd->buffer))->buffer);
-    unsigned int start = pd->offset + pd_offset;
-    unsigned int end   = start + copy_len;
 
     memcpy(dest, src + pd->offset + pd_offset, copy_len * sizeof(char));
 
@@ -551,11 +549,12 @@ piece_table_import_buffer (piece_table_t* self, char* s, unsigned int length) {
 
 void
 piece_table_swap_desc_ranges (piece_table_t* self, piece_descriptor_range_t* src, piece_descriptor_range_t* dest) {
-  assert(src->first);
-  assert(src->last);
+  assert(src);
 
   if (src->is_boundary) {
     if (!dest->is_boundary) {
+      assert(src->first);
+      assert(src->last);
       assert(dest->first);
       assert(dest->last);
 
@@ -565,6 +564,8 @@ piece_table_swap_desc_ranges (piece_table_t* self, piece_descriptor_range_t* src
       dest->last->next  = src->last;
     }
   } else {
+    assert(src->first);
+    assert(src->last);
     assert(src->first->prev);
     assert(src->last->next);
 

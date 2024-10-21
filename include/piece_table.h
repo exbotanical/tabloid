@@ -33,7 +33,7 @@ typedef struct piece_descriptor {
   unsigned int        buffer;
   piece_descriptor_t* next;
   piece_descriptor_t* prev;
-};
+} ___piece_descriptor_t;
 
 typedef struct {
   bool                is_boundary;
