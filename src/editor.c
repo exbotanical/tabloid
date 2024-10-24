@@ -66,7 +66,15 @@ editor_init (void) {
     panic("Failed call to get terminal window size\n");
   }
 
-  editor.curs = (cursor_t){.x = 0, .y = 0, .row_off = 0, .col_off = 0, .render_x = DEFAULT_LNPAD};
+  editor.curs = (cursor_t){
+    .x               = 0,
+    .y               = 0,
+    .row_off         = 0,
+    .col_off         = 0,
+    .render_x        = DEFAULT_LNPAD,
+    .highlight_start = -1,
+    .highlight_end   = -1,
+  };
 
   editor.conf.tab_sz     = DEFAULT_TAB_SZ;
   editor.conf.ln_prefix  = DEFAULT_LINE_PREFIX;

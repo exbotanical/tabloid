@@ -59,22 +59,53 @@ keypress_read (void) {
             return ESC_SEQ_CHAR;
           }
 
-          // ESC-[1;5D
-          if (seq[3] == '5') {
-            if (read(STDIN_FILENO, &seq[4], 1) != 1) {
-              return ESC_SEQ_CHAR;
+          bool isCtrl  = false;
+          bool isShift = false;
+
+          switch (seq[3]) {
+            case '2': isShift = true; break;
+            case '5': isCtrl = true; break;
+            case '6':
+              isShift = true;
+              isCtrl  = true;
+              break;
+          }
+
+          if (read(STDIN_FILENO, &seq[4], 1) != 1) {
+            return ESC_SEQ_CHAR;
+          }
+
+          logger.write("isShift=%d,isCtrl=%d\n", isShift, isCtrl);
+          switch (seq[4]) {
+            case 'A': {
+              if (isShift) {
+                return isCtrl ? CTRL_SHIFT_ARROW_UP : SHIFT_ARROW_UP;
+              }
+              return isCtrl ? CTRL_ARROW_UP : ESC_SEQ_CHAR;
             }
 
-            switch (seq[4]) {
-              case 'A': return CTRL_ARROW_UP;
-              case 'B': return CTRL_ARROW_DOWN;
-              case 'C': return CTRL_ARROW_RIGHT;
-              case 'D': return CTRL_ARROW_LEFT;
+            case 'B': {
+              if (isShift) {
+                return isCtrl ? CTRL_SHIFT_ARROW_DOWN : SHIFT_ARROW_DOWN;
+              }
+              return isCtrl ? CTRL_ARROW_DOWN : ESC_SEQ_CHAR;
+            }
+
+            case 'C': {
+              if (isShift) {
+                return isCtrl ? CTRL_SHIFT_ARROW_RIGHT : SHIFT_ARROW_RIGHT;
+              }
+              return isCtrl ? CTRL_ARROW_RIGHT : ESC_SEQ_CHAR;
+            }
+
+            case 'D': {
+              if (isShift) {
+                return isCtrl ? CTRL_SHIFT_ARROW_LEFT : SHIFT_ARROW_LEFT;
+              }
+              return isCtrl ? CTRL_ARROW_LEFT : ESC_SEQ_CHAR;
             }
           }
         }
-
-        // HERE!
       } else {
         switch (seq[1]) {
           case 'A': return ARROW_UP;
@@ -182,6 +213,21 @@ keypress_handle (void) {
     }
     case CTRL_ARROW_DOWN: {
       cursor_move_down();
+      break;
+    }
+
+    case SHIFT_ARROW_LEFT: {
+      cursor_highlight_left();
+      break;
+    }
+    case SHIFT_ARROW_RIGHT: {
+      cursor_highlight_right();
+      break;
+    }
+    case SHIFT_ARROW_UP: {
+      break;
+    }
+    case SHIFT_ARROW_DOWN: {
       break;
     }
 

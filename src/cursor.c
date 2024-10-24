@@ -285,3 +285,17 @@ cursor_set_position (buffer_t *buf) {
   // buffer_append(buf, "\x1b[2 q");
   buffer_append(buf, curs);
 }
+
+void
+cursor_highlight_left (void) {
+  editor.curs.highlight_end = editor.curs.x;
+  cursor_move_left();
+  editor.curs.highlight_start = editor.curs.x;
+}
+
+void
+cursor_highlight_right (void) {
+  editor.curs.highlight_end = editor.curs.x;
+  cursor_move_right();
+  editor.curs.highlight_start = editor.curs.x;
+}

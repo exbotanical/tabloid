@@ -70,7 +70,21 @@ window_draw_row (buffer_t* buf, line_info_t* row, unsigned int lineno) {
   char line[row->line_length];
   render_state_get_line(editor.r, lineno, line);
 
-  buffer_append_with(buf, &line[editor.curs.col_off], len);
+  for (int i = editor.curs.col_off; i < len; i++) {
+    if (i == editor.curs.highlight_start) {
+      buffer_append(buf, ESC_SEQ_BG_COLOR(218));
+    }
+
+    if (i == editor.curs.highlight_end) {
+      buffer_append(buf, ESC_SEQ_NORM_COLOR);
+    }
+
+    char tmp[2];
+    tmp[0] = line[i];
+    tmp[1] = '\0';
+
+    buffer_append(buf, tmp);
+  }
 }
 
 static void
@@ -93,10 +107,13 @@ window_draw_rows (buffer_t* buf) {
       bool  is_current_line = visible_row_idx == editor.curs.y;
       char* lineno_str      = s_fmt("%*ld ", line_pad, ++lineno);
 
+      // Highlighted lineno
       if (is_current_line) {
         buffer_append(buf, ESC_SEQ_COLOR(3));
       }
       buffer_append(buf, lineno_str);
+
+      // Highlighted line
       if (is_current_line) {
         buffer_append(buf, ESC_SEQ_NORM_COLOR);
       }

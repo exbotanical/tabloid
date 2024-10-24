@@ -75,7 +75,6 @@ test_line_buffer_newlines_only (void) {
   char nl[1];
   nl[0] = '\n';
   nl[1] = '\0';
-  // TODO: we gotta make sure if the user types a literal \0, we don't accidentally newline on 'em
   render_state_insert(rs, 0, 0, nl);
   render_state_insert(rs, 0, 1, nl);
 

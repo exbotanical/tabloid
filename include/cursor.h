@@ -21,6 +21,9 @@ typedef struct {
   // render_x will likely equal x unless we've rendered something differently
   // than its underlying source (e.g. tabs)
   unsigned int render_x;
+
+  int highlight_start;
+  int highlight_end;
 } cursor_t;
 
 bool cursor_on_content_line(void);
@@ -46,6 +49,9 @@ void cursor_move_end(void);
 void cursor_snap_to_end(void);
 void cursor_move_right_word(void);
 void cursor_move_left_word(void);
+
+void cursor_highlight_left(void);
+void cursor_highlight_right(void);
 
 int  cursor_get_position(unsigned int *rows, unsigned int *cols);
 void cursor_set_position(buffer_t *buf);
