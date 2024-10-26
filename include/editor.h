@@ -33,6 +33,7 @@ void editor_init(void);
 void editor_open(const char* filename);
 void editor_insert_char(int c);
 void editor_del_char(void);
+void editor_delete_from_anchor(void);
 void editor_insert_newline(void);
 void editor_insert(char* s);
 

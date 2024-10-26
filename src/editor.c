@@ -51,6 +51,15 @@ editor_del_char (void) {
 }
 
 void
+editor_delete_from_anchor (void) {
+  while (editor.curs.x-- != 0) {
+    render_state_delete(editor.r, editor.curs.x, editor.curs.y);
+  }
+
+  editor.curs.x = 0;
+}
+
+void
 editor_insert_newline (void) {
   char nl[1];
   nl[0] = '\n';

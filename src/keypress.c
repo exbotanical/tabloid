@@ -128,6 +128,7 @@ keypress_read (void) {
   switch (c) {
     case CTRL_KEY('a'): return CTRL_A;
     case CTRL_KEY('e'): return CTRL_E;
+    case CTRL_KEY('u'): return CTRL_U;
     case CTRL_KEY('q'): return CTRL_Q;
     // Ctrl+h aka ctrl code 8 aka backspace
     case CTRL_KEY('h'): return BACKSPACE;
@@ -165,6 +166,7 @@ keypress_handle (void) {
 
     case CTRL_A: cursor_move_begin(); break;
     case CTRL_E: cursor_move_end(); break;
+    case CTRL_U: editor_delete_from_anchor(); break;
 
     case DELETE:
       cursor_move_right();
