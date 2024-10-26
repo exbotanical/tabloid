@@ -5,10 +5,19 @@
 
 #include "libutil/libutil.h"
 
+typedef struct {
+  unsigned int x;
+  unsigned int y;
+} coords_t;
+
 /**
  * Cursor state
  */
 typedef struct {
+  coords_t select_anchor;
+  coords_t select_offset;
+
+  // TODO: use coords_t
   // x coordinate of cursor
   unsigned int x;
   // y coordinate of cursor
@@ -22,8 +31,8 @@ typedef struct {
   // than its underlying source (e.g. tabs)
   unsigned int render_x;
 
-  int highlight_start;
-  int highlight_end;
+  bool select_active;
+
 } cursor_t;
 
 bool cursor_on_content_line(void);
@@ -50,8 +59,16 @@ void cursor_snap_to_end(void);
 void cursor_move_right_word(void);
 void cursor_move_left_word(void);
 
-void cursor_highlight_left(void);
-void cursor_highlight_right(void);
+void cursor_select_left(void);
+void cursor_select_right(void);
+void cursor_select_up(void);
+void cursor_select_down(void);
+void cursor_select_right_word(void);
+void cursor_select_left_word(void);
+void cursor_select_up_word(void);
+void cursor_select_down_word(void);
+bool cursor_is_select_ltr(void);
+void cursor_select_clear(void);
 
 int  cursor_get_position(unsigned int *rows, unsigned int *cols);
 void cursor_set_position(buffer_t *buf);

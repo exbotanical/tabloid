@@ -67,13 +67,14 @@ editor_init (void) {
   }
 
   editor.curs = (cursor_t){
-    .x               = 0,
-    .y               = 0,
-    .row_off         = 0,
-    .col_off         = 0,
-    .render_x        = DEFAULT_LNPAD,
-    .highlight_start = -1,
-    .highlight_end   = -1,
+    .x             = 0,
+    .y             = 0,
+    .row_off       = 0,
+    .col_off       = 0,
+    .render_x      = DEFAULT_LNPAD,
+    .select_active = false,
+    .select_anchor = -1,
+    .select_offset = -1,
   };
 
   editor.conf.tab_sz     = DEFAULT_TAB_SZ;

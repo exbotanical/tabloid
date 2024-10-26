@@ -75,7 +75,6 @@ keypress_read (void) {
             return ESC_SEQ_CHAR;
           }
 
-          logger.write("isShift=%d,isCtrl=%d\n", isShift, isCtrl);
           switch (seq[4]) {
             case 'A': {
               if (isShift) {
@@ -150,6 +149,13 @@ void
 keypress_handle (void) {
   int c = keypress_read();
 
+  // TODO: cleanup
+  if (c != SHIFT_ARROW_LEFT && c != SHIFT_ARROW_RIGHT && c != SHIFT_ARROW_DOWN && c != SHIFT_ARROW_UP && c != CTRL_SHIFT_ARROW_LEFT && c != CTRL_SHIFT_ARROW_RIGHT && c != CTRL_SHIFT_ARROW_UP && c != CTRL_SHIFT_ARROW_DOWN
+
+  ) {
+    cursor_select_clear();
+  }
+
   switch (c) {
     case UNKNOWN: break;
     case CTRL_Q: exit(0);
@@ -217,19 +223,26 @@ keypress_handle (void) {
     }
 
     case SHIFT_ARROW_LEFT: {
-      cursor_highlight_left();
+      cursor_select_left();
       break;
     }
     case SHIFT_ARROW_RIGHT: {
-      cursor_highlight_right();
+      cursor_select_right();
       break;
     }
     case SHIFT_ARROW_UP: {
+      cursor_select_up();
       break;
     }
     case SHIFT_ARROW_DOWN: {
+      cursor_select_down();
       break;
     }
+
+    case CTRL_SHIFT_ARROW_LEFT: cursor_select_left_word(); break;
+    case CTRL_SHIFT_ARROW_RIGHT: cursor_select_right_word(); break;
+    case CTRL_SHIFT_ARROW_UP: break;
+    case CTRL_SHIFT_ARROW_DOWN: break;
 
     default: {
       editor_insert_char(c);

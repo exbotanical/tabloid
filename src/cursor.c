@@ -11,6 +11,31 @@
 
 extern editor_t editor;
 
+typedef enum {
+  SELECT_LEFT,
+  SELECT_LEFT_WORD,
+  SELECT_RIGHT,
+  SELECT_RIGHT_WORD
+} select_mode_t;
+
+static void
+cursor_select (select_mode_t mode) {
+  if (!editor.curs.select_active) {
+    editor.curs.select_anchor.x = editor.curs.x;
+    editor.curs.select_anchor.y = editor.curs.y;
+  }
+  editor.curs.select_active = true;
+  switch (mode) {
+    case SELECT_LEFT: cursor_move_left(); break;
+    case SELECT_LEFT_WORD: cursor_move_left_word(); break;
+    case SELECT_RIGHT: cursor_move_right(); break;
+    case SELECT_RIGHT_WORD: cursor_move_right_word(); break;
+  }
+
+  editor.curs.select_offset.x = editor.curs.x;
+  editor.curs.select_offset.y = editor.curs.y;
+}
+
 bool
 cursor_on_content_line (void) {
   return editor.curs.y < editor.r->num_lines;
@@ -286,16 +311,82 @@ cursor_set_position (buffer_t *buf) {
   buffer_append(buf, curs);
 }
 
+// TODO: no more global state
 void
-cursor_highlight_left (void) {
-  editor.curs.highlight_end = editor.curs.x;
-  cursor_move_left();
-  editor.curs.highlight_start = editor.curs.x;
+cursor_select_left (void) {
+  cursor_select(SELECT_LEFT);
 }
 
 void
-cursor_highlight_right (void) {
-  editor.curs.highlight_end = editor.curs.x;
-  cursor_move_right();
-  editor.curs.highlight_start = editor.curs.x;
+cursor_select_left_word (void) {
+  cursor_select(SELECT_LEFT_WORD);
+}
+
+void
+cursor_select_right (void) {
+  cursor_select(SELECT_RIGHT);
+}
+
+void
+cursor_select_right_word (void) {
+  cursor_select(SELECT_RIGHT_WORD);
+}
+
+void
+cursor_select_up (void) {
+  if (!editor.curs.select_active) {
+    editor.curs.select_anchor.x = editor.curs.x;
+    editor.curs.select_anchor.y = editor.curs.y;
+  }
+  editor.curs.select_active = true;
+  if (editor.curs.y == 0) {
+    editor.curs.select_offset.x = 0;
+    editor.curs.select_offset.y = 0;
+    editor.curs.x               = 0;
+    return;
+  }
+
+  cursor_move_up();
+  editor.curs.select_offset.x = editor.curs.x;
+  editor.curs.select_offset.y = editor.curs.y;
+}
+
+// TODO:
+void
+cursor_select_down (void) {
+  if (!editor.curs.select_active) {
+    editor.curs.select_anchor.x = editor.curs.x;
+    editor.curs.select_anchor.y = editor.curs.y;
+  }
+  editor.curs.select_active = true;
+  if (editor.curs.y == editor.r->num_lines - 1) {
+    // TODO: err
+    editor.curs.select_offset.x
+      = ((line_info_t *)array_get(editor.r->line_info, editor.curs.y))->line_length;
+    editor.curs.select_offset.y = editor.curs.y;
+    editor.curs.x               = 0;
+    return;
+  }
+
+  cursor_move_down();
+  editor.curs.select_offset.x = editor.curs.x;
+  editor.curs.select_offset.y = editor.curs.y;
+}
+
+void
+cursor_select_clear (void) {
+  editor.curs.select_active   = false;
+  editor.curs.select_offset.x = -1;
+  editor.curs.select_offset.y = -1;
+  editor.curs.select_anchor.x = -1;
+  editor.curs.select_anchor.y = -1;
+}
+
+bool
+cursor_is_select_ltr (void) {
+  return (
+      editor.curs.select_anchor.y < editor.curs.select_offset.y ||
+      (editor.curs.select_anchor.y == editor.curs.select_offset.y &&
+        editor.curs.select_anchor.x <= editor.curs.select_offset.x)
+    );
 }

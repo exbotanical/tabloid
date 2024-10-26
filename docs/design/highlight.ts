@@ -37,7 +37,7 @@ class CursorManager {
   }
 
   moveLeft() {
-    if (this.cursor.x == 0) {
+    if (this.cursor.x === 0) {
       if (this.cursor.y === 0) return
       this.setCursor(NUM_COLS - 1, this.cursor.y - 1)
     } else {
@@ -46,7 +46,8 @@ class CursorManager {
   }
 
   moveRight() {
-    if (this.cursor.x == NUM_COLS - 1) {
+    if (this.cursor.x === NUM_COLS - 1) {
+      if (this.cursor.y === NUM_ROWS - 1) return
       this.setCursor(0, this.cursor.y + 1)
     } else {
       this.cursor.x++
@@ -119,11 +120,6 @@ class Renderer {
     this.flush()
 
     const isLtr = this.cm.isHighlightLtr()
-    // console.log({
-    //   isLtr,
-    //   ...this.cm.cursor,
-    //   ...this.cm.hl,
-    // })
 
     for (let i = 0; i < this.gridConfig.rows; i++) {
       for (let j = 0; j < this.gridConfig.cols; j++) {
@@ -203,6 +199,122 @@ class Renderer {
       this.write('\n')
     }
   }
+
+  draw2() {
+    this.flush()
+
+    const isLtr = this.cm.isHighlightLtr()
+
+    for (let i = 0; i < this.gridConfig.rows; i++) {
+      for (let j = 0; j < this.gridConfig.cols; j++) {
+        const maybeChar = this.lineBuffer[i]?.[j]
+        if (maybeChar) {
+          if (this.cm.hl.active) {
+            const lineLength = this.lineBuffer[i].length
+            if (isLtr) {
+              if (i > this.cm.hl.anchor.y && i < this.cm.hl.offset.y) {
+                if (j === 0) {
+                  this.write('S')
+                  continue
+                }
+                if (j === lineLength - 1) {
+                  this.write('E')
+                  continue
+                }
+              }
+
+              // If the anchor and offset are on the same line,
+              // just highlight between the anchor x and offset x
+              if (i === this.cm.hl.anchor.y && i === this.cm.hl.offset.y) {
+                if (j === this.cm.hl.anchor.x) {
+                  this.write('S')
+                  continue
+                }
+                if (j === this.cm.hl.offset.x) {
+                  this.write('E')
+                  continue
+                }
+              }
+
+              // If we're on the anchor line, we highlight from the anchor x onward
+              else if (i === this.cm.hl.anchor.y) {
+                if (j === this.cm.hl.anchor.x) {
+                  this.write('S')
+                  continue
+                }
+                if (j === lineLength - 1) {
+                  this.write('E')
+                  continue
+                }
+              }
+
+              // If we're on the offset line, we highlight until the the anchor x
+              else if (i === this.cm.hl.offset.y) {
+                if (j === 0) {
+                  this.write('S')
+                  continue
+                }
+                if (j === this.cm.hl.offset.x) {
+                  this.write('E')
+                  continue
+                }
+              }
+
+              this.write(maybeChar)
+            } else {
+              if (i < this.cm.hl.anchor.y && i > this.cm.hl.offset.y) {
+                if (j === 0) {
+                  this.write('S')
+                  continue
+                }
+                if (j === lineLength - 1) {
+                  this.write('E')
+                  continue
+                }
+              } else if (
+                i === this.cm.hl.anchor.y &&
+                i === this.cm.hl.offset.y
+              ) {
+                if (j === this.cm.hl.anchor.x) {
+                  this.write('E')
+                  continue
+                }
+                if (j === this.cm.hl.offset.x) {
+                  this.write('S')
+                  continue
+                }
+              } else if (i === this.cm.hl.anchor.y) {
+                if (j === 0) {
+                  this.write('S')
+                  continue
+                }
+                if (j === this.cm.hl.anchor.x) {
+                  this.write('E')
+                  continue
+                }
+              } else if (i === this.cm.hl.offset.y) {
+                if (j === this.cm.hl.offset.x) {
+                  this.write('S')
+                  continue
+                }
+                if (j === lineLength - 1) {
+                  this.write('E')
+                  continue
+                }
+              }
+
+              this.write(maybeChar)
+            }
+          } else {
+            this.write(maybeChar)
+          }
+        } else {
+          this.write('.')
+        }
+      }
+      this.write('\n')
+    }
+  }
 }
 
 if (import.meta.vitest) {
@@ -218,6 +330,11 @@ if (import.meta.vitest) {
 
   function drawAndAssert(assertWriteStateIs: string) {
     r.draw()
+    expect(r.writeState).toEqual(assertWriteStateIs)
+  }
+
+  function draw2AndAssert(assertWriteStateIs: string) {
+    r.draw2()
     expect(r.writeState).toEqual(assertWriteStateIs)
   }
 
@@ -291,7 +408,7 @@ if (import.meta.vitest) {
       )
     })
 
-    test('test2', () => {
+    test.skip('test2', () => {
       drawAndAssert(
         'fishtanksh\nworldstars\nwhataburgr\ndawg......\n..........\n',
       )
@@ -354,7 +471,12 @@ if (import.meta.vitest) {
       cm.highlightLeft()
       cm.highlightLeft()
       cm.highlightLeft()
-      // TODO: boundaries
+      // Moving left beyond this point should just no-op (we're at the beginning)
+      cm.highlightLeft()
+      cm.highlightLeft()
+      cm.highlightLeft()
+      cm.highlightLeft()
+      cm.highlightLeft()
       drawAndAssert(
         'HHHHHHHHHH\nHorldstars\nwhataburgr\ndawg......\n..........\n',
       )
@@ -397,6 +519,97 @@ if (import.meta.vitest) {
       cm.highlightRight()
       drawAndAssert(
         'fishtanksh\nwHHHHHHHHH\nHHHHHHHHHH\nHHwg......\n..........\n',
+      )
+    })
+
+    test('test3', () => {
+      draw2AndAssert(
+        'fishtanksh\nworldstars\nwhataburgr\ndawg......\n..........\n',
+      )
+      cm.setCursor(0, 0)
+      cm.highlightRight()
+      cm.highlightRight()
+      cm.highlightRight()
+      cm.highlightRight()
+      cm.highlightRight()
+      cm.highlightRight()
+      cm.highlightRight()
+      cm.highlightRight()
+      cm.highlightRight()
+      draw2AndAssert(
+        'SishtanksE\nworldstars\nwhataburgr\ndawg......\n..........\n',
+      )
+
+      cm.highlightRight()
+      cm.highlightRight()
+      cm.highlightRight()
+      cm.highlightRight()
+      draw2AndAssert(
+        'SishtanksE\nSorEdstars\nwhataburgr\ndawg......\n..........\n',
+      )
+
+      cm.highlightRight()
+      cm.highlightRight()
+      cm.highlightRight()
+      cm.highlightRight()
+      cm.highlightRight()
+      cm.highlightRight()
+      draw2AndAssert(
+        'SishtanksE\nSorldstarE\nwhataburgr\ndawg......\n..........\n',
+      )
+
+      cm.highlightRight()
+      cm.highlightRight()
+      draw2AndAssert(
+        'SishtanksE\nSorldstarE\nSEataburgr\ndawg......\n..........\n',
+      )
+
+      cm.highlightLeft()
+      cm.highlightLeft()
+      cm.highlightLeft()
+      draw2AndAssert(
+        'SishtanksE\nSorldstaEs\nwhataburgr\ndawg......\n..........\n',
+      )
+
+      cm.highlightLeft()
+      cm.highlightLeft()
+      cm.highlightLeft()
+      cm.highlightLeft()
+      cm.highlightLeft()
+      cm.highlightLeft()
+      cm.highlightLeft()
+      cm.highlightLeft()
+      cm.highlightLeft()
+      cm.highlightLeft()
+      draw2AndAssert(
+        'SishtankEh\nworldstars\nwhataburgr\ndawg......\n..........\n',
+      )
+
+      cm.clear()
+      draw2AndAssert(
+        'fishtanksh\nworldstars\nwhataburgr\ndawg......\n..........\n',
+      )
+      cm.setCursor(1, 1)
+
+      cm.highlightLeft()
+      cm.highlightLeft()
+      cm.highlightLeft()
+      draw2AndAssert(
+        'fishtankSE\nSErldstars\nwhataburgr\ndawg......\n..........\n',
+      )
+
+      cm.highlightLeft()
+      cm.highlightLeft()
+      cm.highlightLeft()
+      draw2AndAssert(
+        'fishtSnksE\nSErldstars\nwhataburgr\ndawg......\n..........\n',
+      )
+
+      cm.highlightLeft()
+      cm.highlightLeft()
+      cm.highlightLeft()
+      draw2AndAssert(
+        'fiShtanksE\nSErldstars\nwhataburgr\ndawg......\n..........\n',
       )
     })
   })

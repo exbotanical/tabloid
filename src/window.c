@@ -57,7 +57,7 @@ window_draw_command_bar (buffer_t* buf) {
 }
 
 static void
-window_draw_row (buffer_t* buf, line_info_t* row, unsigned int lineno) {
+window_draw_row (buffer_t* buf, line_info_t* row, unsigned int lineno, int select_start, int select_end, bool is_current) {
   int len = row->line_length - (editor.curs.col_off);
   if (len < 0) {
     len = 0;
@@ -70,13 +70,14 @@ window_draw_row (buffer_t* buf, line_info_t* row, unsigned int lineno) {
   char line[row->line_length];
   render_state_get_line(editor.r, lineno, line);
 
-  for (int i = editor.curs.col_off; i < len; i++) {
-    if (i == editor.curs.highlight_start) {
-      buffer_append(buf, ESC_SEQ_BG_COLOR(218));
-    }
+  bool is_selected = editor.curs.select_active && select_end >= select_start;
 
-    if (i == editor.curs.highlight_end) {
-      buffer_append(buf, ESC_SEQ_NORM_COLOR);
+  for (int i = editor.curs.col_off; i < len; i++) {
+    if (is_selected) {
+      // logger.write("i=%d,s=%d,e=%d\n", i, select_start, select_end);
+      if (i == select_start) {
+        buffer_append(buf, ESC_SEQ_BG_COLOR(218));
+      }
     }
 
     char tmp[2];
@@ -84,6 +85,16 @@ window_draw_row (buffer_t* buf, line_info_t* row, unsigned int lineno) {
     tmp[1] = '\0';
 
     buffer_append(buf, tmp);
+
+    if (is_selected) {
+      if (i == select_end) {
+        if (is_current) {
+          buffer_append(buf, ESC_SEQ_BG_COLOR(238));
+        } else {
+          buffer_append(buf, ESC_SEQ_NORM_COLOR);
+        }
+      }
+    }
   }
 }
 
@@ -128,7 +139,58 @@ window_draw_rows (buffer_t* buf) {
         buffer_append(buf, ESC_SEQ_BG_COLOR(238));
       }
 
-      window_draw_row(buf, current_row, visible_row_idx);
+      int select_start = -1;
+      int select_end   = -1;
+
+      if (editor.curs.select_active) {
+        bool is_ltr = cursor_is_select_ltr();
+
+        if (is_ltr) {
+          // If multiple lines are highlighted, and this line falls between the
+          // anchor and offset lines, we just highlight the entire line
+          if (y > editor.curs.select_anchor.y && y < editor.curs.select_offset.y) {
+            select_start = 0;
+            select_end   = current_row->line_length - 1;
+          }
+
+          // If the anchor and offset are on the same line,
+          // just highlight between the anchor x and offset x
+          if (y == editor.curs.select_anchor.y && y == editor.curs.select_offset.y) {
+            select_start = editor.curs.select_anchor.x;
+            select_end   = editor.curs.select_offset.x - 1;
+          }
+
+          // If we're on the anchor line, we highlight from the anchor x onward
+          else if (y == editor.curs.select_anchor.y) {
+            select_start = editor.curs.select_anchor.x;
+            select_end   = current_row->line_length - 1;
+          }
+
+          // If we're on the offset line, we highlight until the the anchor x
+          else if (y == editor.curs.select_offset.y) {
+            select_start = 0;
+            select_end   = editor.curs.select_offset.x - 1;
+          }
+        } else {
+          if (y < editor.curs.select_anchor.y && y > editor.curs.select_offset.y) {
+            select_start = 0;
+            select_end   = current_row->line_length - 1;
+          }
+
+          if (y == editor.curs.select_anchor.y && y == editor.curs.select_offset.y) {
+            select_start = editor.curs.select_offset.x;
+            select_end   = editor.curs.select_anchor.x - 1;
+          } else if (y == editor.curs.select_anchor.y) {
+            select_start = 0;
+            select_end   = editor.curs.select_anchor.x - 1;
+          } else if (y == editor.curs.select_offset.y) {
+            select_start = editor.curs.select_offset.x;
+            select_end   = current_row->line_length - 1;
+          }
+        }
+      }
+
+      window_draw_row(buf, current_row, visible_row_idx, select_start, select_end, is_current_line);
 
       if (is_current_line) {
         // If it's the current row, reset the highlight after drawing the row
