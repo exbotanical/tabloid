@@ -74,7 +74,6 @@ window_draw_row (buffer_t* buf, line_info_t* row, unsigned int lineno, int selec
 
   for (int i = editor.curs.col_off; i < len; i++) {
     if (is_selected) {
-      // logger.write("i=%d,s=%d,e=%d\n", i, select_start, select_end);
       if (i == select_start) {
         buffer_append(buf, ESC_SEQ_BG_COLOR(218));
       }

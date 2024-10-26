@@ -3,6 +3,7 @@
 - [ ] file I/O
   - [ ] swap files
 - [ ] history (undo/redo stack)
+  - [ ] undo/redo groups
 - [ ] command mode
 - [ ] keybindings config support
   - [ ] default keybindings/config
@@ -27,20 +28,21 @@
   - [ ] copy
     - [ ] copy full line preceding cursor when no select
   - [ ] paste
-  - [ ] delete (ctrl+k)
+  - [ ] ctrl+k delete
   - [ ] delete word (ctrl+backspace)
-  - [ ] select char
-  - [ ] select word
+  - [x] select char
+  - [x] select word
   - [ ] select row
   - [ ] select all
   - [ ] select all matches
   - [ ] select match sequential (e.g. ctrl+d ++)
   - [ ] move row (ctrl up/down)
   - [ ] duplicate row (binding -> ???)
-  - [ ] ctrl+u delete entire line
+  - [x] ctrl+u delete
 - [ ] Multi-cursor editing
   - [ ] dupe cursor up/down
 - [x] Explore gap buffer, piece table, or rope for optimized storage
   - [x] OK let's do a piece table!
 - [ ] optimize line buffer
 - [ ] unicode!
+- [ ] piece-table: optimize delete (delete range)
