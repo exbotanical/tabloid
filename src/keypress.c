@@ -11,8 +11,13 @@
 #include "globals.h"
 #include "window.h"
 
+typedef enum {
+  KEYPRESS_SHIFT = 1,
+  KEYPRESS_CTRL  = 2,
+} keypress_flags_t;
+
 static int
-keypress_read (void) {
+keypress_read (unsigned int *flags) {
   int  bytes_read;
   char c;
 
@@ -59,15 +64,12 @@ keypress_read (void) {
             return ESC_SEQ_CHAR;
           }
 
-          bool isCtrl  = false;
-          bool isShift = false;
-
           switch (seq[3]) {
-            case '2': isShift = true; break;
-            case '5': isCtrl = true; break;
+            case '2': *flags |= KEYPRESS_SHIFT; break;
+            case '5': *flags |= KEYPRESS_CTRL; break;
             case '6':
-              isShift = true;
-              isCtrl  = true;
+              *flags |= KEYPRESS_SHIFT;
+              *flags |= KEYPRESS_CTRL;
               break;
           }
 
@@ -75,6 +77,8 @@ keypress_read (void) {
             return ESC_SEQ_CHAR;
           }
 
+          bool isCtrl  = (*flags & KEYPRESS_CTRL) == KEYPRESS_CTRL;
+          bool isShift = (*flags & KEYPRESS_SHIFT) == KEYPRESS_SHIFT;
           switch (seq[4]) {
             case 'A': {
               if (isShift) {
@@ -148,29 +152,26 @@ keypress_read (void) {
 
 void
 keypress_handle (void) {
-  int c = keypress_read();
+  unsigned int flags        = 0;
+  int          c            = keypress_read(&flags);
+  bool         select_clear = (flags & KEYPRESS_SHIFT) != KEYPRESS_SHIFT;
 
-  // TODO: cleanup
-  if (c != SHIFT_ARROW_LEFT && c != SHIFT_ARROW_RIGHT && c != SHIFT_ARROW_DOWN && c != SHIFT_ARROW_UP && c != CTRL_SHIFT_ARROW_LEFT && c != CTRL_SHIFT_ARROW_RIGHT && c != CTRL_SHIFT_ARROW_UP && c != CTRL_SHIFT_ARROW_DOWN
-
-  ) {
-    cursor_select_clear();
-  }
+  // logger.write("isCtrl=%d,isShift=%d\n", (flags & KEYPRESS_CTRL) == KEYPRESS_CTRL, (flags & KEYPRESS_SHIFT) == KEYPRESS_SHIFT);
 
   switch (c) {
     case UNKNOWN: break;
     case CTRL_Q: exit(0);
 
     case ENTER: editor_insert_newline(); break;
-    case BACKSPACE: editor_del_char(); break;
+    case BACKSPACE: editor_delete_char(); break;
 
     case CTRL_A: cursor_move_begin(); break;
     case CTRL_E: cursor_move_end(); break;
-    case CTRL_U: editor_delete_from_anchor(); break;
+    case CTRL_U: editor_delete_line_before_x(); break;
 
     case DELETE:
       cursor_move_right();
-      editor_del_char();
+      editor_delete_char();
       break;
 
     case PAGE_UP: {
@@ -250,6 +251,10 @@ keypress_handle (void) {
       editor_insert_char(c);
       break;
     }
+  }
+
+  if (select_clear) {
+    cursor_select_clear();
   }
 
   cursor_snap_to_end();
