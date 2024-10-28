@@ -83,6 +83,7 @@ static int id_source = -2;  // TODO:
 piece_descriptor_t*
 piece_descriptor_init (void) {
   piece_descriptor_t* self = malloc(sizeof(piece_descriptor_t));
+
   self->id                 = id_source++;
   self->offset             = 0;
   self->length             = 0;
@@ -237,12 +238,6 @@ piece_table_free (piece_table_t* self) {
     piece_descriptor_t* d = self->head;
     piece_descriptor_free(d);
     self->head = self->head->next;
-  }
-
-  while (self->frag_1) {
-    piece_descriptor_t* d = self->frag_1;
-    piece_descriptor_free(d);
-    self->frag_1 = self->frag_1->next;
   }
 
   free(self);

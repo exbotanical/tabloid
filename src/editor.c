@@ -26,7 +26,7 @@ editor_insert_char (int c) {
 }
 
 void
-editor_del_char (void) {
+editor_delete_char (void) {
   // If past the end of the file...
   if (!cursor_on_content_line()) {
     return;
@@ -51,7 +51,7 @@ editor_del_char (void) {
 }
 
 void
-editor_delete_from_anchor (void) {
+editor_delete_line_before_x (void) {
   while (editor.curs.x-- != 0) {
     render_state_delete(editor.r, editor.curs.x, editor.curs.y);
   }
