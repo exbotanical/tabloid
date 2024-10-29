@@ -35,7 +35,6 @@ typedef struct {
 
 } cursor_t;
 
-bool cursor_on_content_line(void);
 bool cursor_on_first_line(void);
 bool cursor_on_first_col(void);
 bool cursor_above_visible_window(void);

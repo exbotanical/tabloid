@@ -27,11 +27,6 @@ editor_insert_char (int c) {
 
 void
 editor_delete_char (void) {
-  // If past the end of the file...
-  if (!cursor_on_content_line()) {
-    return;
-  }
-
   // If at the beginning of the first line...
   if (cursor_in_cell_zero()) {
     return;

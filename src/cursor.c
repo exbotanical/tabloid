@@ -37,11 +37,6 @@ cursor_select (select_mode_t mode) {
 }
 
 bool
-cursor_on_content_line (void) {
-  return editor.curs.y < editor.r->num_lines;
-}
-
-bool
 cursor_on_first_line (void) {
   return editor.curs.y == 0;
 }
@@ -251,6 +246,15 @@ cursor_move_end (void) {
   }
 }
 
+// TODO: docs
+// For moving up or down rows; makes sure the cursor jumps to the end if the line we moved from is longer.
+
+// e.g.
+// ----------------
+// line 1
+// this is line 2
+// -----------------
+// ^ cursor should snap to the end of line 1 when moving from the end of line 2 to line 1
 void
 cursor_snap_to_end (void) {
   line_info_t *row
@@ -364,7 +368,7 @@ cursor_select_down (void) {
     editor.curs.select_offset.x
       = ((line_info_t *)array_get(editor.r->line_info, editor.curs.y))->line_length;
     editor.curs.select_offset.y = editor.curs.y;
-    editor.curs.x               = 0;
+    editor.curs.x               = editor.curs.select_offset.x;
     return;
   }
 
