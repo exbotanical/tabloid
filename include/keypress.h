@@ -58,6 +58,8 @@ typedef enum {
   CTRL_E,
   CTRL_Q,
   CTRL_U,
+  CTRL_Z,
+  CTRL_SHIFT_Z,
 
   UNKNOWN
 } Key;

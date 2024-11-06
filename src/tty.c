@@ -57,8 +57,7 @@ tty_enable_raw_mode (void) {
     ECHO
     // Turn off canonical mode (e.g. read input per byte instead of per line)
     | ICANON
-    // Turn off some of the additional input processing; we don't need it -
-    // TODO: is this needed either?
+    // Turn off some of the additional input processing; we don't need it.
     | IEXTEN
     // Ignore signals e.g. ctrl+c
     | ISIG

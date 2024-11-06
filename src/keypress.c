@@ -134,6 +134,7 @@ keypress_read (unsigned int *flags) {
     case CTRL_KEY('e'): return CTRL_E;
     case CTRL_KEY('u'): return CTRL_U;
     case CTRL_KEY('q'): return CTRL_Q;
+    case CTRL_KEY('z'): return CTRL_Z;
     // Ctrl+h aka ctrl code 8 aka backspace
     case CTRL_KEY('h'): return BACKSPACE;
   }
@@ -156,8 +157,6 @@ keypress_handle (void) {
   int          c            = keypress_read(&flags);
   bool         select_clear = (flags & KEYPRESS_SHIFT) != KEYPRESS_SHIFT;
 
-  // logger.write("isCtrl=%d,isShift=%d\n", (flags & KEYPRESS_CTRL) == KEYPRESS_CTRL, (flags & KEYPRESS_SHIFT) == KEYPRESS_SHIFT);
-
   switch (c) {
     case UNKNOWN: break;
     case CTRL_Q: exit(0);
@@ -168,6 +167,7 @@ keypress_handle (void) {
     case CTRL_A: cursor_move_begin(); break;
     case CTRL_E: cursor_move_end(); break;
     case CTRL_U: editor_delete_line_before_x(); break;
+    case CTRL_Z: editor_undo(); break;
 
     case DELETE:
       cursor_move_right();

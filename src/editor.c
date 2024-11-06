@@ -12,7 +12,7 @@
 // TODO: refactor for better separation of concerns
 void
 editor_insert (char *s) {
-  render_state_insert(editor.r, editor.curs.x, editor.curs.y, s);
+  render_state_insert(editor.r, editor.curs.x, editor.curs.y, s, cursor_create_copy());
 }
 
 void
@@ -20,7 +20,7 @@ editor_insert_char (int c) {
   char cp[1];
   cp[0] = c;
   cp[1] = '\0';
-  render_state_insert(editor.r, editor.curs.x, editor.curs.y, cp);
+  render_state_insert(editor.r, editor.curs.x, editor.curs.y, cp, cursor_create_copy());
 
   editor.curs.x++;
 }
@@ -32,23 +32,26 @@ editor_delete_char (void) {
     return;
   }
 
+  cursor_t *curs = cursor_create_copy();
   // If char to the left of the cursor...
   if (cursor_not_at_row_begin()) {
-    render_state_delete(editor.r, editor.curs.x - 1, editor.curs.y);
+    render_state_delete(editor.r, editor.curs.x - 1, editor.curs.y, curs);
     editor.curs.x--;
   } else {
     line_info_t *row = (line_info_t *)array_get(editor.r->line_info, editor.curs.y - 1);
     // We're at the beginning of the row
-    editor.curs.x = row->line_length;
-    render_state_delete(editor.r, -1, editor.curs.y);
+    editor.curs.x    = row->line_length;
+    render_state_delete(editor.r, -1, editor.curs.y, curs);
     editor.curs.y--;
   }
 }
 
 void
 editor_delete_line_before_x (void) {
+  cursor_t *curs = cursor_create_copy();
+
   while (editor.curs.x-- != 0) {
-    render_state_delete(editor.r, editor.curs.x, editor.curs.y);
+    render_state_delete(editor.r, editor.curs.x, editor.curs.y, curs);
   }
 
   editor.curs.x = 0;
@@ -59,7 +62,7 @@ editor_insert_newline (void) {
   char nl[1];
   nl[0] = '\n';
   nl[1] = '\0';
-  render_state_insert(editor.r, editor.curs.x, editor.curs.y, nl);
+  render_state_insert(editor.r, editor.curs.x, editor.curs.y, nl, cursor_create_copy());
   editor.curs.y++;
   editor.curs.x = 0;
 }
@@ -114,4 +117,23 @@ editor_open (const char *filename) {
 
   free(line);
   fclose(fd);
+}
+
+void
+editor_undo (void) {
+  cursor_t *old_curs = (cursor_t *)render_state_undo(editor.r);
+  if (old_curs) {
+    editor.curs.x = old_curs->x;
+    editor.curs.y = old_curs->y;
+  }
+}
+
+// TODO: Need to implement shift key when not an escape sequence
+void
+editor_redo (void) {
+  cursor_t *old_curs = (cursor_t *)render_state_redo(editor.r);
+  if (old_curs) {
+    editor.curs.x = old_curs->x;
+    editor.curs.y = old_curs->y;
+  }
 }

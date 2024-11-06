@@ -23,7 +23,8 @@ line_info_free (line_info_t *self) {
 static void
 render_state_reset (render_state_t *self) {
   buffer_free(self->tmp_buffer);
-  array_free(self->line_info, (free_fn *)line_info_free);  // TODO: optimize by caching
+  array_free(self->line_info, (free_fn *)line_info_free);  // TODO: optimize by
+                                                           // caching
   array_free(self->line_buffer, NULL);
 
   self->tmp_buffer  = buffer_init(NULL);
@@ -127,16 +128,34 @@ get_absolute_index (render_state_t *self, int x, int y) {
   return ((line_info_t *)array_get(self->line_info, y))->line_start + x;
 }
 
+// TODO: store metadata only when needed (when dealing with a group)
+// Perhaps we return a bool or enum indicating when the metadata wasn't needed
+// so the caller can call free immediately. Storing a cursor on the heap for
+// every single piece table update is a bit heavy-handed.
 void
-render_state_insert (render_state_t *self, int x, int y, char *insert_chars) {
+render_state_insert (render_state_t *self, int x, int y, char *insert_chars, void *metadata) {
   unsigned int absolute_index = get_absolute_index(self, x, y);
-  piece_table_insert(self->pt, absolute_index, insert_chars);
+  piece_table_insert(self->pt, absolute_index, insert_chars, metadata);
   render_state_refresh(self);
 }
 
 void
-render_state_delete (render_state_t *self, int x, int y) {
+render_state_delete (render_state_t *self, int x, int y, void *metadata) {
   unsigned int absolute_index = get_absolute_index(self, x, y);
-  piece_table_delete(self->pt, absolute_index, 1);
+  piece_table_delete(self->pt, absolute_index, 1, PT_DELETE, metadata);
   render_state_refresh(self);
+}
+
+void *
+render_state_undo (render_state_t *self) {
+  void *metadata = piece_table_undo(self->pt);
+  render_state_refresh(self);
+  return metadata;
+}
+
+void *
+render_state_redo (render_state_t *self) {
+  void *metadata = piece_table_redo(self->pt);
+  render_state_refresh(self);
+  return metadata;
 }

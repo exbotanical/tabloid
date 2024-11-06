@@ -10,11 +10,11 @@ extern "C" {
 #include <stdio.h>
 
 #ifndef LIB_UTIL_ARRAY_CAPACITY_INCR
-#define LIB_UTIL_ARRAY_CAPACITY_INCR 4
+#  define LIB_UTIL_ARRAY_CAPACITY_INCR 4
 #endif
 
 typedef struct {
-  void **state;
+  void       **state;
   unsigned int size;
   unsigned int capacity;
 } __array_t;
@@ -27,8 +27,8 @@ typedef __array_t *array_t;
 array_t *__array_collect(void *v, ...);
 
 typedef void *callback_t(void *el, unsigned int index, array_t *array);
-typedef bool predicate_t(void *el, unsigned int index, array_t *array,
-                         void *compare_to);
+typedef bool
+predicate_t(void *el, unsigned int index, array_t *array, void *compare_to);
 typedef bool comparator_t(void *el, void *compare_to);
 typedef void free_fn(void *el);
 
@@ -62,7 +62,7 @@ bool str_comparator(char *a, char *b);
  * has_elements returns a boolean indicating whether the given array_t contains
  * any elements. has_elements is NULL-safe.
  */
-#define has_elements(arr) (arr != NULL && array_size(arr) > 0)
+#define has_elements(arr)  (arr != NULL && array_size(arr) > 0)
 
 /**
  * array_collect collects the provided arguments into a new array whose elements
@@ -177,15 +177,22 @@ void array_foreach(array_t *array, callback_t *callback);
  */
 array_t *array_concat(array_t *arr1, array_t *arr2);
 
+bool array_insert(
+  array_t     *array,
+  unsigned int index,
+  void        *el,
+  free_fn     *free_old_el
+);
+
 /**
  * array_free frees the array and its internal state container. Safe to use
- * with an array of primitives. Accepts an optional function pointer if you want
- * all values to be freed.
+ * with an array of primitives. Accepts an optional function pointer if you
+ * want all values to be freed.
  */
 void array_free(array_t *array, free_fn *free_fnptr);
 
 typedef struct {
-  char *state;
+  char        *state;
   unsigned int len;
 } __buffer_t;
 
@@ -228,6 +235,22 @@ bool buffer_append_with(buffer_t *buf, const char *s, unsigned int len);
  * Caller is responsible for `free`-ing the returned pointer.
  */
 buffer_t *buffer_concat(buffer_t *buf_a, buffer_t *buf_b);
+
+/**
+ * Retrieve a slice of the buffer state.
+ *
+ * @param self the buffer instance
+ * @param start start index of the slice
+ * @param end_inclusive inclusive end index of the slice
+ * @param dest a buffer into which the slice will be stored
+ * @return int -1 if an error occurred, else 0
+ */
+int buffer_slice(
+  buffer_t    *self,
+  unsigned int start,
+  unsigned int end_inclusive,
+  char        *dest
+);
 
 /**
  * buffer_free deallocates the dynamic memory used by a given buffer_t*.
@@ -320,15 +343,15 @@ char *s_trim(const char *s);
 array_t *s_split(const char *s, const char *delim);
 
 #ifndef READ_ALL_CHUNK_SZ
-#define READ_ALL_CHUNK_SZ 262144
+#  define READ_ALL_CHUNK_SZ 262144
 #endif
 
 typedef enum {
-  READ_ALL_OK = 0,          // Success
-  READ_ALL_INVALID = -1,    // Bad input
-  READ_ALL_ERR = -2,        // Stream err
+  READ_ALL_OK        = 0,   // Success
+  READ_ALL_INVALID   = -1,  // Bad input
+  READ_ALL_ERR       = -2,  // Stream err
   READ_ALL_TOO_LARGE = -3,  // Input too large
-  READ_ALL_NOMEM = -4       // Out of memory
+  READ_ALL_NOMEM     = -4   // Out of memory
 } read_all_result;
 
 /**

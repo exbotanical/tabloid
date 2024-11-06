@@ -2,30 +2,30 @@
 
 #include "tests.h"
 
-char buf[128];
+static char buf[128];
 
-char*
+static char*
 get_line (int lineno) {
   memset(buf, 0, 128);
   render_state_get_line(editor.r, lineno, buf);
   return buf;
 }
 
-void
-test_editor_setup (void) {
+static void
+setup (void) {
   editor.r    = render_state_init(NULL);
   editor.curs = DEFAULT_CURSOR_STATE;
 }
 
-void
-test_editor_teardown (void) {
+static void
+teardown (void) {
   render_state_free(editor.r);
   editor.curs = DEFAULT_CURSOR_STATE;
 }
 
-void
+static void
 test_editor_insert_char (void) {
-  render_state_insert(editor.r, 0, 0, "hello");
+  render_state_insert(editor.r, 0, 0, "hello", cursor_create_copy());
 
   SET_CURSOR(5, 0);
 
@@ -61,14 +61,14 @@ test_editor_insert_char (void) {
   is(get_line(1), "whexllow", "inserts the new char in the middle of the line");
 }
 
-void
+static void
 test_editor_insert_newline (void) {
-  render_state_insert(editor.r, 0, 0, "hello");
+  render_state_insert(editor.r, 0, 0, "hello", cursor_create_copy());
 
-  is(get_line(0), "hello", "sanity test");
-  ok(editor.r->num_lines == 1, "sanity test");
-  ok(editor.curs.x == 0, "sanity test");
-  ok(editor.curs.y == 0, "sanity test");
+  is(get_line(0), "hello", "sanity check");
+  ok(editor.r->num_lines == 1, "sanity check");
+  ok(editor.curs.x == 0, "sanity check");
+  ok(editor.curs.y == 0, "sanity check");
 
   SET_CURSOR(5, 0);
 
@@ -90,16 +90,16 @@ test_editor_insert_newline (void) {
   ok(editor.curs.y == 2, "y coord incremented to the third line");
 }
 
-void
+static void
 test_editor_insert_newline_middle_word (void) {
-  render_state_insert(editor.r, 0, 0, "hello");
+  render_state_insert(editor.r, 0, 0, "hello", cursor_create_copy());
 
   char buf[128];
 
-  is(get_line(0), "hello", "sanity test");
-  ok(editor.r->num_lines == 1, "sanity test");
-  ok(editor.curs.x == 0, "sanity test");
-  ok(editor.curs.y == 0, "sanity test");
+  is(get_line(0), "hello", "sanity check");
+  ok(editor.r->num_lines == 1, "sanity check");
+  ok(editor.curs.x == 0, "sanity check");
+  ok(editor.curs.y == 0, "sanity check");
 
   SET_CURSOR(2, 0);
 
@@ -123,9 +123,9 @@ test_editor_insert_newline_middle_word (void) {
   ok(editor.curs.y == 1, "y is 1 because we inserted the new line at the first line");
 }
 
-void
+static void
 test_editor_delete_char (void) {
-  render_state_insert(editor.r, 0, 0, "hello");
+  render_state_insert(editor.r, 0, 0, "hello", cursor_create_copy());
 
   SET_CURSOR(5, 0);
   editor_delete_char();
@@ -175,9 +175,9 @@ test_editor_delete_char (void) {
   ok(editor.curs.y == 0, "stops the cursor at zero");
 }
 
-void
+static void
 test_editor_delete_line_before_x (void) {
-  render_state_insert(editor.r, 0, 0, "hello goodbye world");
+  render_state_insert(editor.r, 0, 0, "hello goodbye world", cursor_create_copy());
 
   SET_CURSOR(14, 0);
   editor_delete_line_before_x();
@@ -209,8 +209,8 @@ run_editor_tests (void) {
   };
 
   for (unsigned int i = 0; i < sizeof(functions) / sizeof(functions[0]); i++) {
-    test_editor_setup();
+    setup();
     functions[i]();
-    test_editor_teardown();
+    teardown();
   }
 }

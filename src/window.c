@@ -7,15 +7,15 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "const.h"
 #include "cursor.h"
 #include "editor.h"
 #include "globals.h"
 #include "keypress.h"
-#include "libutil/libutil.h"
 
 unsigned int line_pad = 0;
 
-static void
+void
 window_scroll (void) {
   // Check if the cursor is above the visible window; if so, scroll up to it.
   if (cursor_above_visible_window()) {
@@ -67,12 +67,21 @@ window_draw_row (buffer_t* buf, line_info_t* row, unsigned int lineno, int selec
     len = (editor.win.cols - (line_pad + 1));
   }
 
+  // Adjust for rows that are longer than the current viewport
+  if (select_start < editor.curs.col_off) {
+    select_start = editor.curs.col_off;
+  }
+  if (select_end >= (len + (int)editor.curs.col_off)) {
+    select_end = len + editor.curs.col_off - 1;
+  }
+
   char line[row->line_length];
   render_state_get_line(editor.r, lineno, line);
 
-  bool is_selected = editor.curs.select_active && select_end >= select_start;
+  bool is_selected = select_end != -1 && editor.curs.select_active && select_end >= select_start;
 
-  for (int i = editor.curs.col_off; i < len; i++) {
+  // Start at &line[editor.curs.col_off], go for `len` chars
+  for (unsigned int i = editor.curs.col_off; i < editor.curs.col_off + len; i++) {
     if (is_selected) {
       if (i == select_start) {
         buffer_append(buf, ESC_SEQ_BG_COLOR(218));
@@ -97,7 +106,7 @@ window_draw_row (buffer_t* buf, line_info_t* row, unsigned int lineno, int selec
   }
 }
 
-static void
+void
 window_draw_rows (buffer_t* buf) {
   unsigned int lineno = editor.curs.row_off;
   line_pad            = log10(editor.r->num_lines) + 1;
@@ -138,6 +147,7 @@ window_draw_rows (buffer_t* buf) {
         buffer_append(buf, ESC_SEQ_BG_COLOR(238));
       }
 
+      // TODO: refactor
       int select_start = -1;
       int select_end   = -1;
 
@@ -149,7 +159,7 @@ window_draw_rows (buffer_t* buf) {
           // anchor and offset lines, we just highlight the entire line
           if (y > editor.curs.select_anchor.y && y < editor.curs.select_offset.y) {
             select_start = 0;
-            select_end   = current_row->line_length - 1;
+            select_end   = (current_row->line_length) - 1;
           }
 
           // If the anchor and offset are on the same line,
@@ -205,7 +215,7 @@ window_draw_rows (buffer_t* buf) {
 
     // Clear line to the right of the cursor
     buffer_append(buf, ESC_SEQ_ERASE_LN_RIGHT_OF_CURSOR);
-    buffer_append(buf, "\r\n");
+    buffer_append(buf, CRLF);
   }
 }
 

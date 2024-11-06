@@ -36,5 +36,7 @@ void editor_delete_char(void);
 void editor_delete_line_before_x(void);
 void editor_insert_newline(void);
 void editor_insert(char* s);
+void editor_undo(void);
+void editor_redo(void);
 
 #endif /* EDITOR_H */

@@ -72,4 +72,6 @@ void cursor_select_clear(void);
 int  cursor_get_position(unsigned int *rows, unsigned int *cols);
 void cursor_set_position(buffer_t *buf);
 
+cursor_t *cursor_create_copy(void);
+
 #endif /* CURSOR_H */

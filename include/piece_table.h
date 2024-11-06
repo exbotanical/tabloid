@@ -40,8 +40,10 @@ typedef struct {
   unsigned int        seq_length;
   unsigned int        index;
   unsigned int        length;
+  unsigned int        group_id;
   piece_descriptor_t* first;
   piece_descriptor_t* last;
+  void*               metadata;
 } piece_descriptor_range_t;
 
 typedef struct {
@@ -86,13 +88,13 @@ piece_table_t* piece_table_init(void);
 void           piece_table_setup(piece_table_t* self, char* piece);
 void           piece_table_free(piece_table_t* self);
 unsigned int   piece_table_size(piece_table_t* self);
-void piece_table_insert(piece_table_t* self, unsigned int index, char* piece);
-void piece_table_delete(piece_table_t* self, unsigned int index, unsigned int length);
-void piece_table_undo(piece_table_t* self);
-piece_descriptor_range_t* piece_table_undo_range_init(piece_table_t* self, unsigned int index, unsigned int length);
-void piece_table_redo(piece_table_t* self);
+void piece_table_insert(piece_table_t* self, unsigned int index, char* piece, void* metadata);
+void piece_table_delete(piece_table_t* self, unsigned int index, unsigned int length, piece_table_event ev, void* metadata);
+void* piece_table_undo(piece_table_t* self);
+piece_descriptor_range_t* piece_table_undo_range_init(piece_table_t* self, unsigned int index, unsigned int length, void* metadata);
+void* piece_table_redo(piece_table_t* self);
 unsigned int piece_table_render(piece_table_t* self, unsigned int index, unsigned int length, char* dest);
-void piece_table_do_stack_event(piece_table_t* self, event_stack_t* src, event_stack_t* dest);
+void* piece_table_do_stack_event(piece_table_t* self, event_stack_t* src, event_stack_t* dest);
 seq_buffer_t* piece_table_alloc_buffer(piece_table_t* self, unsigned int max_size);
 seq_buffer_t* piece_table_alloc_add_buffer(piece_table_t* self, unsigned int max_size);
 unsigned int piece_table_import_buffer(piece_table_t* self, char* s, unsigned int length);
@@ -101,5 +103,6 @@ void piece_table_restore_desc_ranges(piece_table_t* self, piece_descriptor_range
 unsigned int piece_table_desc_from_index(piece_table_t* self, unsigned int index, piece_descriptor_t** pd);
 void piece_table_record_event(piece_table_t* self, piece_table_event ev, unsigned int index);
 bool piece_table_can_optimize(piece_table_t* self, piece_table_event ev, unsigned int index);
+void piece_table_break(piece_table_t* self);
 
 #endif /* PIECE_TABLE_H */

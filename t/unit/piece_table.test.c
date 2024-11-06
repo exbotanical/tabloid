@@ -4,7 +4,7 @@
 
 #include "tests.h"
 
-void
+static void
 test_piece_table (void) {
 #define buffer_reset() memset(buffer, 0, 1000)
   char* buffer      = malloc(1000);
@@ -15,22 +15,22 @@ test_piece_table (void) {
   is(buffer, "hello world", "renders the correct initial string");
   buffer_reset();
 
-  piece_table_insert(pt, 3, "goodbye");
+  piece_table_insert(pt, 3, "goodbye", NULL);
   piece_table_render(pt, 0, pt->seq_length, buffer);
   is(buffer, "helgoodbyelo world", "renders the correct string after inserting");
   buffer_reset();
 
-  piece_table_insert(pt, 6, "xx");
+  piece_table_insert(pt, 6, "xx", NULL);
   piece_table_render(pt, 0, pt->seq_length, buffer);
   is(buffer, "helgooxxdbyelo world", "renders the correct string after inserting again");
   buffer_reset();
 
-  piece_table_delete(pt, 3, 9);
+  piece_table_delete(pt, 3, 9, PT_DELETE, NULL);
   piece_table_render(pt, 0, pt->seq_length, buffer);
   is(buffer, "hello world", "renders the correct string after deleting some text");
   buffer_reset();
 
-  piece_table_delete(pt, 0, 6);
+  piece_table_delete(pt, 0, 6, PT_DELETE, NULL);
   piece_table_render(pt, 0, pt->seq_length, buffer);
   is(buffer, "world", "renders the correct string after deleting some more text");
   buffer_reset();
@@ -45,12 +45,12 @@ test_piece_table (void) {
   is(buffer, "world", "redos the last change");
   buffer_reset();
 
-  piece_table_insert(pt, 5, "   xx");
+  piece_table_insert(pt, 5, "   xx", NULL);
   piece_table_render(pt, 0, pt->seq_length, buffer);
   is(buffer, "world   xx", "inserts more text");
   buffer_reset();
 
-  piece_table_insert(pt, 5, "   yy");
+  piece_table_insert(pt, 5, "   yy", NULL);
   piece_table_render(pt, 0, pt->seq_length, buffer);
   is(buffer, "world   yy   xx", "inserts even more text");
 
@@ -58,7 +58,7 @@ test_piece_table (void) {
   free(buffer);
 }
 
-void
+static void
 test_piece_table_no_initial (void) {
 #define buffer_reset() memset(buffer, 0, 1000)
   char* buffer      = malloc(1000);
@@ -69,7 +69,7 @@ test_piece_table_no_initial (void) {
   is(buffer, "", "renders an empty initial string");
   memset(buffer, 0, 1000);
 
-  piece_table_insert(pt, 0, "hello");
+  piece_table_insert(pt, 0, "hello", NULL);
   piece_table_render(pt, 0, pt->seq_length, buffer);
   is(buffer, "hello", "renders the appended string");
 
@@ -77,7 +77,7 @@ test_piece_table_no_initial (void) {
   free(buffer);
 }
 
-void
+static void
 test_piece_table_empty_initial (void) {
 #define buffer_reset() memset(buffer, 0, 1000)
   char* buffer      = malloc(1000);
@@ -88,7 +88,7 @@ test_piece_table_empty_initial (void) {
   is(buffer, "", "renders an empty initial string");
   memset(buffer, 0, 1000);
 
-  piece_table_insert(pt, 0, "hello");
+  piece_table_insert(pt, 0, "hello", NULL);
   piece_table_render(pt, 0, pt->seq_length, buffer);
   is(buffer, "hello", "renders the appended string");
 

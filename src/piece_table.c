@@ -47,9 +47,7 @@ event_stack_last (event_stack_t* self) {
   if (array_size(self->event_captures) == 0) {
     return NULL;
   }
-  // TODO: -1 indexing?
-  return (piece_descriptor_range_t*)
-    array_get(self->event_captures, array_size(self->event_captures) - 1);
+  return (piece_descriptor_range_t*)array_get(self->event_captures, array_size(self->event_captures) - 1);
 }
 
 void
@@ -115,6 +113,7 @@ piece_descriptor_range_init (void) {
   self->seq_length               = 0;
   self->index                    = 0;
   self->length                   = 0;
+  self->group_id                 = 0;
   self->first                    = NULL;
   self->last                     = NULL;
 
@@ -249,13 +248,13 @@ piece_table_size (piece_table_t* self) {
 }
 
 void
-piece_table_insert (piece_table_t* self, unsigned int index, char* piece) {
+piece_table_insert (piece_table_t* self, unsigned int index, char* piece, void* metadata) {
   unsigned int length = strlen(piece);
 
   assert(index <= self->seq_length);  // TODO:
 
   piece_descriptor_t* pd;
-  unsigned int        pd_index = piece_table_desc_from_index(self, index, &pd);
+  unsigned int        pd_index   = piece_table_desc_from_index(self, index, &pd);
 
   unsigned int add_buffer_offset = piece_table_import_buffer(self, piece, length);
 
@@ -275,7 +274,7 @@ piece_table_insert (piece_table_t* self, unsigned int index, char* piece) {
 
     // Inserting at a pd boundary
   } else if (insert_offset == 0) {
-    piece_descriptor_range_t* old_pds = piece_table_undo_range_init(self, index, length);
+    piece_descriptor_range_t* old_pds = piece_table_undo_range_init(self, index, length, metadata);
     piece_descriptor_range_as_boundary(old_pds, pd->prev, pd);
 
     piece_descriptor_t* pd1 = piece_descriptor_init();
@@ -287,7 +286,7 @@ piece_table_insert (piece_table_t* self, unsigned int index, char* piece) {
     piece_table_swap_desc_ranges(self, old_pds, new_pds);
     // Inserting in the middle of a piece
   } else {
-    piece_descriptor_range_t* old_pds = piece_table_undo_range_init(self, index, length);
+    piece_descriptor_range_t* old_pds = piece_table_undo_range_init(self, index, length, metadata);
     piece_descriptor_range_append(old_pds, pd);
 
     piece_descriptor_t* pd1 = piece_descriptor_init();
@@ -317,8 +316,7 @@ piece_table_insert (piece_table_t* self, unsigned int index, char* piece) {
 }
 
 void
-piece_table_delete (piece_table_t* self, unsigned int index, unsigned int length) {
-  // TODO:
+piece_table_delete (piece_table_t* self, unsigned int index, unsigned int length, piece_table_event ev, void* metadata) {
   assert(length != 0);
   assert(length <= self->seq_length);
   assert(index <= self->seq_length - length);
@@ -348,7 +346,7 @@ piece_table_delete (piece_table_t* self, unsigned int index, unsigned int length
         self->frag_2->offset += length;
         self->seq_length     -= length;
 
-        return;
+        goto done;
       } else {
         rm_length -= pd->length;
         pd         = pd->next;
@@ -369,7 +367,7 @@ piece_table_delete (piece_table_t* self, unsigned int index, unsigned int length
         self->frag_1->length -= length;
         self->frag_1->offset += 0;
         self->seq_length     -= length;
-        return;
+        goto done;
       } else {
         rm_length -= self->frag_1->length;
         piece_descriptor_remove(self->frag_1);
@@ -380,12 +378,12 @@ piece_table_delete (piece_table_t* self, unsigned int index, unsigned int length
 
     self->frag_1 = self->frag_2 = NULL;
 
-    evr = piece_table_undo_range_init(self, index, length);
+    evr                         = piece_table_undo_range_init(self, index, length, metadata);
   }
 
   event_stack_clear(self->redo_stack);
 
-  // Deletion starts midway through a piece
+  // Deletion starts midway through a piece2
   if (rm_offset != 0) {
     piece_descriptor_t* npd = piece_descriptor_init();
     npd->offset             = pd->offset;
@@ -437,29 +435,31 @@ piece_table_delete (piece_table_t* self, unsigned int index, unsigned int length
     piece_descriptor_range_prepend_range(evr, old_pds);
   }
 
+done:
   piece_table_record_event(self, PT_DELETE, index);
 }
 
 piece_descriptor_range_t*
-piece_table_undo_range_init (piece_table_t* self, unsigned int index, unsigned int length) {
+piece_table_undo_range_init (piece_table_t* self, unsigned int index, unsigned int length, void* metadata) {
   piece_descriptor_range_t* undo_range = piece_descriptor_range_init();
   undo_range->seq_length               = self->seq_length;
   undo_range->index                    = index;
   undo_range->length                   = length;
+  undo_range->metadata                 = metadata;
 
   event_stack_push(self->undo_stack, undo_range);
 
   return undo_range;
 }
 
-void
+void*
 piece_table_undo (piece_table_t* self) {
-  piece_table_do_stack_event(self, self->undo_stack, self->redo_stack);
+  return piece_table_do_stack_event(self, self->undo_stack, self->redo_stack);
 }
 
-void
+void*
 piece_table_redo (piece_table_t* self) {
-  piece_table_do_stack_event(self, self->redo_stack, self->undo_stack);
+  return piece_table_do_stack_event(self, self->redo_stack, self->undo_stack);
 }
 
 unsigned int
@@ -473,8 +473,7 @@ piece_table_render (piece_table_t* self, unsigned int index, unsigned int length
 
   while (length && (pd && pd != self->tail)) {
     unsigned int copy_len = min(pd->length - pd_offset, length);
-    char*        src
-      = buffer_state(((seq_buffer_t*)array_get(self->buffer_list, pd->buffer))->buffer);
+    char* src = buffer_state(((seq_buffer_t*)array_get(self->buffer_list, pd->buffer))->buffer);
 
     memcpy(dest, src + pd->offset + pd_offset, copy_len * sizeof(char));
 
@@ -492,21 +491,30 @@ piece_table_render (piece_table_t* self, unsigned int index, unsigned int length
   return total;
 }
 
-void
+#include "globals.h"
+
+void*
 piece_table_do_stack_event (piece_table_t* self, event_stack_t* src, event_stack_t* dest) {
   if (event_stack_empty(src)) {
-    return;  // TODO:
+    return NULL;  // TODO:
   }
 
+  unsigned int group_id;
+  void*        metadata;
+
   piece_table_record_event(self, PT_SENTINEL, 0);
+  group_id = event_stack_last(src)->group_id;
 
   piece_descriptor_range_t* range;
   do {
-    range = event_stack_last(src);
+    range    = event_stack_last(src);
+    metadata = range->metadata;
     event_stack_pop(src);
     event_stack_push(dest, range);
     piece_table_restore_desc_ranges(self, range);
-  } while (!event_stack_empty(src));
+  } while (!event_stack_empty(src) && (event_stack_last(src)->group_id == group_id && group_id != 0));
+
+  return metadata;
 }
 
 seq_buffer_t*
@@ -679,4 +687,9 @@ piece_table_record_event (piece_table_t* self, piece_table_event ev, unsigned in
 bool
 piece_table_can_optimize (piece_table_t* self, piece_table_event ev, unsigned int index) {
   return self->last_event == ev && self->last_event_index == index;
+}
+
+void
+piece_table_break (piece_table_t* self) {
+  self->last_event = PT_SENTINEL;
 }

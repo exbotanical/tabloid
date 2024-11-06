@@ -2,14 +2,8 @@
 
 #include "tests.h"
 
-void
-debug_curs () {
-  printf("(x=%d,y=%d)\n", editor.curs.x, editor.curs.y);
-  fflush(stdout);
-}
-
-void
-test_cursor_setup (void) {
+static void
+setup (void) {
   editor.r        = render_state_init(NULL);
   editor.curs     = DEFAULT_CURSOR_STATE;
   editor.win.cols = 0;
@@ -17,12 +11,12 @@ test_cursor_setup (void) {
   line_pad        = 0;
 }
 
-void
-test_cursor_teardown (void) {
+static void
+teardown (void) {
   render_state_free(editor.r);
 }
 
-void
+static void
 test_cursor_on_first_line (void) {
   editor_insert_newline();
   editor_insert_newline();
@@ -38,7 +32,7 @@ test_cursor_on_first_line (void) {
   ok(cursor_on_first_line() == false, "cursor is still not on first line");
 }
 
-void
+static void
 test_cursor_on_first_col (void) {
   editor_insert_newline();
   editor_insert_newline();
@@ -57,7 +51,7 @@ test_cursor_on_first_col (void) {
   ok(cursor_on_first_col() == false, "cursor is not on first col");
 }
 
-void
+static void
 test_cursor_above_visible_window (void) {
   editor.curs.row_off = 100;
   ok(cursor_above_visible_window() == true, "above visible window when row_off is > y cursor coord");
@@ -69,7 +63,7 @@ test_cursor_above_visible_window (void) {
   ok(cursor_above_visible_window() == false, "not above visible window when row_off less than y cursor coord");
 }
 
-void
+static void
 test_cursor_below_visible_window (void) {
   //   return editor.curs.y >= editor.curs.row_off + editor.win.rows;
   editor.win.rows     = 100;
@@ -81,17 +75,25 @@ test_cursor_below_visible_window (void) {
   ok(cursor_below_visible_window() == false, "below visible window when num rows + row_off equals y cursor coord");
 
   SET_CURSOR(0, 101);
-  ok(cursor_below_visible_window() == false, "not below visible window when num rows + row_off greater than y cursor coord");
+  ok(
+    cursor_below_visible_window() == false,
+    "not below visible window when num rows + row_off greater than y cursor "
+    "coord"
+  );
 }
 
-void
+static void
 test_cursor_left_of_visible_window (void) {
   editor.curs.col_off = 100;
   SET_CURSOR(99, 0);
   ok(cursor_left_of_visible_window() == true, "left of visible window when x cursor coord is less than col_off");
 
   SET_CURSOR(99, 5);
-  ok(cursor_left_of_visible_window() == true, "left of visible window when x cursor coord is less than col_off on any line");
+  ok(
+    cursor_left_of_visible_window() == true,
+    "left of visible window when x cursor coord is less than col_off on any "
+    "line"
+  );
 
   SET_CURSOR(100, 0);
   ok(cursor_left_of_visible_window() == false, "not left of visible window when x cursor coord is equal to col_off");
@@ -100,7 +102,7 @@ test_cursor_left_of_visible_window (void) {
   ok(cursor_left_of_visible_window() == false, "not left of visible window when x cursor coord is greater than col_off");
 }
 
-void
+static void
 test_cursor_right_of_visible_window (void) {
   editor.curs.col_off = 10;
   editor.win.cols     = 10;
@@ -119,7 +121,7 @@ test_cursor_right_of_visible_window (void) {
   ok(cursor_right_of_visible_window() == false, "not right of visible window");
 }
 
-void
+static void
 test_cursor_in_cell_zero (void) {
   SET_CURSOR(0, 0);
   ok(cursor_in_cell_zero() == true, "cursor is in cell zero");
@@ -131,7 +133,7 @@ test_cursor_in_cell_zero (void) {
   ok(cursor_in_cell_zero() == false, "cursor is not in cell zero");
 }
 
-void
+static void
 test_cursor_not_at_row_begin (void) {
   SET_CURSOR(1, 0);
   ok(cursor_not_at_row_begin() == true, "cursor is not at row begin");
@@ -143,7 +145,7 @@ test_cursor_not_at_row_begin (void) {
   ok(cursor_not_at_row_begin() == false, "cursor is at row begin");
 }
 
-void
+static void
 test_cursor_move_down (void) {
   editor_insert("hello\n");
   editor_insert("world\n");
@@ -160,7 +162,7 @@ test_cursor_move_down (void) {
   ok(editor.curs.y == 2, "increases y coord by 1");
 }
 
-void
+static void
 test_cursor_move_down_at_bottom (void) {
   editor_insert("hello\n");
   editor_insert("hello");
@@ -176,7 +178,7 @@ test_cursor_move_down_at_bottom (void) {
   ok(editor.curs.y == 1, "cannot move");
 }
 
-void
+static void
 test_cursor_move_down_one_line (void) {
   editor_insert("hello");
   SET_CURSOR(1, 0);
@@ -191,7 +193,7 @@ test_cursor_move_down_one_line (void) {
   ok(editor.curs.y == 0, "cannot move");
 }
 
-void
+static void
 test_cursor_move_up (void) {
   editor_insert("hello\n");
   editor_insert("world\n");
@@ -208,7 +210,7 @@ test_cursor_move_up (void) {
   ok(editor.curs.y == 0, "decreases y coord by 1");
 }
 
-void
+static void
 test_cursor_move_up_at_top (void) {
   editor_insert("hello\n");
   editor_insert("world\n");
@@ -225,7 +227,7 @@ test_cursor_move_up_at_top (void) {
   ok(editor.curs.y == 0, "decreases y coord by 1");
 }
 
-void
+static void
 test_cursor_move_up_one_line (void) {
   editor_insert("what\n");
   SET_CURSOR(1, 0);
@@ -240,7 +242,7 @@ test_cursor_move_up_one_line (void) {
   ok(editor.curs.y == 0, "decreases y coord by 1");
 }
 
-void
+static void
 test_cursor_move_left (void) {
   editor_insert("hello\n");
   editor_insert("world\n");
@@ -256,7 +258,7 @@ test_cursor_move_left (void) {
   ok(editor.curs.y == 0, "does not move the y coord");
 }
 
-void
+static void
 test_cursor_move_left_at_begin_of_line (void) {
   editor_insert("hello");
   SET_CURSOR(5, 0);
@@ -273,7 +275,7 @@ test_cursor_move_left_at_begin_of_line (void) {
   ok(editor.curs.y == 0, "does not move the y coord");
 }
 
-void
+static void
 test_cursor_move_left_at_begin_of_first_line (void) {
   editor_insert("hello\n");
   editor_insert("world\n");
@@ -286,7 +288,7 @@ test_cursor_move_left_at_begin_of_first_line (void) {
   ok(editor.curs.y == 0, "does not move the y coord");
 }
 
-void
+static void
 test_cursor_move_right (void) {
   editor_insert("hello\n");
   editor_insert("world\n");
@@ -302,7 +304,7 @@ test_cursor_move_right (void) {
   ok(editor.curs.y == 0, "does not move the y coord");
 }
 
-void
+static void
 test_cursor_move_right_at_end_of_line (void) {
   editor_insert("hello");
   SET_CURSOR(5, 0);
@@ -319,7 +321,7 @@ test_cursor_move_right_at_end_of_line (void) {
   ok(editor.curs.y == 1, "does not move the y coord");
 }
 
-void
+static void
 test_cursor_move_right_at_end_of_last_line (void) {
   editor_insert("hello\n");
   editor_insert("world\n");
@@ -332,7 +334,7 @@ test_cursor_move_right_at_end_of_last_line (void) {
   ok(editor.curs.y == 1, "cannot move");
 }
 
-void
+static void
 test_cursor_move_left_word (void) {
   editor_insert("hello world what\n");
   SET_CURSOR(17, 0);
@@ -365,7 +367,7 @@ test_cursor_move_left_word (void) {
   ok(editor.curs.y == 0, "does not move the y coord");
 }
 
-void
+static void
 test_cursor_move_left_word_from_middle_of_word (void) {
   editor_insert("hello world what\n");
   SET_CURSOR(16, 0);
@@ -378,7 +380,7 @@ test_cursor_move_left_word_from_middle_of_word (void) {
   ok(editor.curs.y == 0, "does not move the y coord");
 }
 
-void
+static void
 test_cursor_move_left_word_no_breaks (void) {
   editor_insert("helloworldwhat\n");
   SET_CURSOR(16, 0);
@@ -391,7 +393,7 @@ test_cursor_move_left_word_no_breaks (void) {
   ok(editor.curs.y == 0, "does not move the y coord");
 }
 
-void
+static void
 test_cursor_move_left_word_all_breaks (void) {
   editor_insert("                \n");
   SET_CURSOR(16, 0);
@@ -405,7 +407,7 @@ test_cursor_move_left_word_all_breaks (void) {
   ok(editor.curs.y == 0, "does not move the y coord");
 }
 
-void
+static void
 test_cursor_move_left_word_at_begin_of_line (void) {
   editor_insert("hello world what");
   SET_CURSOR(16, 0);
@@ -421,7 +423,7 @@ test_cursor_move_left_word_at_begin_of_line (void) {
   ok(editor.curs.y == 0, "does not move the y coord");
 }
 
-void
+static void
 test_cursor_move_left_word_at_begin_of_first_line (void) {
   editor_insert("hello world what\n");
   SET_CURSOR(0, 0);
@@ -434,7 +436,7 @@ test_cursor_move_left_word_at_begin_of_first_line (void) {
   ok(editor.curs.y == 0, "does not move the y coord");
 }
 
-void
+static void
 test_cursor_move_left_word_prev_break_char (void) {
   editor_insert("hello world   what\n");
   SET_CURSOR(14, 0);
@@ -447,7 +449,7 @@ test_cursor_move_left_word_prev_break_char (void) {
   ok(editor.curs.y == 0, "does not move the y coord");
 }
 
-void
+static void
 test_cursor_move_left_word_prev_non_break_char (void) {
   editor_insert("hello world   what\n");
   SET_CURSOR(11, 0);
@@ -460,7 +462,7 @@ test_cursor_move_left_word_prev_non_break_char (void) {
   ok(editor.curs.y == 0, "does not move the y coord");
 }
 
-void
+static void
 test_cursor_move_right_word (void) {
   editor_insert("hello world what");
   SET_CURSOR(0, 0);
@@ -490,7 +492,7 @@ test_cursor_move_right_word (void) {
   ok(editor.curs.y == 0, "does not move the y coord");
 }
 
-void
+static void
 test_cursor_move_right_word_from_middle_of_word (void) {
   editor_insert("hello world what\n");
   SET_CURSOR(2, 0);
@@ -503,7 +505,7 @@ test_cursor_move_right_word_from_middle_of_word (void) {
   ok(editor.curs.y == 0, "does not move the y coord");
 }
 
-void
+static void
 test_cursor_move_right_word_no_breaks (void) {
   editor_insert("helloworldwhat");
   SET_CURSOR(0, 0);
@@ -516,7 +518,7 @@ test_cursor_move_right_word_no_breaks (void) {
   ok(editor.curs.y == 0, "does not move the y coord");
 }
 
-void
+static void
 test_cursor_move_right_word_all_breaks (void) {
   editor_insert("                \n");
   SET_CURSOR(0, 0);
@@ -529,7 +531,7 @@ test_cursor_move_right_word_all_breaks (void) {
   ok(editor.curs.y == 0, "does not move the y coord");
 }
 
-void
+static void
 test_cursor_move_right_word_at_end_of_line (void) {
   editor_insert("hello");
   SET_CURSOR(5, 0);
@@ -544,7 +546,7 @@ test_cursor_move_right_word_at_end_of_line (void) {
   ok(editor.curs.y == 1, "does not move the y coord");
 }
 
-void
+static void
 test_cursor_move_right_word_at_end_of_last_line (void) {
   editor_insert("hello world what\n");
   editor_insert("hello world what\n");
@@ -558,7 +560,7 @@ test_cursor_move_right_word_at_end_of_last_line (void) {
   ok(editor.curs.y == 1, "does not move the y coord");
 }
 
-void
+static void
 test_cursor_move_right_word_next_break_char (void) {
   editor_insert("hello world   what\n");
   SET_CURSOR(11, 0);
@@ -571,7 +573,7 @@ test_cursor_move_right_word_next_break_char (void) {
   ok(editor.curs.y == 0, "does not move the y coord");
 }
 
-void
+static void
 test_cursor_move_right_word_next_non_break_char (void) {
   editor_insert("hello world   what");
   SET_CURSOR(14, 0);
@@ -581,7 +583,7 @@ test_cursor_move_right_word_next_non_break_char (void) {
   ok(editor.curs.y == 0, "does not move the y coord");
 }
 
-void
+static void
 test_cursor_move_top (void) {
   SET_CURSOR(2, 1000);
   cursor_move_top();
@@ -594,7 +596,7 @@ test_cursor_move_top (void) {
   ok(editor.curs.y == 0, "leaves y at zero");
 }
 
-void
+static void
 test_cursor_move_visible_top (void) {
   editor.curs.row_off = 12;
 
@@ -609,7 +611,7 @@ test_cursor_move_visible_top (void) {
   ok(editor.curs.y == 12, "leaves y at row_off");
 }
 
-void
+static void
 test_cursor_move_bottom (void) {
   editor.win.rows = 100;
 
@@ -624,7 +626,7 @@ test_cursor_move_bottom (void) {
   ok(editor.curs.y == 99, "leaves y at numrows minus 1");
 }
 
-void
+static void
 test_cursor_move_visible_bottom (void) {
   editor.r->num_lines = 100;
   editor.curs.row_off = 5;
@@ -646,7 +648,7 @@ test_cursor_move_visible_bottom (void) {
   ok(editor.curs.y == 104, "sets y to row_off plus numrows minus 1");
 }
 
-void
+static void
 test_cursor_move_begin (void) {
   SET_CURSOR(15, 0);
   cursor_move_begin();
@@ -664,7 +666,7 @@ test_cursor_move_begin (void) {
   ok(editor.curs.y == 5, "maintains y");
 }
 
-void
+static void
 test_cursor_move_end (void) {
   editor_insert("endorsed by cheneys is not a good look");
 
@@ -683,14 +685,13 @@ test_cursor_move_end (void) {
   ok(editor.curs.x == 38, "maintains x at line length (end of row)");
   ok(editor.curs.y == 5, "maintains y");
 
-  // TODO: assert?
   SET_CURSOR(0, 500);
   cursor_move_end();
   ok(editor.curs.x == 0, "no-ops if the y coord is greater than the num of lines");
   ok(editor.curs.y == 500, "no-ops");
 }
 
-void
+static void
 test_cursor_snap_to_end (void) {
   SET_CURSOR(0, 0);
   editor_insert("endorsed by cheneys is not a good look");
@@ -730,11 +731,9 @@ test_cursor_snap_to_end (void) {
 // editor.curs.select_offset.x = editor.curs.x;
 // editor.curs.select_offset.y = editor.curs.y;
 
-void
+static void
 test_cursor_select_left (void) {
-  editor_insert(
-    "hello world\ngoodbye world\nhello world\ngoodbye world\nhello world"
-  );
+  editor_insert("hello world\ngoodbye world\nhello world\ngoodbye world\nhello world");
   SET_CURSOR(3, 4);
   ok(editor.curs.select_active == false, "sanity check");
 
@@ -787,11 +786,9 @@ test_cursor_select_left (void) {
   ok(editor.curs.y == 3, "selects one cell to the left");
 }
 
-void
+static void
 test_cursor_select_right (void) {
-  editor_insert(
-    "hello world\ngoodbye world\nhello world\ngoodbye world\nhello world"
-  );
+  editor_insert("hello world\ngoodbye world\nhello world\ngoodbye world\nhello world");
   SET_CURSOR(5, 0);
   ok(editor.curs.select_active == false, "sanity check");
 
@@ -804,7 +801,7 @@ test_cursor_select_right (void) {
   ok(editor.curs.x == 6, "selects one cell to the right");
   ok(editor.curs.y == 0, "selects one cell to the right");
 
-  run_function_n(3, cursor_select_right);
+  CALL_N_TIMES(3, cursor_select_right());
   ok(editor.curs.select_active == true, "selects 3 cells to the right");
   ok(editor.curs.select_anchor.x == 5, "selects 3 cells to the right");
   ok(editor.curs.select_anchor.y == 0, "selects 3 cells to the right");
@@ -813,7 +810,7 @@ test_cursor_select_right (void) {
   ok(editor.curs.x == 9, "selects 3 cells to the right");
   ok(editor.curs.y == 0, "selects 3 cells to the right");
 
-  run_function_n(4, cursor_select_right);
+  CALL_N_TIMES(4, cursor_select_right());
   ok(editor.curs.select_active == true, "selects 4 cells to the right");
   ok(editor.curs.select_anchor.x == 5, "selects 4 cells to the right");
   ok(editor.curs.select_anchor.y == 0, "selects 4 cells to the right");
@@ -822,7 +819,7 @@ test_cursor_select_right (void) {
   ok(editor.curs.x == 1, "wraps around to the next line");
   ok(editor.curs.y == 1, "wraps around to the next line");
 
-  run_function_n(13, cursor_select_right);
+  CALL_N_TIMES(13, cursor_select_right());
   ok(editor.curs.select_active == true, "selects to the right");
   ok(editor.curs.select_anchor.x == 5, "selects to the right");
   ok(editor.curs.select_anchor.y == 0, "selects to the right");
@@ -843,11 +840,9 @@ test_cursor_select_right (void) {
   ok(cursor_is_select_ltr() == true, "is ltr");
 }
 
-void
+static void
 test_cursor_select_up (void) {
-  editor_insert(
-    "hello world\ngoodbye world\nhello world\ngoodbye world\nhello world"
-  );
+  editor_insert("hello world\ngoodbye world\nhello world\ngoodbye world\nhello world");
   SET_CURSOR(3, 1);
   ok(editor.curs.select_active == false, "sanity check");
 
@@ -861,7 +856,8 @@ test_cursor_select_up (void) {
   ok(editor.curs.y == 0, "select up selects all text from the anchor to the offset");
   ok(cursor_is_select_ltr() == false, "select up selects all text from the anchor to the offset");
 
-  // Micro-feature: pressing select-up while on the first line should select the entire line to the beginning thereof
+  // Micro-feature: pressing select-up while on the first line should select the
+  // entire line to the beginning thereof
   cursor_select_up();
   ok(editor.curs.select_active == true, "select up 2x on the first line selects to the beginning of the line");
   ok(editor.curs.select_anchor.x == 3, "select up 2x on the first line selects to the beginning of the line");
@@ -874,7 +870,7 @@ test_cursor_select_up (void) {
 
   cursor_select_clear();
   SET_CURSOR(3, 1);
-  run_function_n(3, cursor_select_right);
+  CALL_N_TIMES(3, cursor_select_right());
   cursor_select_up();
   ok(editor.curs.select_active == true, "select up maintains anchor but resets the offset");
   ok(editor.curs.select_anchor.x == 3, "select up maintains anchor but resets the offset");
@@ -886,11 +882,9 @@ test_cursor_select_up (void) {
   ok(cursor_is_select_ltr() == false, "select up maintains anchor but resets the offset");
 }
 
-void
+static void
 test_cursor_select_down (void) {
-  editor_insert(
-    "hello world\ngoodbye world\nhello world\ngoodbye world\nhello world"
-  );
+  editor_insert("hello world\ngoodbye world\nhello world\ngoodbye world\nhello world");
   SET_CURSOR(3, 3);
   ok(editor.curs.select_active == false, "sanity check");
 
@@ -925,11 +919,9 @@ test_cursor_select_down (void) {
   ok(cursor_is_select_ltr() == true, "no-ops");
 }
 
-void
+static void
 test_cursor_select_right_word (void) {
-  editor_insert(
-    "hello world\ngoodbye world\nhello world\ngoodbye world\nhello world"
-  );
+  editor_insert("hello world\ngoodbye world\nhello world\ngoodbye world\nhello world");
   SET_CURSOR(0, 0);
   ok(editor.curs.select_active == false, "sanity check");
 
@@ -981,11 +973,9 @@ test_cursor_select_right_word (void) {
   ok(editor.curs.y == 1, "selects to the right by one word");
 }
 
-void
+static void
 test_cursor_select_left_word (void) {
-  editor_insert(
-    "hello world\ngoodbye world\nhello world\ngoodbye world\nhello world"
-  );
+  editor_insert("hello world\ngoodbye world\nhello world\ngoodbye world\nhello world");
   SET_CURSOR(7, 4);
   ok(editor.curs.select_active == false, "sanity check");
 
@@ -1053,23 +1043,21 @@ test_cursor_select_left_word (void) {
   ok(editor.curs.y == 3, "selects to the left by one word");
 }
 
-void
+static void
 test_cursor_select_up_word (void) {
   todo_start("need to implement: multi-cursor feature");
   todo_end();
 }
 
-void
+static void
 test_cursor_select_down_word (void) {
   todo_start("need to implement: multi-cursor feature");
   todo_end();
 }
 
-void
+static void
 test_cursor_select_x_axis (void) {
-  editor_insert(
-    "hello world\ngoodbye world\nhello world\ngoodbye world\nhello world"
-  );
+  editor_insert("hello world\ngoodbye world\nhello world\ngoodbye world\nhello world");
   SET_CURSOR(1, 1);
   ok(editor.curs.select_active == false, "sanity check");
 
@@ -1093,7 +1081,7 @@ test_cursor_select_x_axis (void) {
   ok(editor.curs.y == 1, "selects to the right");
   ok(cursor_is_select_ltr() == true, "is ltr");
 
-  run_function_n(2, cursor_select_right);
+  CALL_N_TIMES(2, cursor_select_right());
   ok(editor.curs.select_active == true, "selects to the right");
   ok(editor.curs.select_anchor.x == 1, "selects to the right");
   ok(editor.curs.select_anchor.y == 1, "selects to the right");
@@ -1103,7 +1091,7 @@ test_cursor_select_x_axis (void) {
   ok(editor.curs.y == 1, "selects to the right");
   ok(cursor_is_select_ltr() == true, "is ltr");
 
-  run_function_n(3, cursor_select_right_word);
+  CALL_N_TIMES(3, cursor_select_right_word());
   ok(editor.curs.select_active == true, "selects to the right");
   ok(editor.curs.select_anchor.x == 1, "selects to the right");
   ok(editor.curs.select_anchor.y == 1, "selects to the right");
@@ -1133,7 +1121,7 @@ test_cursor_select_x_axis (void) {
   ok(editor.curs.y == 2, "selects to the left");
   ok(cursor_is_select_ltr() == true, "is still ltr doe");
 
-  run_function_n(3, cursor_select_left);
+  CALL_N_TIMES(3, cursor_select_left());
   ok(editor.curs.select_active == true, "selects to the left");
   ok(editor.curs.select_anchor.x == 1, "selects to the left");
   ok(editor.curs.select_anchor.y == 1, "selects to the left");
@@ -1143,7 +1131,7 @@ test_cursor_select_x_axis (void) {
   ok(editor.curs.y == 1, "selects to the left");
   ok(cursor_is_select_ltr() == true, "is ltr");
 
-  run_function_n(4, cursor_select_left_word);
+  CALL_N_TIMES(4, cursor_select_left_word());
   ok(editor.curs.select_active == true, "selects to the left");
   ok(editor.curs.select_anchor.x == 1, "selects to the left");
   ok(editor.curs.select_anchor.y == 1, "selects to the left");
@@ -1229,8 +1217,8 @@ run_cursor_tests (void) {
   };
 
   for (unsigned int i = 0; i < sizeof(functions) / sizeof(functions[0]); i++) {
-    test_cursor_setup();
+    setup();
     functions[i]();
-    test_cursor_teardown();
+    teardown();
   }
 }

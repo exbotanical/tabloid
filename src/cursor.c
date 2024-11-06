@@ -11,12 +11,7 @@
 
 extern editor_t editor;
 
-typedef enum {
-  SELECT_LEFT,
-  SELECT_LEFT_WORD,
-  SELECT_RIGHT,
-  SELECT_RIGHT_WORD
-} select_mode_t;
+typedef enum { SELECT_LEFT, SELECT_LEFT_WORD, SELECT_RIGHT, SELECT_RIGHT_WORD } select_mode_t;
 
 static void
 cursor_select (select_mode_t mode) {
@@ -104,17 +99,15 @@ cursor_move_left (void) {
   } else if (!cursor_on_first_line()) {
     // Move to end of prev line on left from col 0
     editor.curs.y--;
-    editor.curs.x
-      = ((line_info_t *)array_get(editor.r->line_info, editor.curs.y))->line_length;
+    editor.curs.x = ((line_info_t *)array_get(editor.r->line_info, editor.curs.y))->line_length;
   }
 }
 
 void
 cursor_move_right (void) {
-  line_info_t *row
-    = (editor.curs.y >= editor.r->num_lines)
-        ? NULL
-        : (line_info_t *)array_get(editor.r->line_info, editor.curs.y);
+  line_info_t *row = (editor.curs.y >= editor.r->num_lines)
+                       ? NULL
+                       : (line_info_t *)array_get(editor.r->line_info, editor.curs.y);
   if (row && editor.curs.x < row->line_length) {
     editor.curs.x++;
   } else if (row && editor.curs.x == row->line_length && !cursor_on_last_line()) {
@@ -126,10 +119,9 @@ cursor_move_right (void) {
 
 void
 cursor_move_right_word (void) {
-  line_info_t *row
-    = (editor.curs.y >= editor.r->num_lines)
-        ? NULL
-        : (line_info_t *)array_get(editor.r->line_info, editor.curs.y);
+  line_info_t *row = (editor.curs.y >= editor.r->num_lines)
+                       ? NULL
+                       : (line_info_t *)array_get(editor.r->line_info, editor.curs.y);
 
   if (editor.curs.x == row->line_length && !cursor_on_last_line()) {
     editor.curs.y++;
@@ -170,10 +162,9 @@ cursor_move_right_word (void) {
 
 void
 cursor_move_left_word (void) {
-  line_info_t *row
-    = (editor.curs.y >= editor.r->num_lines)
-        ? NULL
-        : (line_info_t *)array_get(editor.r->line_info, editor.curs.y);
+  line_info_t *row = (editor.curs.y >= editor.r->num_lines)
+                       ? NULL
+                       : (line_info_t *)array_get(editor.r->line_info, editor.curs.y);
 
   if (editor.curs.x == 0) {
     cursor_move_left();
@@ -228,9 +219,8 @@ cursor_move_bottom (void) {
 
 void
 cursor_move_visible_bottom (void) {
-  editor.curs.y = (editor.curs.y > editor.r->num_lines)
-                    ? editor.r->num_lines
-                    : editor.curs.row_off + editor.win.rows - 1;
+  editor.curs.y
+    = (editor.curs.y > editor.r->num_lines) ? editor.r->num_lines : editor.curs.row_off + editor.win.rows - 1;
 }
 
 void
@@ -241,26 +231,26 @@ cursor_move_begin (void) {
 void
 cursor_move_end (void) {
   if (editor.curs.y < editor.r->num_lines) {
-    editor.curs.x
-      = ((line_info_t *)array_get(editor.r->line_info, editor.curs.y))->line_length;
+    editor.curs.x = ((line_info_t *)array_get(editor.r->line_info, editor.curs.y))->line_length;
   }
 }
 
 // TODO: docs
-// For moving up or down rows; makes sure the cursor jumps to the end if the line we moved from is longer.
+// For moving up or down rows; makes sure the cursor jumps to the end if the
+// line we moved from is longer.
 
 // e.g.
 // ----------------
 // line 1
 // this is line 2
 // -----------------
-// ^ cursor should snap to the end of line 1 when moving from the end of line 2 to line 1
+// ^ cursor should snap to the end of line 1 when moving from the end of line 2
+// to line 1
 void
 cursor_snap_to_end (void) {
-  line_info_t *row
-    = (editor.curs.y >= editor.r->num_lines)
-        ? NULL
-        : (line_info_t *)array_get(editor.r->line_info, editor.curs.y);
+  line_info_t *row    = (editor.curs.y >= editor.r->num_lines)
+                          ? NULL
+                          : (line_info_t *)array_get(editor.r->line_info, editor.curs.y);
 
   unsigned int length = row ? row->line_length : 0;
   if (editor.curs.x > length) {
@@ -355,7 +345,6 @@ cursor_select_up (void) {
   editor.curs.select_offset.y = editor.curs.y;
 }
 
-// TODO:
 void
 cursor_select_down (void) {
   if (!editor.curs.select_active) {
@@ -365,8 +354,7 @@ cursor_select_down (void) {
   editor.curs.select_active = true;
   if (editor.curs.y == editor.r->num_lines - 1) {
     // TODO: err
-    editor.curs.select_offset.x
-      = ((line_info_t *)array_get(editor.r->line_info, editor.curs.y))->line_length;
+    editor.curs.select_offset.x = ((line_info_t *)array_get(editor.r->line_info, editor.curs.y))->line_length;
     editor.curs.select_offset.y = editor.curs.y;
     editor.curs.x               = editor.curs.select_offset.x;
     return;
@@ -393,4 +381,15 @@ cursor_is_select_ltr (void) {
       (editor.curs.select_anchor.y == editor.curs.select_offset.y &&
         editor.curs.select_anchor.x <= editor.curs.select_offset.x)
     );
+}
+
+cursor_t *
+cursor_create_copy (void) {
+  cursor_t *curs = malloc(sizeof(cursor_t));
+  curs->x        = editor.curs.x;
+  curs->y        = editor.curs.y;
+  curs->render_x = editor.curs.render_x;
+  curs->col_off  = editor.curs.col_off;
+
+  return curs;
 }
