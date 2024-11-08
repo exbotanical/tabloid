@@ -2,7 +2,7 @@
 - [ ] status bar
 - [ ] file I/O
   - [ ] swap files
-- [ ] history (undo/redo stack)
+- [x] history (undo/redo stack)
   - [ ] undo/redo groups
 - [ ] command mode
 - [ ] keybindings config support

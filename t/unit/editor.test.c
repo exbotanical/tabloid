@@ -7,25 +7,25 @@ static char buf[128];
 static char*
 get_line (int lineno) {
   memset(buf, 0, 128);
-  render_state_get_line(editor.r, lineno, buf);
+  line_buffer_get_line(editor.r, lineno, buf);
   return buf;
 }
 
 static void
 setup (void) {
-  editor.r    = render_state_init(NULL);
+  editor.r    = line_buffer_init(NULL);
   editor.curs = DEFAULT_CURSOR_STATE;
 }
 
 static void
 teardown (void) {
-  render_state_free(editor.r);
+  line_buffer_free(editor.r);
   editor.curs = DEFAULT_CURSOR_STATE;
 }
 
 static void
 test_editor_insert_char (void) {
-  render_state_insert(editor.r, 0, 0, "hello", cursor_create_copy());
+  line_buffer_insert(editor.r, 0, 0, "hello", cursor_create_copy());
 
   SET_CURSOR(5, 0);
 
@@ -63,7 +63,7 @@ test_editor_insert_char (void) {
 
 static void
 test_editor_insert_newline (void) {
-  render_state_insert(editor.r, 0, 0, "hello", cursor_create_copy());
+  line_buffer_insert(editor.r, 0, 0, "hello", cursor_create_copy());
 
   is(get_line(0), "hello", "sanity check");
   ok(editor.r->num_lines == 1, "sanity check");
@@ -92,7 +92,7 @@ test_editor_insert_newline (void) {
 
 static void
 test_editor_insert_newline_middle_word (void) {
-  render_state_insert(editor.r, 0, 0, "hello", cursor_create_copy());
+  line_buffer_insert(editor.r, 0, 0, "hello", cursor_create_copy());
 
   char buf[128];
 
@@ -125,7 +125,7 @@ test_editor_insert_newline_middle_word (void) {
 
 static void
 test_editor_delete_char (void) {
-  render_state_insert(editor.r, 0, 0, "hello", cursor_create_copy());
+  line_buffer_insert(editor.r, 0, 0, "hello", cursor_create_copy());
 
   SET_CURSOR(5, 0);
   editor_delete_char();
@@ -177,7 +177,7 @@ test_editor_delete_char (void) {
 
 static void
 test_editor_delete_line_before_x (void) {
-  render_state_insert(editor.r, 0, 0, "hello goodbye world", cursor_create_copy());
+  line_buffer_insert(editor.r, 0, 0, "hello goodbye world", cursor_create_copy());
 
   SET_CURSOR(14, 0);
   editor_delete_line_before_x();

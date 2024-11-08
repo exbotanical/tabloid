@@ -14,13 +14,13 @@ static char *file_buffer;
 static char *
 get_line (int lineno) {
   memset(buf, 0, 128);
-  render_state_get_line(editor.r, lineno, buf);
+  line_buffer_get_line(editor.r, lineno, buf);
   return buf;
 }
 
 static void
 setup (void) {
-  editor.r              = render_state_init(NULL);
+  editor.r              = line_buffer_init(NULL);
   editor.curs           = DEFAULT_CURSOR_STATE;
   editor.win.cols       = 0;
   editor.win.rows       = 0;
@@ -40,7 +40,7 @@ setup (void) {
   file_buffer         = malloc(68300);
   size_t          sz  = sizeof(file_buffer);
   read_all_result ret = read_all(fd, &file_buffer, &sz);
-  render_state_insert(editor.r, editor.curs.x, editor.curs.y, file_buffer, NULL);
+  line_buffer_insert(editor.r, editor.curs.x, editor.curs.y, file_buffer, NULL);
 }
 
 static void

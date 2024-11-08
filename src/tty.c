@@ -81,7 +81,7 @@ tty_enable_raw_mode (void) {
 }
 
 int
-tty_get_window_sz (unsigned int *rows, unsigned int *cols) {
+tty_get_window_size (unsigned int *rows, unsigned int *cols) {
   struct winsize ws;
 
   if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) == -1 || ws.ws_col == 0) {

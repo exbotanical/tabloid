@@ -14,18 +14,18 @@ typedef struct {
   array_t       *line_info;
   unsigned int   num_lines;
   // array_t<char*>
-  array_t       *line_buffer;
+  array_t       *line;
   buffer_t      *tmp_buffer;
   piece_table_t *pt;
-} render_state_t;
+} line_buffer_t;
 
-render_state_t *render_state_init(char *initial);
-void            render_state_free(render_state_t *self);
-void            render_state_refresh(render_state_t *self);
-void            render_state_get_line(render_state_t *self, unsigned int lineno, char *buffer);
-void  render_state_insert(render_state_t *self, int x, int y, char *insert_chars, void *metadata);
-void  render_state_delete(render_state_t *self, int x, int y, void *metadata);
-void *render_state_undo(render_state_t *self);
-void *render_state_redo(render_state_t *self);
+line_buffer_t *line_buffer_init(char *initial);
+void           line_buffer_free(line_buffer_t *self);
+void           line_buffer_refresh(line_buffer_t *self);
+void           line_buffer_get_line(line_buffer_t *self, unsigned int lineno, char *buffer);
+void  line_buffer_insert(line_buffer_t *self, int x, int y, char *insert_chars, void *metadata);
+void  line_buffer_delete(line_buffer_t *self, int x, int y, void *metadata);
+void *line_buffer_undo(line_buffer_t *self);
+void *line_buffer_redo(line_buffer_t *self);
 
 #endif /* LINE_BUFFER_H */

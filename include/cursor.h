@@ -26,28 +26,42 @@ typedef struct {
   unsigned int row_off;
   // Column (x) offset used for scroll i.e. number of columns past the window size
   unsigned int col_off;
-  // Cursor relative to the render buffer
-  // render_x will likely equal x unless we've rendered something differently
-  // than its underlying source (e.g. tabs)
-  unsigned int render_x;
 
   bool select_active;
 
 } cursor_t;
 
-bool cursor_on_first_line(void);
-bool cursor_on_first_col(void);
-bool cursor_above_visible_window(void);
-bool cursor_below_visible_window(void);
-bool cursor_left_of_visible_window(void);
-bool cursor_right_of_visible_window(void);
-bool cursor_in_cell_zero(void);
-bool cursor_not_at_row_begin(void);
+extern inline unsigned int cursor_get_x(void);
+extern inline unsigned int cursor_get_y(void);
+extern inline unsigned int cursor_get_anchor_x(void);
+extern inline unsigned int cursor_get_anchor_y(void);
+extern inline unsigned int cursor_get_offset_x(void);
+extern inline unsigned int cursor_get_offset_y(void);
+extern inline unsigned int cursor_get_row_off(void);
+extern inline unsigned int cursor_get_col_off(void);
+extern inline bool         cursor_is_select_active(void);
+
+extern inline void         cursor_set_xy(unsigned int x, unsigned int y);
+extern inline void         cursor_set_x(unsigned int x);
+extern inline unsigned int cursor_inc_x(void);
+extern inline unsigned int cursor_dec_x(void);
+extern inline void         cursor_set_y(unsigned int y);
+extern inline unsigned int cursor_inc_y(void);
+extern inline unsigned int cursor_dec_y(void);
+extern inline void         cursor_set_row_off(unsigned int row_off);
+extern inline void         cursor_set_col_off(unsigned int col_off);
+extern inline void         cursor_set_is_active(bool next);
+
+int       cursor_get_position(unsigned int *rows, unsigned int *cols);
+void      cursor_set_position(buffer_t *buf);
+cursor_t *cursor_create_copy(void);
 
 void cursor_move_down(void);
 void cursor_move_up(void);
 void cursor_move_left(void);
+void cursor_move_left_word(void);
 void cursor_move_right(void);
+void cursor_move_right_word(void);
 void cursor_move_top(void);
 void cursor_move_visible_top(void);
 void cursor_move_bottom(void);
@@ -55,23 +69,24 @@ void cursor_move_visible_bottom(void);
 void cursor_move_begin(void);
 void cursor_move_end(void);
 void cursor_snap_to_end(void);
-void cursor_move_right_word(void);
-void cursor_move_left_word(void);
 
 void cursor_select_left(void);
+void cursor_select_left_word(void);
 void cursor_select_right(void);
+void cursor_select_right_word(void);
 void cursor_select_up(void);
 void cursor_select_down(void);
-void cursor_select_right_word(void);
-void cursor_select_left_word(void);
-void cursor_select_up_word(void);
-void cursor_select_down_word(void);
 bool cursor_is_select_ltr(void);
 void cursor_select_clear(void);
 
-int  cursor_get_position(unsigned int *rows, unsigned int *cols);
-void cursor_set_position(buffer_t *buf);
-
-cursor_t *cursor_create_copy(void);
+bool cursor_on_first_line(void);
+bool cursor_on_first_col(void);
+bool cursor_on_last_line(void);
+bool cursor_above_visible_window(void);
+bool cursor_below_visible_window(void);
+bool cursor_left_of_visible_window(void);
+bool cursor_right_of_visible_window(void);
+bool cursor_in_cell_zero(void);
+bool cursor_not_at_row_begin(void);
 
 #endif /* CURSOR_H */

@@ -1,10 +1,9 @@
 #ifndef TEST_UTILS_H
 #define TEST_UTILS_H
 
-#define DEFAULT_CURSOR_STATE                                                   \
-  (cursor_t) {                                                                 \
-    .col_off = 0, .row_off = 0, .x = 0, .y = 0, .render_x = DEFAULT_LNPAD + 1, \
-    .select_active = false, .select_anchor = -1, .select_offset = -1,          \
+#define DEFAULT_CURSOR_STATE                                                                                      \
+  (cursor_t) {                                                                                                    \
+    .col_off = 0, .row_off = 0, .x = 0, .y = 0, .select_active = false, .select_anchor = -1, .select_offset = -1, \
   }
 
 #define SET_CURSOR(_x, _y) \

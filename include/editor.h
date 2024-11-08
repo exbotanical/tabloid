@@ -18,15 +18,16 @@ typedef struct {
   char msg[64];
 } c_bar_state_t;
 
+// TODO: no more global state
 typedef struct {
-  cursor_t        curs;
-  window_t        win;
-  tty_t           tty;
-  config_t        conf;
-  file_handle_t   fs;
-  s_bar_state_t   s_bar;
-  c_bar_state_t   c_bar;
-  render_state_t* r;
+  cursor_t       curs;
+  window_t       win;
+  tty_t          tty;
+  config_t       conf;
+  file_handle_t  fs;
+  s_bar_state_t  s_bar;
+  c_bar_state_t  c_bar;
+  line_buffer_t* r;
 } editor_t;
 
 void editor_init(void);

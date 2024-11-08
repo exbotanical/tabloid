@@ -4,7 +4,7 @@
 
 static void
 setup (void) {
-  editor.r        = render_state_init(NULL);
+  editor.r        = line_buffer_init(NULL);
   editor.curs     = DEFAULT_CURSOR_STATE;
   editor.win.cols = 0;
   editor.win.rows = 0;
@@ -13,7 +13,7 @@ setup (void) {
 
 static void
 teardown (void) {
-  render_state_free(editor.r);
+  line_buffer_free(editor.r);
 }
 
 static void

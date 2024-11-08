@@ -5,9 +5,6 @@
 
 #define DEFAULT_LNPAD 3
 
-#define REAL_RENDER_X(render_x) \
-  (render_x + (line_pad > 0 ? line_pad : DEFAULT_LNPAD) + 1)
-
 typedef struct {
   // Num rows in the window
   unsigned int rows;
@@ -17,9 +14,9 @@ typedef struct {
 
 void window_clear(void);
 void window_refresh(void);
-void window_set_sbar_msg(const char* fmt, ...);
-void window_set_cbar_msg(const char* fmt, ...);
-void window_draw_rows(buffer_t* buf);
 void window_scroll(void);
+void window_set_status_bar_msg(const char* fmt, ...);
+void window_set_command_bar_msg(const char* fmt, ...);
+void window_draw_rows(buffer_t* buf);
 
 #endif /* WINDOW_H */
