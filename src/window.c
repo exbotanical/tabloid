@@ -20,7 +20,7 @@ window_draw_status_bar (buffer_t* buf) {
   buffer_append(buf, ESC_SEQ_INVERT_COLOR);
 
   buffer_append(buf, editor.s_bar.msg);
-  for (unsigned int len = 0; len < editor.win.cols - strlen(editor.s_bar.msg); len++) {
+  for (unsigned int len = 0; len < window_get_num_cols() - strlen(editor.s_bar.msg); len++) {
     buffer_append(buf, " ");
   }
 
@@ -30,8 +30,63 @@ window_draw_status_bar (buffer_t* buf) {
 static void
 window_draw_command_bar (buffer_t* buf) {
   buffer_append(buf, editor.c_bar.msg);
-  for (unsigned int len = 0; len < editor.win.cols - strlen(editor.s_bar.msg); len++) {
+  for (unsigned int len = 0; len < window_get_num_cols() - strlen(editor.s_bar.msg); len++) {
     buffer_append(buf, " ");
+  }
+}
+
+static void
+window_compute_select_range (unsigned int row_num, line_info_t* current_line, int* start_ptr, int* end_ptr) {
+  // // TODO: refactor
+  // int *start_ptr = -1;
+  // int *end_ptr   = -1;
+
+  if (cursor_is_select_active()) {
+    bool is_ltr = cursor_is_select_ltr();
+
+    if (is_ltr) {
+      // If multiple lines are highlighted, and this line falls between the
+      // anchor and offset lines, we just highlight the entire line
+      if (row_num > cursor_get_anchor_y() && row_num < cursor_get_offset_y()) {
+        *start_ptr = 0;
+        *end_ptr   = (current_line->line_length) - 1;
+      }
+
+      // If the anchor and offset are on the same line,
+      // just highlight between the anchor x and offset x
+      if (row_num == cursor_get_anchor_y() && row_num == cursor_get_offset_y()) {
+        *start_ptr = cursor_get_anchor_x();
+        *end_ptr   = cursor_get_offset_x() - 1;
+      }
+
+      // If we're on the anchor line, we highlight from the anchor x onward
+      else if (row_num == cursor_get_anchor_y()) {
+        *start_ptr = cursor_get_anchor_x();
+        *end_ptr   = current_line->line_length - 1;
+      }
+
+      // If we're on the offset line, we highlight until the the anchor x
+      else if (row_num == cursor_get_offset_y()) {
+        *start_ptr = 0;
+        *end_ptr   = cursor_get_offset_x() - 1;
+      }
+    } else {
+      if (row_num < cursor_get_anchor_y() && row_num > cursor_get_offset_y()) {
+        *start_ptr = 0;
+        *end_ptr   = current_line->line_length - 1;
+      }
+
+      if (row_num == cursor_get_anchor_y() && row_num == cursor_get_offset_y()) {
+        *start_ptr = cursor_get_offset_x();
+        *end_ptr   = cursor_get_anchor_x() - 1;
+      } else if (row_num == cursor_get_anchor_y()) {
+        *start_ptr = 0;
+        *end_ptr   = cursor_get_anchor_x() - 1;
+      } else if (row_num == cursor_get_offset_y()) {
+        *start_ptr = cursor_get_offset_x();
+        *end_ptr   = current_line->line_length - 1;
+      }
+    }
   }
 }
 
@@ -42,8 +97,8 @@ window_draw_row (buffer_t* buf, line_info_t* row, unsigned int lineno, int selec
     len = 0;
   }
 
-  if ((unsigned int)len > (editor.win.cols - (line_pad + 1))) {
-    len = (editor.win.cols - (line_pad + 1));
+  if ((unsigned int)len > (window_get_num_cols() - (line_pad + 1))) {
+    len = (window_get_num_cols() - (line_pad + 1));
   }
 
   // Adjust for rows that are longer than the current viewport
@@ -85,6 +140,16 @@ window_draw_row (buffer_t* buf, line_info_t* row, unsigned int lineno, int selec
   }
 }
 
+extern inline unsigned int
+window_get_num_rows (void) {
+  return editor.win.rows;
+}
+
+extern inline unsigned int
+window_get_num_cols (void) {
+  return editor.win.cols;
+}
+
 void
 window_clear (void) {
   write(STDOUT_FILENO, ESC_SEQ_CLEAR_SCREEN, 4);
@@ -122,7 +187,7 @@ window_scroll (void) {
 
   // Check if the cursor is below the visible window and adjust
   if (cursor_below_visible_window()) {
-    cursor_set_row_off(cursor_get_y() - editor.win.rows + 1);
+    cursor_set_row_off(cursor_get_y() - window_get_num_rows() + 1);
   }
 
   if (cursor_left_of_visible_window()) {
@@ -130,7 +195,7 @@ window_scroll (void) {
   }
 
   if (cursor_right_of_visible_window()) {
-    cursor_set_col_off(cursor_get_x() - (editor.win.cols - (line_pad + 1)) + 1);
+    cursor_set_col_off(cursor_get_x() - (window_get_num_cols() - (line_pad + 1)) + 1);
   }
 }
 
@@ -160,7 +225,7 @@ window_draw_rows (buffer_t* buf) {
   }
 
   // For every row in the entire window...
-  for (unsigned int y = 0; y < editor.win.rows; y++) {
+  for (unsigned int y = 0; y < window_get_num_rows(); y++) {
     // Grab the visible row
     unsigned int visible_row_idx = y + cursor_get_row_off();
     // If the visible row index is > the number of buffered rows...
@@ -247,7 +312,7 @@ window_draw_rows (buffer_t* buf) {
 
       if (is_current_line) {
         // If it's the current row, reset the highlight after drawing the row
-        int padding_len = (editor.win.cols + cursor_get_col_off()) - (current_row->line_length + line_pad + 1);
+        int padding_len = (window_get_num_cols() + cursor_get_col_off()) - (current_row->line_length + line_pad + 1);
         if (padding_len > 0) {
           for (int i = 0; i < padding_len; i++) {
             buffer_append(buf, " ");  // Highlight entire row till the end

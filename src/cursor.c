@@ -354,14 +354,12 @@ cursor_move_visible_top (void) {
 
 void
 cursor_move_bottom (void) {
-  cursor_set_y(editor.win.rows - 1);
+  cursor_set_y(window_get_num_rows() - 1);
 }
 
 void
 cursor_move_visible_bottom (void) {
-  cursor_set_y(
-    (cursor_get_y() > editor.r->num_lines) ? editor.r->num_lines : cursor_get_row_off() + editor.win.rows - 1
-  );
+  cursor_set_y((cursor_get_y() > editor.r->num_lines) ? editor.r->num_lines : cursor_get_row_off() + window_get_num_rows() - 1);
 }
 
 void
@@ -495,7 +493,7 @@ cursor_above_visible_window (void) {
 
 bool
 cursor_below_visible_window (void) {
-  return cursor_get_y() >= cursor_get_row_off() + editor.win.rows;
+  return cursor_get_y() >= cursor_get_row_off() + window_get_num_rows();
 }
 
 bool
@@ -505,7 +503,7 @@ cursor_left_of_visible_window (void) {
 
 bool
 cursor_right_of_visible_window (void) {
-  return cursor_get_x() >= cursor_get_col_off() + (editor.win.cols - (line_pad + 1));
+  return cursor_get_x() >= cursor_get_col_off() + (window_get_num_cols() - (line_pad + 1));
 }
 
 bool
