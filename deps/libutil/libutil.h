@@ -27,10 +27,9 @@ typedef __array_t *array_t;
 array_t *__array_collect(void *v, ...);
 
 typedef void *callback_t(void *el, unsigned int index, array_t *array);
-typedef bool
-predicate_t(void *el, unsigned int index, array_t *array, void *compare_to);
-typedef bool comparator_t(void *el, void *compare_to);
-typedef void free_fn(void *el);
+typedef bool  predicate_t(void *el, unsigned int index, array_t *array, void *compare_to);
+typedef bool  comparator_t(void *el, void *compare_to);
+typedef void  free_fn(void *el);
 
 // An int comparator that implements the comparator_t interface
 bool int_comparator(int a, int b);
@@ -44,7 +43,7 @@ bool str_comparator(char *a, char *b);
  * Example:
  * foreach(array, x) { printf("%d\n", array_get(array, x) + 1); }
  */
-#define foreach(arr, i) for (unsigned int i = 0; i < array_size(arr); i++)
+#define foreach(arr, i)          for (unsigned int i = 0; i < array_size(arr); i++)
 
 /**
  * foreach_i generates a for loop statement to iterate the given array's size
@@ -55,14 +54,13 @@ bool str_comparator(char *a, char *b);
  * // start at index 3
  * foreach(array, x, 3) { printf("%d\n", array_get(array, x) + 1); }
  */
-#define foreach_i(arr, i, start) \
-  for (unsigned int i = start; i < array_size(arr); i++)
+#define foreach_i(arr, i, start) for (unsigned int i = start; i < array_size(arr); i++)
 
 /**
  * has_elements returns a boolean indicating whether the given array_t contains
  * any elements. has_elements is NULL-safe.
  */
-#define has_elements(arr)  (arr != NULL && array_size(arr) > 0)
+#define has_elements(arr)        (arr != NULL && array_size(arr) > 0)
 
 /**
  * array_collect collects the provided arguments into a new array whose elements
@@ -73,7 +71,7 @@ bool str_comparator(char *a, char *b);
  *
  * Caller is responsible for `free`-ing the returned pointer.
  */
-#define array_collect(...) __array_collect(__VA_ARGS__, NULL)
+#define array_collect(...)       __array_collect(__VA_ARGS__, NULL)
 
 /**
  * array_size returns the size of the given array.
@@ -177,12 +175,7 @@ void array_foreach(array_t *array, callback_t *callback);
  */
 array_t *array_concat(array_t *arr1, array_t *arr2);
 
-bool array_insert(
-  array_t     *array,
-  unsigned int index,
-  void        *el,
-  free_fn     *free_old_el
-);
+bool array_insert(array_t *array, unsigned int index, void *el, free_fn *free_old_el);
 
 /**
  * array_free frees the array and its internal state container. Safe to use
@@ -245,12 +238,7 @@ buffer_t *buffer_concat(buffer_t *buf_a, buffer_t *buf_b);
  * @param dest a buffer into which the slice will be stored
  * @return int -1 if an error occurred, else 0
  */
-int buffer_slice(
-  buffer_t    *self,
-  unsigned int start,
-  unsigned int end_inclusive,
-  char        *dest
-);
+int buffer_slice(buffer_t *self, unsigned int start, unsigned int end_inclusive, char *dest);
 
 /**
  * buffer_free deallocates the dynamic memory used by a given buffer_t*.
@@ -342,25 +330,57 @@ char *s_trim(const char *s);
  */
 array_t *s_split(const char *s, const char *delim);
 
+/**
+ * Chunk size for read_all. This is the number of bytes by which read_all
+ * increments its reads. OK to be larger than total bytes.
+ */
 #ifndef READ_ALL_CHUNK_SZ
 #  define READ_ALL_CHUNK_SZ 262144
 #endif
 
+/**
+ * Chunk size for write_all. This is the number of bytes by which write_all
+ * increments its writes. OK to be larger than total bytes but use judiciously.
+ */
+#ifndef WRITE_ALL_CHUNK_SZ
+#  define WRITE_ALL_CHUNK_SZ 1024
+#endif
+
 typedef enum {
   READ_ALL_OK        = 0,   // Success
-  READ_ALL_INVALID   = -1,  // Bad input
-  READ_ALL_ERR       = -2,  // Stream err
+  READ_ALL_ERR       = -1,  // Stream err
+  READ_ALL_INVALID   = -2,  // Bad input
   READ_ALL_TOO_LARGE = -3,  // Input too large
   READ_ALL_NOMEM     = -4   // Out of memory
 } read_all_result;
 
+typedef enum {
+  WRITE_ALL_OK         = 0,   // Success
+  WRITE_ALL_ERR        = -1,  // General error
+  WRITE_ALL_INVALID    = -2,  // Bad data or file descriptor
+  WRITE_ALL_INCOMPLETE = -3,  // Failed to complete write
+} write_all_result;
+
 /**
- * TODO:
+ * Reads all data from the given file descriptor `fd`.
  *
- * @param fd
- * @return char*
+ * @param fd An opened file descriptor.
+ * @param data_ptr A pointer where the read data will be stored. Note, you can
+ * safely malloc(0) - this will be realloc'd based on the data size after
+ * reading.
+ * @param n_read_ptr A pointer where the number of bytes read will be stored.
+ * @return read_all_result
  */
-read_all_result read_all(FILE *fd, char **data_ptr, size_t *sz_ptr);
+read_all_result read_all(FILE *fd, char **data_ptr, size_t *n_read_ptr);
+
+/**
+ * Writes all data to the given file descriptor `fd`.
+ *
+ * @param fd An opened file descriptor.
+ * @param data A pointer to the data to be written in full.
+ * @return write_all_result
+ */
+write_all_result write_all(FILE *fd, const char *data);
 
 #ifdef __cplusplus
 }

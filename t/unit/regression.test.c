@@ -11,13 +11,6 @@
 static char  buf[128];
 static char *file_buffer;
 
-static char *
-get_line (int lineno) {
-  memset(buf, 0, 128);
-  line_buffer_get_line(editor.r, lineno, buf);
-  return buf;
-}
-
 static void
 setup (void) {
   editor.r              = line_buffer_init(NULL);

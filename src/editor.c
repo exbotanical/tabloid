@@ -97,26 +97,57 @@ editor_init (void) {
   editor_insert("");
 }
 
+// TODO: Handle very large files
 void
-editor_open (const char *filename) {
-  FILE *fd = fopen(filename, "r");
+editor_open (const char *filepath) {
+  FILE *fd = fopen(filepath, "wb+");
   if (!fd) {
-    panic("fopen");
+    panic("failed to open file %s\n", filepath);
   }
 
-  char   *line         = NULL;
-  size_t  max_line_len = 0;
-  ssize_t line_len;
-
-  while ((line_len = getline(&line, &max_line_len, fd)) != -1) {
-    while (line_len > 0 && (line[line_len - 1] == '\n' || line[line_len - 1] == '\r')) {
-      line_len--;
-    }
-    editor_insert(line);
-  }
-
-  free(line);
+  char           *data = malloc(0);
+  size_t          sz   = sizeof(data);
+  read_all_result ret  = read_all(fd, &data, &sz);
   fclose(fd);
+
+  // TODO: status bar, not panic
+  switch (ret) {
+    case READ_ALL_INVALID: panic("an error occurred while reading %s\n", filepath); break;
+    case READ_ALL_ERR: panic("a stream error occurred while reading %s\n", filepath); break;
+    case READ_ALL_TOO_LARGE: panic("failed to read %s - input was too large\n", filepath); break;
+    case READ_ALL_NOMEM: panic("ran out of memory while reading %s\n", filepath); break;
+    case READ_ALL_OK: break;
+  }
+}
+
+// TODO: Handle very large files
+// TODO: Logging
+void
+editor_save (const char *filepath) {
+  unsigned int sz = piece_table_size(editor.r->pt);
+  char         s[sz];
+
+  FILE *fd = fopen(filepath, "wb+");
+  if (!fd) {
+    // TODO: No panic - just status bar update
+    panic("failed to open file %s\n", filepath);
+  }
+
+  piece_table_render(editor.r->pt, 0, sz, s);
+  write_all_result ret = write_all(fd, s);
+  fclose(fd);
+
+  switch (ret) {
+    case WRITE_ALL_INVALID:
+      panic("an error occurred while writing %s - invalid data or file descriptor\n", filepath);
+      break;
+    case WRITE_ALL_ERR: panic("an error occurred while writing %s\n", filepath); break;
+    // TODO: Actually handle this somehow. Either use a swapfile or atomic op so we can rollback the file.
+    case WRITE_ALL_INCOMPLETE:
+      panic("an error occurred while writing %s - incomplete write. sorry we screwed up your file oops\n", filepath);
+      break;
+    case WRITE_ALL_OK: break;
+  }
 }
 
 void

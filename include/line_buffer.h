@@ -23,6 +23,7 @@ line_buffer_t *line_buffer_init(char *initial);
 void           line_buffer_free(line_buffer_t *self);
 void           line_buffer_refresh(line_buffer_t *self);
 void           line_buffer_get_line(line_buffer_t *self, unsigned int lineno, char *buffer);
+void           line_buffer_get_all(line_buffer_t *self, char **buffer);
 void  line_buffer_insert(line_buffer_t *self, int x, int y, char *insert_chars, void *metadata);
 void  line_buffer_delete(line_buffer_t *self, int x, int y, void *metadata);
 void *line_buffer_undo(line_buffer_t *self);

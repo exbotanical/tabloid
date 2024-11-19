@@ -119,6 +119,15 @@ line_buffer_get_line (line_buffer_t *self, unsigned int lineno, char *buffer) {
   free(line);
 }
 
+void
+line_buffer_get_all (line_buffer_t *self, char **buffer) {
+  unsigned int sz = piece_table_size(editor.r->pt);
+  char         s[sz];
+
+  piece_table_render(editor.r->pt, 0, sz, s);
+  *buffer = s;
+}
+
 static unsigned int
 get_absolute_index (line_buffer_t *self, int x, int y) {
   if (array_size(self->line_info) == 0) {
