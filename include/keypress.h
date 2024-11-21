@@ -55,6 +55,7 @@ typedef enum {
   DELETE,
 
   CTRL_A,
+  CTRL_C,
   CTRL_E,
   CTRL_Q,
   CTRL_U,
@@ -62,7 +63,7 @@ typedef enum {
   CTRL_SHIFT_Z,
 
   UNKNOWN
-} Key;
+} keypress_t;
 
 void keypress_handle(void);
 

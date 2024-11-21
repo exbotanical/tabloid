@@ -13,26 +13,57 @@
 #include "globals.h"
 #include "keypress.h"
 
+void
+spaces (char* dest) {
+  memset(dest, ' ', sizeof(dest));
+  dest[sizeof(dest)] = '\0';
+}
+
 unsigned int line_pad = 0;
 
 static void
 window_draw_status_bar (buffer_t* buf) {
-  buffer_append(buf, ESC_SEQ_INVERT_COLOR);
+  // TODO: Cleanup
+  unsigned int num_cols = window_get_num_cols();
+  const char*  filename = editor.filepath ? editor.filepath : "[No Name]";
+  unsigned int lineno   = editor.curs.y + 1;
+  unsigned int colno    = editor.curs.x + 1;
 
-  buffer_append(buf, editor.s_bar.msg);
-  for (unsigned int len = 0; len < window_get_num_cols() - strlen(editor.s_bar.msg); len++) {
-    buffer_append(buf, " ");
+  char* mode_str;
+
+  switch (editor.mode) {
+    case EDIT_MODE: mode_str = "EDIT"; break;
+    case COMMAND_MODE: mode_str = "COMMAND"; break;
   }
 
+  const char* file_info = s_fmt(" | %s |    %s", mode_str, filename);
+  window_set_status_bar_left_component_msg(file_info);
+
+  const char* curs_info = s_fmt("| Ln %d, Col %d ", lineno, colno);
+  window_set_status_bar_right_component_msg(curs_info);
+
+  buffer_append(buf, ESC_SEQ_INVERT_COLOR);
+
+  // TODO: Status bar left component, right component. Each has max len and is auto-truncated
+  buffer_append(buf, editor.s_bar.left_component);
+  for (unsigned int len = 0;
+       len < num_cols - (strlen(editor.s_bar.left_component) + strlen(editor.s_bar.right_component));
+       len++) {
+    buffer_append(buf, " ");
+  }
+  buffer_append(buf, editor.s_bar.right_component);
+
   buffer_append(buf, ESC_SEQ_NORM_COLOR);
+  free(file_info);
+  free(curs_info);
 }
 
 static void
 window_draw_command_bar (buffer_t* buf) {
-  buffer_append(buf, editor.c_bar.msg);
-  for (unsigned int len = 0; len < window_get_num_cols() - strlen(editor.s_bar.msg); len++) {
-    buffer_append(buf, " ");
-  }
+  // buffer_append(buf, editor.c_bar.msg);
+  // for (unsigned int len = 0; len < window_get_num_cols() - strlen(editor.s_bar.msg); len++) {
+  //   buffer_append(buf, " ");
+  // }
 }
 
 static void
@@ -200,19 +231,31 @@ window_scroll (void) {
 }
 
 void
-window_set_status_bar_msg (const char* fmt, ...) {
+window_set_status_bar_left_component_msg (const char* fmt, ...) {
   va_list ap;
   va_start(ap, fmt);
-  vsnprintf(editor.s_bar.msg, sizeof(editor.s_bar.msg), fmt, ap);
+  vsnprintf(editor.s_bar.left_component, sizeof(editor.s_bar.left_component), fmt, ap);
   va_end(ap);
 }
 
 void
-window_set_command_bar_msg (const char* fmt, ...) {
+window_set_status_bar_right_component_msg (const char* fmt, ...) {
   va_list ap;
   va_start(ap, fmt);
-  vsnprintf(editor.c_bar.msg, sizeof(editor.c_bar.msg), fmt, ap);
+  vsnprintf(editor.s_bar.right_component, sizeof(editor.s_bar.right_component), fmt, ap);
   va_end(ap);
+}
+
+// TODO: use a piece table or gap buffer
+void
+window_command_buf_append (const char* s) {
+  buffer_append(editor.c_bar.buf, s);
+}
+
+void
+window_command_buf_clear (void) {
+  buffer_free(editor.c_bar.buf);
+  editor.c_bar.buf = buffer_init(NULL);
 }
 
 void

@@ -131,6 +131,7 @@ keypress_read (unsigned int *flags) {
 
   switch (c) {
     case CTRL_KEY('a'): return CTRL_A;
+    case CTRL_KEY('c'): return CTRL_C;
     case CTRL_KEY('e'): return CTRL_E;
     case CTRL_KEY('u'): return CTRL_U;
     case CTRL_KEY('q'): return CTRL_Q;
@@ -151,12 +152,8 @@ keypress_read (unsigned int *flags) {
   return c;
 }
 
-void
-keypress_handle (void) {
-  unsigned int flags        = 0;
-  int          c            = keypress_read(&flags);
-  bool         select_clear = (flags & KEYPRESS_SHIFT) != KEYPRESS_SHIFT;
-
+static void
+keypress_handle_edit_mode_key (int c) {
   switch (c) {
     case UNKNOWN: break;
     case CTRL_Q: exit(0);
@@ -168,6 +165,10 @@ keypress_handle (void) {
     case CTRL_E: cursor_move_end(); break;
     case CTRL_U: editor_delete_line_before_x(); break;
     case CTRL_Z: editor_undo(); break;
+    case CTRL_C: {
+      mode_chmod(COMMAND_MODE);
+      break;
+    }
 
     case DELETE:
       cursor_move_right();
@@ -253,9 +254,41 @@ keypress_handle (void) {
     }
   }
 
+  cursor_snap_to_end();
+}
+
+static bool entering_cmd = false;
+
+static void
+keypress_handle_command_mode_key (int c) {
+  switch (c) {
+    case 'i': {
+      mode_chmod(EDIT_MODE);
+      entering_cmd = false;
+
+      break;
+    }
+  }
+}
+
+void
+keypress_handle (void) {
+  unsigned int flags        = 0;
+  int          c            = keypress_read(&flags);
+  bool         select_clear = (flags & KEYPRESS_SHIFT) != KEYPRESS_SHIFT;
+
   if (select_clear) {
     cursor_select_clear();
   }
 
-  cursor_snap_to_end();
+  switch (editor.mode) {
+    case EDIT_MODE: {
+      keypress_handle_edit_mode_key(c);
+      break;
+    }
+    case COMMAND_MODE: {
+      keypress_handle_command_mode_key(c);
+      break;
+    }
+  }
 }

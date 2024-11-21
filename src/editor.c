@@ -84,15 +84,20 @@ editor_init (void) {
     .select_offset = -1,
   };
 
-  editor.conf.tab_sz     = DEFAULT_TAB_SZ;
-  editor.conf.ln_prefix  = DEFAULT_LINE_PREFIX;
+  editor.conf.tab_sz               = DEFAULT_TAB_SZ;
+  editor.conf.ln_prefix            = DEFAULT_LINE_PREFIX;
 
   // Subtract for the status bar
-  editor.win.rows       -= 2;
-  editor.s_bar.msg[0]    = '\0';
-  editor.c_bar.msg[0]    = '\0';
+  editor.win.rows                 -= 2;
+  editor.s_bar.left_component[0]   = '\0';
+  editor.s_bar.right_component[0]  = '\0';
+  editor.c_bar.buf                 = buffer_init(NULL);
 
-  editor.r               = line_buffer_init(NULL);
+  editor.r                         = line_buffer_init(NULL);
+
+  editor.filepath                  = NULL;
+
+  mode_chmod(EDIT_MODE);
 
   editor_insert("");
 }
@@ -118,6 +123,8 @@ editor_open (const char *filepath) {
     case READ_ALL_NOMEM: panic("ran out of memory while reading %s\n", filepath); break;
     case READ_ALL_OK: break;
   }
+
+  editor.filepath = filepath;
 }
 
 // TODO: Handle very large files
