@@ -29,8 +29,11 @@ main (int argc, char const *argv[]) {
 
   editor_init();
 
+  // TODO: consolidate in init?
   if (argc >= 2) {
     editor_open(argv[1]);
+  } else {
+    editor_insert("");
   }
 
   while (true) {

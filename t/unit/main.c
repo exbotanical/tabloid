@@ -14,6 +14,8 @@ main () {
   run_line_buffer_tests();
   run_editor_tests();
   run_regression_tests();
+  run_status_bar_tests();
+  run_file_mgmt_tests();
 
   done_testing();
 }

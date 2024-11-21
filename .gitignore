@@ -6,3 +6,4 @@ obj
 tabloid*
 *.log
 unit_test
+tmp.txt

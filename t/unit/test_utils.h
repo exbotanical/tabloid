@@ -17,4 +17,7 @@
 #define CALL_N_TIMES(n, call) \
   for (unsigned int i = 0; i < n; i++) call
 
+// FILE *fp = fopen("./t/fixtures/tmp.txt", "rw+");
+// write(fp->_fileno, buffer_state(buf), buffer_size(buf));
+
 #endif /* TEST_UTILS_H */

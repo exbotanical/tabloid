@@ -10,12 +10,13 @@
 #include "window.h"
 
 typedef struct {
+  // TODO: size guards
   char left_component[64];
   char right_component[64];
 } s_bar_state_t;
 
 typedef struct {
-  buffer_t* buf;
+  line_buffer_t* buf;
 } c_bar_state_t;
 
 // TODO: no more global state

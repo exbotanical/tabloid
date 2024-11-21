@@ -13,5 +13,7 @@ void run_piece_table_tests(void);
 void run_line_buffer_tests(void);
 void run_editor_tests(void);
 void run_regression_tests(void);
+void run_status_bar_tests(void);
+void run_file_mgmt_tests(void);
 
 #endif /* TESTS_H */

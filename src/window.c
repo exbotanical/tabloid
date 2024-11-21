@@ -21,7 +21,7 @@ spaces (char* dest) {
 
 unsigned int line_pad = 0;
 
-static void
+void
 window_draw_status_bar (buffer_t* buf) {
   // TODO: Cleanup
   unsigned int num_cols = window_get_num_cols();
@@ -36,7 +36,7 @@ window_draw_status_bar (buffer_t* buf) {
     case COMMAND_MODE: mode_str = "COMMAND"; break;
   }
 
-  const char* file_info = s_fmt(" | %s |    %s", mode_str, filename);
+  const char* file_info = s_fmt(" | %s | %s", mode_str, filename);
   window_set_status_bar_left_component_msg(file_info);
 
   const char* curs_info = s_fmt("| Ln %d, Col %d ", lineno, colno);
@@ -44,11 +44,11 @@ window_draw_status_bar (buffer_t* buf) {
 
   buffer_append(buf, ESC_SEQ_INVERT_COLOR);
 
+  unsigned int component_len = strlen(editor.s_bar.left_component) + strlen(editor.s_bar.right_component);
+
   // TODO: Status bar left component, right component. Each has max len and is auto-truncated
   buffer_append(buf, editor.s_bar.left_component);
-  for (unsigned int len = 0;
-       len < num_cols - (strlen(editor.s_bar.left_component) + strlen(editor.s_bar.right_component));
-       len++) {
+  for (unsigned int len = 0; len < num_cols - component_len; len++) {
     buffer_append(buf, " ");
   }
   buffer_append(buf, editor.s_bar.right_component);
@@ -244,18 +244,6 @@ window_set_status_bar_right_component_msg (const char* fmt, ...) {
   va_start(ap, fmt);
   vsnprintf(editor.s_bar.right_component, sizeof(editor.s_bar.right_component), fmt, ap);
   va_end(ap);
-}
-
-// TODO: use a piece table or gap buffer
-void
-window_command_buf_append (const char* s) {
-  buffer_append(editor.c_bar.buf, s);
-}
-
-void
-window_command_buf_clear (void) {
-  buffer_free(editor.c_bar.buf);
-  editor.c_bar.buf = buffer_init(NULL);
 }
 
 void

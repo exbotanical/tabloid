@@ -68,6 +68,7 @@ editor_insert_newline (void) {
   cursor_set_x(0);
 }
 
+// editor_open
 void
 editor_init (void) {
   if (tty_get_window_size(&editor.win.rows, &editor.win.cols) == -1) {
@@ -91,37 +92,39 @@ editor_init (void) {
   editor.win.rows                 -= 2;
   editor.s_bar.left_component[0]   = '\0';
   editor.s_bar.right_component[0]  = '\0';
-  editor.c_bar.buf                 = buffer_init(NULL);
+  editor.c_bar.buf                 = line_buffer_init(NULL);
 
   editor.r                         = line_buffer_init(NULL);
 
   editor.filepath                  = NULL;
 
   mode_chmod(EDIT_MODE);
-
-  editor_insert("");
 }
 
 // TODO: Handle very large files
 void
 editor_open (const char *filepath) {
-  FILE *fd = fopen(filepath, "wb+");
-  if (!fd) {
-    panic("failed to open file %s\n", filepath);
-  }
+  if (file_exists(filepath)) {
+    FILE *fd = fopen(filepath, "rb+");
+    if (!fd) {
+      panic("failed to open file %s\n", filepath);
+    }
 
-  char           *data = malloc(0);
-  size_t          sz   = sizeof(data);
-  read_all_result ret  = read_all(fd, &data, &sz);
-  fclose(fd);
+    char           *data = malloc(0);
+    size_t          sz   = sizeof(data);
+    read_all_result ret  = read_all(fd, &data, &sz);
+    fclose(fd);
 
-  // TODO: status bar, not panic
-  switch (ret) {
-    case READ_ALL_INVALID: panic("an error occurred while reading %s\n", filepath); break;
-    case READ_ALL_ERR: panic("a stream error occurred while reading %s\n", filepath); break;
-    case READ_ALL_TOO_LARGE: panic("failed to read %s - input was too large\n", filepath); break;
-    case READ_ALL_NOMEM: panic("ran out of memory while reading %s\n", filepath); break;
-    case READ_ALL_OK: break;
+    // TODO: status bar, not panic
+    switch (ret) {
+      case READ_ALL_INVALID: panic("an error occurred while reading %s\n", filepath); break;
+      case READ_ALL_ERR: panic("a stream error occurred while reading %s\n", filepath); break;
+      case READ_ALL_TOO_LARGE: panic("failed to read %s - input was too large\n", filepath); break;
+      case READ_ALL_NOMEM: panic("ran out of memory while reading %s\n", filepath); break;
+      case READ_ALL_OK: break;
+    }
+
+    line_buffer_insert(editor.r, 0, 0, data, NULL);
   }
 
   editor.filepath = filepath;
