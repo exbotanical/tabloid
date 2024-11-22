@@ -14,8 +14,8 @@ static char *file_buffer;
 static void
 setup (void) {
   // TODO: can we use editor_init somehow? maybe mock get_win
-  editor.r                        = line_buffer_init(NULL);
-  editor.curs                     = DEFAULT_CURSOR_STATE;
+  editor.line_ed.r                = line_buffer_init(NULL);
+  editor.line_ed.curs             = DEFAULT_CURSOR_STATE;
   editor.win.cols                 = 0;
   editor.win.rows                 = 0;
   editor.filepath                 = NULL;
@@ -34,7 +34,7 @@ setup (void) {
 
 static void
 teardown (void) {
-  free(editor.r);
+  free(editor.line_ed.r);
   free(file_buffer);
 }
 
@@ -46,9 +46,9 @@ test_editor_open (void) {
   buffer_t *buf = buffer_init(NULL);
   window_draw_rows(buf);
 
-  ok(editor.r->num_lines == 38, "has 38 lines");
-  ok(editor.curs.x == 0, "cursor at cell zero");
-  ok(editor.curs.y == 0, "cursor at cell zero");
+  ok(editor.line_ed.r->num_lines == 38, "has 38 lines");
+  ok(editor.line_ed.curs.x == 0, "cursor at cell zero");
+  ok(editor.line_ed.curs.y == 0, "cursor at cell zero");
   is(
     buffer_state(buf),
     ESC_SEQ_COLOR(3) "  1 " ESC_SEQ_NORM_COLOR ESC_SEQ_BG_COLOR(238) "amateuros                                     "

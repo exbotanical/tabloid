@@ -1,4 +1,8 @@
+#include <assert.h>
+
 #include "const.h"
+#include "cursor.h"
+#include "editor.h"
 #include "keypress.h"
 #include "tests.h"
 #include "window.h"
@@ -7,14 +11,13 @@
   buffer_free(buf);     \
   buf = buffer_init(NULL)
 
-static char  buf[128];
 static char *file_buffer;
 
 static void
 setup (void) {
   // TODO: can we use editor_init somehow? maybe mock get_win
-  editor.r                        = line_buffer_init(NULL);
-  editor.curs                     = DEFAULT_CURSOR_STATE;
+  editor.line_ed.r                = line_buffer_init(NULL);
+  editor.line_ed.curs             = DEFAULT_CURSOR_STATE;
   editor.win.cols                 = 0;
   editor.win.rows                 = 0;
   editor.filepath                 = NULL;
@@ -39,20 +42,21 @@ setup (void) {
   file_buffer         = malloc(68300);
   size_t          sz  = sizeof(file_buffer);
   read_all_result ret = read_all(fd, &file_buffer, &sz);
-  line_buffer_insert(editor.r, editor.curs.x, editor.curs.y, file_buffer, NULL);
+  assert(ret == READ_ALL_OK);
+  line_buffer_insert(editor.line_ed.r, editor.line_ed.curs.x, editor.line_ed.curs.y, file_buffer, NULL);
 }
 
 static void
 teardown (void) {
-  free(editor.r);
+  free(editor.line_ed.r);
   free(file_buffer);
 }
 
 static void
 test_basic_draw_status_bar (void) {
-  ok(editor.r->num_lines == 38, "sanity check");
-  ok(editor.curs.x == 0, "sanity check");
-  ok(editor.curs.y == 0, "sanity check");
+  ok(editor.line_ed.r->num_lines == 38, "sanity check");
+  ok(editor.line_ed.curs.x == 0, "sanity check");
+  ok(editor.line_ed.curs.y == 0, "sanity check");
 
   buffer_t *buf = buffer_init(NULL);
 
@@ -68,8 +72,8 @@ test_basic_draw_status_bar (void) {
   RESET_BUFFERS();
 
   editor.mode = EDIT_MODE;
-  cursor_move_down();
-  cursor_move_end();
+  cursor_move_down(&editor.line_ed);
+  cursor_move_end(&editor.line_ed);
   window_draw_status_bar(buf);
   is(buffer_state(buf), ESC_SEQ_INVERT_COLOR " | EDIT | [No Name]                 | Ln 2, Col 5 " ESC_SEQ_NORM_COLOR, "");
 

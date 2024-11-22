@@ -5,12 +5,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "editor.h"
 #include "globals.h"
 #include "keypress.h"
 #include "tty.h"
-
-extern editor_t editor;
 
 typedef enum {
   SELECT_LEFT,
@@ -20,144 +17,43 @@ typedef enum {
 } select_mode_t;
 
 static void
-cursor_set_select_anchor (int x, int y) {
-  editor.curs.select_anchor.x = x;
-  editor.curs.select_anchor.y = y;
+cursor_set_select_anchor (line_editor_t *self, int x, int y) {
+  self->curs.select_anchor.x = x;
+  self->curs.select_anchor.y = y;
 }
 
 static void
-cursor_set_select_offset (int x, int y) {
-  editor.curs.select_offset.x = x;
-  editor.curs.select_offset.y = y;
+cursor_set_select_offset (line_editor_t *self, int x, int y) {
+  self->curs.select_offset.x = x;
+  self->curs.select_offset.y = y;
 }
 
 static void
-cursor_copy_to_select_anchor (void) {
-  cursor_set_select_anchor(cursor_get_x(), cursor_get_y());
+cursor_copy_to_select_anchor (line_editor_t *self) {
+  cursor_set_select_anchor(self, cursor_get_x(self), cursor_get_y(self));
 }
 
 static void
-cursor_copy_to_select_offset (void) {
-  cursor_set_select_offset(cursor_get_x(), cursor_get_y());
+cursor_copy_to_select_offset (line_editor_t *self) {
+  cursor_set_select_offset(self, cursor_get_x(self), cursor_get_y(self));
 }
 
 static void
-cursor_select (select_mode_t mode) {
-  if (!cursor_is_select_active()) {
-    cursor_copy_to_select_anchor();
+cursor_select (line_editor_t *self, select_mode_t mode) {
+  if (!cursor_is_select_active(self)) {
+    cursor_copy_to_select_anchor(self);
   }
 
-  cursor_set_is_active(true);
+  cursor_set_is_active(self, true);
 
   switch (mode) {
-    case SELECT_LEFT: cursor_move_left(); break;
-    case SELECT_LEFT_WORD: cursor_move_left_word(); break;
-    case SELECT_RIGHT: cursor_move_right(); break;
-    case SELECT_RIGHT_WORD: cursor_move_right_word(); break;
+    case SELECT_LEFT: cursor_move_left(self); break;
+    case SELECT_LEFT_WORD: cursor_move_left_word(self); break;
+    case SELECT_RIGHT: cursor_move_right(self); break;
+    case SELECT_RIGHT_WORD: cursor_move_right_word(self); break;
   }
 
-  cursor_copy_to_select_offset();
-}
-
-inline unsigned int
-cursor_get_x (void) {
-  return editor.curs.x;
-}
-
-inline unsigned int
-cursor_get_y (void) {
-  return editor.curs.y;
-}
-
-inline unsigned int
-cursor_get_anchor_x (void) {
-  return editor.curs.select_anchor.x;
-}
-
-inline unsigned int
-cursor_get_anchor_y (void) {
-  return editor.curs.select_anchor.y;
-}
-
-inline unsigned int
-cursor_get_offset_x (void) {
-  return editor.curs.select_offset.x;
-}
-
-// TODO: PAY CC!!!!
-inline unsigned int
-cursor_get_offset_y (void) {
-  return editor.curs.select_offset.y;
-}
-
-inline unsigned int
-cursor_get_row_off (void) {
-  return editor.curs.row_off;
-}
-
-inline unsigned int
-cursor_get_col_off (void) {
-  return editor.curs.col_off;
-}
-
-inline bool
-cursor_is_select_active (void) {
-  return editor.curs.select_active;
-}
-
-inline void
-cursor_set_xy (unsigned int x, unsigned int y) {
-  cursor_set_x(x);
-  cursor_set_y(y);
-}
-
-inline void
-cursor_set_x (unsigned int x) {
-  editor.curs.x = x;
-}
-
-inline unsigned int
-cursor_inc_x (void) {
-  editor.curs.x++;
-  return cursor_get_x();
-}
-
-inline unsigned int
-cursor_dec_x (void) {
-  editor.curs.x--;
-  return cursor_get_x();
-}
-
-inline void
-cursor_set_y (unsigned int y) {
-  editor.curs.y = y;
-}
-
-inline unsigned int
-cursor_inc_y (void) {
-  editor.curs.y++;
-  return cursor_get_y();
-}
-
-inline unsigned int
-cursor_dec_y (void) {
-  editor.curs.y--;
-  return cursor_get_y();
-}
-
-inline void
-cursor_set_row_off (unsigned int row_off) {
-  editor.curs.row_off = row_off;
-}
-
-inline void
-cursor_set_col_off (unsigned int col_off) {
-  editor.curs.col_off = col_off;
-}
-
-inline void
-cursor_set_is_active (bool next) {
-  editor.curs.select_active = next;
+  cursor_copy_to_select_offset(self);
 }
 
 int
@@ -192,77 +88,77 @@ cursor_get_position (unsigned int *rows, unsigned int *cols) {
 }
 
 void
-cursor_set_position (buffer_t *buf) {
+cursor_set_position (line_editor_t *self, buffer_t *buf) {
   char curs[32];
   // clang-format off
   snprintf(
     curs,
     sizeof(curs),
     ESC_SEQ_CURSOR_POS_FMT,
-    (cursor_get_y() - cursor_get_row_off()) + 1,
-    ((cursor_get_x() + line_pad + 1) - cursor_get_col_off()) + 1
+    (cursor_get_y(self) - cursor_get_row_off(self)) + 1,
+    ((cursor_get_x(self) + line_pad + 1) - cursor_get_col_off(self)) + 1
   );
   // clang-format on
   buffer_append(buf, curs);
 }
 
 cursor_t *
-cursor_create_copy (void) {
+cursor_create_copy (line_editor_t *self) {
   cursor_t *curs = malloc(sizeof(cursor_t));
-  curs->x        = cursor_get_x();
-  curs->y        = cursor_get_y();
-  curs->col_off  = cursor_get_col_off();
+  curs->x        = cursor_get_x(self);
+  curs->y        = cursor_get_y(self);
+  curs->col_off  = cursor_get_col_off(self);
 
   return curs;
 }
 
 void
-cursor_move_down (void) {
-  int max_y = editor.r->num_lines - 1;
-  if ((int)cursor_get_y() < max_y) {
-    cursor_inc_y();
+cursor_move_down (line_editor_t *self) {
+  int max_y = self->r->num_lines - 1;
+  if ((int)cursor_get_y(self) < max_y) {
+    cursor_inc_y(self);
   }
 }
 
 void
-cursor_move_up (void) {
-  if (!cursor_on_first_line()) {
-    cursor_dec_y();
+cursor_move_up (line_editor_t *self) {
+  if (!cursor_on_first_line(self)) {
+    cursor_dec_y(self);
   }
 }
 
 void
-cursor_move_left (void) {
-  if (!cursor_on_first_col()) {
-    cursor_dec_x();
-  } else if (!cursor_on_first_line()) {
+cursor_move_left (line_editor_t *self) {
+  if (!cursor_on_first_col(self)) {
+    cursor_dec_x(self);
+  } else if (!cursor_on_first_line(self)) {
     // Move to end of prev line on left from col 0
-    line_info_t *line_info = (line_info_t *)array_get(editor.r->line_info, cursor_dec_y());
+    line_info_t *line_info = (line_info_t *)array_get(self->r->line_info, cursor_dec_y(self));
     assert(line_info != NULL);
-    cursor_set_x(line_info->line_length);
+    cursor_set_x(self, line_info->line_length);
   }
 }
 
 void
-cursor_move_left_word (void) {
-  line_info_t *line_info = (line_info_t *)array_get(editor.r->line_info, cursor_get_y());
+cursor_move_left_word (line_editor_t *self) {
+  line_info_t *line_info = (line_info_t *)array_get(self->r->line_info, cursor_get_y(self));
   assert(line_info != NULL);
 
-  if (cursor_get_x() == 0) {
-    cursor_move_left();
+  if (cursor_get_x(self) == 0) {
+    cursor_move_left(self);
     return;
   }
 
   // Jump to beginning if we're one char away
-  if (cursor_get_x() == 1) {
-    cursor_set_x(0);
+  if (cursor_get_x(self) == 1) {
+    cursor_set_x(self, 0);
     return;
   }
 
-  unsigned int i = cursor_get_x();
+  unsigned int i = cursor_get_x(self);
 
   char buf[line_info->line_length];
-  line_buffer_get_line(editor.r, cursor_get_y(), buf);
+  line_buffer_get_line(self->r, cursor_get_y(self), buf);
 
   // TODO: array or hashmap of break chars
   // If the preceding char is a break char, jump to the end of the next word
@@ -281,47 +177,47 @@ cursor_move_left_word (void) {
     }
   }
 
-  cursor_set_x(i);
+  cursor_set_x(self, i);
 }
 
 void
-cursor_move_right (void) {
-  line_info_t *line_info = (line_info_t *)array_get(editor.r->line_info, cursor_get_y());
+cursor_move_right (line_editor_t *self) {
+  line_info_t *line_info = (line_info_t *)array_get(self->r->line_info, cursor_get_y(self));
   if (!line_info) {
     return;
   }
 
-  if (cursor_get_x() < line_info->line_length) {
-    cursor_inc_x();
-  } else if (cursor_get_x() == line_info->line_length && !cursor_on_last_line()) {
+  if (cursor_get_x(self) < line_info->line_length) {
+    cursor_inc_x(self);
+  } else if (cursor_get_x(self) == line_info->line_length && !cursor_on_last_line(self)) {
     // Move to beginning of next line on right from last col
-    cursor_set_x(0);
-    cursor_inc_y();
+    cursor_set_x(self, 0);
+    cursor_inc_y(self);
   }
 }
 
 void
-cursor_move_right_word (void) {
-  line_info_t *line_info = (line_info_t *)array_get(editor.r->line_info, cursor_get_y());
+cursor_move_right_word (line_editor_t *self) {
+  line_info_t *line_info = (line_info_t *)array_get(self->r->line_info, cursor_get_y(self));
   assert(line_info != NULL);
 
-  if (cursor_get_x() == line_info->line_length && !cursor_on_last_line()) {
-    cursor_set_x(0);
-    cursor_inc_y();
+  if (cursor_get_x(self) == line_info->line_length && !cursor_on_last_line(self)) {
+    cursor_set_x(self, 0);
+    cursor_inc_y(self);
     return;
   }
 
   // Jump to end if we're one char away
-  if (cursor_get_x() == line_info->line_length - 1) {
-    cursor_set_x(line_info->line_length);
+  if (cursor_get_x(self) == line_info->line_length - 1) {
+    cursor_set_x(self, line_info->line_length);
     return;
   }
 
-  unsigned int i = cursor_get_x();
+  unsigned int i = cursor_get_x(self);
 
   // TODO: cache all lines in current window
   char buf[line_info->line_length];
-  line_buffer_get_line(editor.r, cursor_get_y(), buf);
+  line_buffer_get_line(self->r, cursor_get_y(self), buf);
 
   // If the very next char is a break char, jump to the start of the next word
   if (buf[i] == ' ') {
@@ -339,40 +235,40 @@ cursor_move_right_word (void) {
     }
   }
 
-  cursor_set_x(i);
+  cursor_set_x(self, i);
 }
 
 void
-cursor_move_top (void) {
-  cursor_set_y(0);
+cursor_move_top (line_editor_t *self) {
+  cursor_set_y(self, 0);
 }
 
 void
-cursor_move_visible_top (void) {
-  cursor_set_y(cursor_get_row_off());
+cursor_move_visible_top (line_editor_t *self) {
+  cursor_set_y(self, cursor_get_row_off(self));
 }
 
 void
-cursor_move_bottom (void) {
-  cursor_set_y(window_get_num_rows() - 1);
+cursor_move_bottom (line_editor_t *self) {
+  cursor_set_y(self, window_get_num_rows() - 1);
 }
 
 void
-cursor_move_visible_bottom (void) {
-  cursor_set_y((cursor_get_y() > editor.r->num_lines) ? editor.r->num_lines : cursor_get_row_off() + window_get_num_rows() - 1);
+cursor_move_visible_bottom (line_editor_t *self) {
+  cursor_set_y(self, (cursor_get_y(self) > self->r->num_lines) ? self->r->num_lines : cursor_get_row_off(self) + window_get_num_rows() - 1);
 }
 
 void
-cursor_move_begin (void) {
-  cursor_set_x(0);
+cursor_move_begin (line_editor_t *self) {
+  cursor_set_x(self, 0);
 }
 
 void
-cursor_move_end (void) {
-  if (cursor_get_y() < editor.r->num_lines) {
-    line_info_t *line_info = (line_info_t *)array_get(editor.r->line_info, cursor_get_y());
+cursor_move_end (line_editor_t *self) {
+  if (cursor_get_y(self) < self->r->num_lines) {
+    line_info_t *line_info = (line_info_t *)array_get(self->r->line_info, cursor_get_y(self));
     assert(line_info != NULL);
-    cursor_set_x(line_info->line_length);
+    cursor_set_x(self, line_info->line_length);
   }
 }
 
@@ -388,130 +284,130 @@ cursor_move_end (void) {
 // ^ cursor should snap to the end of line 1 when moving from the end of line 2
 // to line 1
 void
-cursor_snap_to_end (void) {
-  line_info_t *line_info = (line_info_t *)array_get(editor.r->line_info, cursor_get_y());
+cursor_snap_to_end (line_editor_t *self) {
+  line_info_t *line_info = (line_info_t *)array_get(self->r->line_info, cursor_get_y(self));
 
   unsigned int length    = line_info ? line_info->line_length : 0;
-  if (cursor_get_x() > length) {
-    cursor_set_x(length);
+  if (cursor_get_x(self) > length) {
+    cursor_set_x(self, length);
   }
 }
 
 void
-cursor_select_left (void) {
-  cursor_select(SELECT_LEFT);
+cursor_select_left (line_editor_t *self) {
+  cursor_select(self, SELECT_LEFT);
 }
 
 void
-cursor_select_left_word (void) {
-  cursor_select(SELECT_LEFT_WORD);
+cursor_select_left_word (line_editor_t *self) {
+  cursor_select(self, SELECT_LEFT_WORD);
 }
 
 void
-cursor_select_right (void) {
-  cursor_select(SELECT_RIGHT);
+cursor_select_right (line_editor_t *self) {
+  cursor_select(self, SELECT_RIGHT);
 }
 
 void
-cursor_select_right_word (void) {
-  cursor_select(SELECT_RIGHT_WORD);
+cursor_select_right_word (line_editor_t *self) {
+  cursor_select(self, SELECT_RIGHT_WORD);
 }
 
 void
-cursor_select_up (void) {
-  if (!cursor_is_select_active()) {
-    cursor_copy_to_select_anchor();
+cursor_select_up (line_editor_t *self) {
+  if (!cursor_is_select_active(self)) {
+    cursor_copy_to_select_anchor(self);
   }
 
-  cursor_set_is_active(true);
+  cursor_set_is_active(self, true);
 
-  if (cursor_get_y() == 0) {
-    cursor_set_select_offset(0, 0);
-    cursor_set_x(0);
+  if (cursor_get_y(self) == 0) {
+    cursor_set_select_offset(self, 0, 0);
+    cursor_set_x(self, 0);
     return;
   }
 
-  cursor_move_up();
-  cursor_copy_to_select_offset();
+  cursor_move_up(self);
+  cursor_copy_to_select_offset(self);
 }
 
 void
-cursor_select_down (void) {
-  if (!cursor_is_select_active()) {
-    cursor_copy_to_select_anchor();
+cursor_select_down (line_editor_t *self) {
+  if (!cursor_is_select_active(self)) {
+    cursor_copy_to_select_anchor(self);
   }
 
-  cursor_set_is_active(true);
+  cursor_set_is_active(self, true);
 
-  if (cursor_get_y() == editor.r->num_lines - 1) {
-    line_info_t *line_info = (line_info_t *)array_get(editor.r->line_info, cursor_get_y());
+  if (cursor_get_y(self) == self->r->num_lines - 1) {
+    line_info_t *line_info = (line_info_t *)array_get(self->r->line_info, cursor_get_y(self));
     assert(line_info != NULL);
-    cursor_set_select_offset(line_info->line_length, cursor_get_y());
-    cursor_set_x(editor.curs.select_offset.x);
+    cursor_set_select_offset(self, line_info->line_length, cursor_get_y(self));
+    cursor_set_x(self, self->curs.select_offset.x);
     return;
   }
 
-  cursor_move_down();
-  cursor_copy_to_select_offset();
+  cursor_move_down(self);
+  cursor_copy_to_select_offset(self);
 }
 
 bool
-cursor_is_select_ltr (void) {
+cursor_is_select_ltr (line_editor_t *self) {
   return (
-      editor.curs.select_anchor.y < editor.curs.select_offset.y ||
-      (editor.curs.select_anchor.y == editor.curs.select_offset.y &&
-        editor.curs.select_anchor.x <= editor.curs.select_offset.x)
+      self->curs.select_anchor.y < self->curs.select_offset.y ||
+      (self->curs.select_anchor.y == self->curs.select_offset.y &&
+        self->curs.select_anchor.x <= self->curs.select_offset.x)
     );
 }
 
 void
-cursor_select_clear (void) {
-  cursor_set_is_active(false);
-  cursor_set_select_offset(-1, -1);
-  cursor_set_select_anchor(-1, -1);
+cursor_select_clear (line_editor_t *self) {
+  cursor_set_is_active(self, false);
+  cursor_set_select_offset(self, -1, -1);
+  cursor_set_select_anchor(self, -1, -1);
 }
 
 bool
-cursor_on_first_line (void) {
-  return cursor_get_y() == 0;
+cursor_on_first_line (line_editor_t *self) {
+  return cursor_get_y(self) == 0;
 }
 
 bool
-cursor_on_first_col (void) {
-  return cursor_get_x() == 0;
+cursor_on_first_col (line_editor_t *self) {
+  return cursor_get_x(self) == 0;
 }
 
 bool
-cursor_on_last_line (void) {
-  return cursor_get_y() == editor.r->num_lines - 1;
+cursor_on_last_line (line_editor_t *self) {
+  return cursor_get_y(self) == self->r->num_lines - 1;
 }
 
 bool
-cursor_above_visible_window (void) {
-  return cursor_get_y() < cursor_get_row_off();
+cursor_above_visible_window (line_editor_t *self) {
+  return cursor_get_y(self) < cursor_get_row_off(self);
 }
 
 bool
-cursor_below_visible_window (void) {
-  return cursor_get_y() >= cursor_get_row_off() + window_get_num_rows();
+cursor_below_visible_window (line_editor_t *self) {
+  return cursor_get_y(self) >= cursor_get_row_off(self) + window_get_num_rows();
 }
 
 bool
-cursor_left_of_visible_window (void) {
-  return cursor_get_x() < cursor_get_col_off();
+cursor_left_of_visible_window (line_editor_t *self) {
+  return cursor_get_x(self) < cursor_get_col_off(self);
 }
 
 bool
-cursor_right_of_visible_window (void) {
-  return cursor_get_x() >= cursor_get_col_off() + (window_get_num_cols() - (line_pad + 1));
+cursor_right_of_visible_window (line_editor_t *self) {
+  return cursor_get_x(self) >= cursor_get_col_off(self) + (window_get_num_cols() - (line_pad + 1));
 }
 
 bool
-cursor_in_cell_zero (void) {
-  return cursor_get_x() == 0 && cursor_get_y() == 0;
+cursor_in_cell_zero (line_editor_t *self) {
+  return cursor_get_x(self) == 0 && cursor_get_y(self) == 0;
 }
 
 bool
-cursor_not_at_row_begin (void) {
-  return cursor_get_x() > 0;
+cursor_not_at_row_begin (line_editor_t *self) {
+  return cursor_get_x(self) > 0;
 }

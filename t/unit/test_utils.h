@@ -6,12 +6,12 @@
     .col_off = 0, .row_off = 0, .x = 0, .y = 0, .select_active = false, .select_anchor = -1, .select_offset = -1, \
   }
 
-#define SET_CURSOR(_x, _y) \
-  editor.curs.x = _x;      \
-  editor.curs.y = _y
+#define SET_CURSOR(_x, _y)    \
+  editor.line_ed.curs.x = _x; \
+  editor.line_ed.curs.y = _y
 
-#define PRINT_CURSOR()                                   \
-  printf("(x=%d,y=%d)\n", editor.curs.x, editor.curs.y); \
+#define PRINT_CURSOR()                                                   \
+  printf("(x=%d,y=%d)\n", editor.line_ed.curs.x, editor.line_ed.curs.y); \
   fflush(stdout)
 
 #define CALL_N_TIMES(n, call) \

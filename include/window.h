@@ -23,5 +23,6 @@ void window_set_status_bar_right_component_msg(const char* fmt, ...);
 
 void window_draw_rows(buffer_t* buf);
 void window_draw_status_bar(buffer_t* buf);
+void window_draw_command_bar(buffer_t* buf);
 
 #endif /* WINDOW_H */

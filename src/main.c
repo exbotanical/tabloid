@@ -27,13 +27,14 @@ main (int argc, char const *argv[]) {
   atexit(window_clear);
   atexit(tty_disable_raw_mode);
 
-  editor_init();
+  editor_init(&editor);
 
   // TODO: consolidate in init?
   if (argc >= 2) {
+    // TODO: Fix undo on file open
     editor_open(argv[1]);
   } else {
-    editor_insert("");
+    line_editor_insert(&editor.line_ed, "");
   }
 
   while (true) {

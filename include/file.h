@@ -13,7 +13,7 @@ typedef struct {
 } file_handle_t;
 
 // TODO: Not portable
-static bool
+static inline bool
 file_exists (const char *filepath) {
   return access(filepath, F_OK) == 0;
 }

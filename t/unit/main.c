@@ -6,15 +6,16 @@ file_handle_t logger;
 
 int
 main () {
-  plan(782);
+  plan(796);
 
   run_calc_tests();
   run_cursor_tests();
   run_piece_table_tests();
   run_line_buffer_tests();
-  run_editor_tests();
+  run_line_editor_tests();
   run_regression_tests();
   run_status_bar_tests();
+  run_command_bar_tests();
   run_file_mgmt_tests();
 
   done_testing();

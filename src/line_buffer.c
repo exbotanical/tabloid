@@ -23,7 +23,7 @@ line_info_free (line_info_t *self) {
 static void
 line_buffer_reset (line_buffer_t *self) {
   buffer_free(self->tmp_buffer);
-  array_free(self->line_info, (free_fn *)line_info_free);  // TODO: optimize by
+  array_free(self->line_info, (free_fn *)line_info_free);  // TODO: optimize
   array_free(self->line, NULL);
 
   self->tmp_buffer = buffer_init(NULL);
@@ -121,10 +121,10 @@ line_buffer_get_line (line_buffer_t *self, unsigned int lineno, char *buffer) {
 
 void
 line_buffer_get_all (line_buffer_t *self, char **buffer) {
-  unsigned int sz = piece_table_size(editor.r->pt);
+  unsigned int sz = piece_table_size(self->pt);
   char         s[sz];
 
-  piece_table_render(editor.r->pt, 0, sz, s);
+  piece_table_render(self->pt, 0, sz, s);
   *buffer = s;
 }
 

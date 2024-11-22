@@ -4,89 +4,146 @@
 #include <stdbool.h>
 
 #include "libutil/libutil.h"
+#include "line_editor.h"
 
-typedef struct {
-  unsigned int x;
-  unsigned int y;
-} coords_t;
+// TODO: Move me
+int cursor_get_position(unsigned int *rows, unsigned int *cols);
 
-/**
- * Cursor state
- */
-typedef struct {
-  coords_t select_anchor;
-  coords_t select_offset;
+static inline unsigned int
+cursor_get_x (line_editor_t *self) {
+  return self->curs.x;
+}
 
-  // TODO: use coords_t
-  // x coordinate of cursor
-  unsigned int x;
-  // y coordinate of cursor
-  unsigned int y;
-  // Row (y) offset used for scroll i.e. number of rows past the window size
-  unsigned int row_off;
-  // Column (x) offset used for scroll i.e. number of columns past the window size
-  unsigned int col_off;
+static inline unsigned int
+cursor_get_y (line_editor_t *self) {
+  return self->curs.y;
+}
 
-  bool select_active;
+static inline unsigned int
+cursor_get_anchor_x (line_editor_t *self) {
+  return self->curs.select_anchor.x;
+}
 
-} cursor_t;
+static inline unsigned int
+cursor_get_anchor_y (line_editor_t *self) {
+  return self->curs.select_anchor.y;
+}
 
-extern inline unsigned int cursor_get_x(void);
-extern inline unsigned int cursor_get_y(void);
-extern inline unsigned int cursor_get_anchor_x(void);
-extern inline unsigned int cursor_get_anchor_y(void);
-extern inline unsigned int cursor_get_offset_x(void);
-extern inline unsigned int cursor_get_offset_y(void);
-extern inline unsigned int cursor_get_row_off(void);
-extern inline unsigned int cursor_get_col_off(void);
-extern inline bool         cursor_is_select_active(void);
+static inline unsigned int
+cursor_get_offset_x (line_editor_t *self) {
+  return self->curs.select_offset.x;
+}
 
-extern inline void         cursor_set_xy(unsigned int x, unsigned int y);
-extern inline void         cursor_set_x(unsigned int x);
-extern inline unsigned int cursor_inc_x(void);
-extern inline unsigned int cursor_dec_x(void);
-extern inline void         cursor_set_y(unsigned int y);
-extern inline unsigned int cursor_inc_y(void);
-extern inline unsigned int cursor_dec_y(void);
-extern inline void         cursor_set_row_off(unsigned int row_off);
-extern inline void         cursor_set_col_off(unsigned int col_off);
-extern inline void         cursor_set_is_active(bool next);
+// TODO: PAY CC!!!!
+static inline unsigned int
+cursor_get_offset_y (line_editor_t *self) {
+  return self->curs.select_offset.y;
+}
 
-int       cursor_get_position(unsigned int *rows, unsigned int *cols);
-void      cursor_set_position(buffer_t *buf);
-cursor_t *cursor_create_copy(void);
+static inline unsigned int
+cursor_get_row_off (line_editor_t *self) {
+  return self->curs.row_off;
+}
 
-void cursor_move_down(void);
-void cursor_move_up(void);
-void cursor_move_left(void);
-void cursor_move_left_word(void);
-void cursor_move_right(void);
-void cursor_move_right_word(void);
-void cursor_move_top(void);
-void cursor_move_visible_top(void);
-void cursor_move_bottom(void);
-void cursor_move_visible_bottom(void);
-void cursor_move_begin(void);
-void cursor_move_end(void);
-void cursor_snap_to_end(void);
+static inline unsigned int
+cursor_get_col_off (line_editor_t *self) {
+  return self->curs.col_off;
+}
 
-void cursor_select_left(void);
-void cursor_select_left_word(void);
-void cursor_select_right(void);
-void cursor_select_right_word(void);
-void cursor_select_up(void);
-void cursor_select_down(void);
-bool cursor_is_select_ltr(void);
-void cursor_select_clear(void);
+static inline bool
+cursor_is_select_active (line_editor_t *self) {
+  return self->curs.select_active;
+}
 
-bool cursor_on_first_line(void);
-bool cursor_on_first_col(void);
-bool cursor_on_last_line(void);
-bool cursor_above_visible_window(void);
-bool cursor_below_visible_window(void);
-bool cursor_left_of_visible_window(void);
-bool cursor_right_of_visible_window(void);
-bool cursor_in_cell_zero(void);
-bool cursor_not_at_row_begin(void);
+static inline void
+cursor_set_x (line_editor_t *self, unsigned int x) {
+  self->curs.x = x;
+}
+
+static inline unsigned int
+cursor_inc_x (line_editor_t *self) {
+  self->curs.x++;
+  return cursor_get_x(self);
+}
+
+static inline unsigned int
+cursor_dec_x (line_editor_t *self) {
+  self->curs.x--;
+  return cursor_get_x(self);
+}
+
+static inline void
+cursor_set_y (line_editor_t *self, unsigned int y) {
+  self->curs.y = y;
+}
+
+static inline unsigned int
+cursor_inc_y (line_editor_t *self) {
+  self->curs.y++;
+  return cursor_get_y(self);
+}
+
+static inline unsigned int
+cursor_dec_y (line_editor_t *self) {
+  self->curs.y--;
+  return cursor_get_y(self);
+}
+
+static inline void
+cursor_set_xy (line_editor_t *self, unsigned int x, unsigned int y) {
+  cursor_set_x(self, x);
+  cursor_set_y(self, y);
+}
+
+static inline void
+cursor_set_row_off (line_editor_t *self, unsigned int row_off) {
+  self->curs.row_off = row_off;
+}
+
+static inline void
+cursor_set_col_off (line_editor_t *self, unsigned int col_off) {
+  self->curs.col_off = col_off;
+}
+
+static inline void
+cursor_set_is_active (line_editor_t *self, bool next) {
+  self->curs.select_active = next;
+}
+
+void      cursor_set_position(line_editor_t *self, buffer_t *buf);
+cursor_t *cursor_create_copy(line_editor_t *self);
+
+void cursor_move_down(line_editor_t *self);
+void cursor_move_up(line_editor_t *self);
+void cursor_move_left(line_editor_t *self);
+void cursor_move_left_word(line_editor_t *self);
+void cursor_move_right(line_editor_t *self);
+void cursor_move_right_word(line_editor_t *self);
+void cursor_move_top(line_editor_t *self);
+void cursor_move_visible_top(line_editor_t *self);
+void cursor_move_bottom(line_editor_t *self);
+void cursor_move_visible_bottom(line_editor_t *self);
+void cursor_move_begin(line_editor_t *self);
+void cursor_move_end(line_editor_t *self);
+void cursor_snap_to_end(line_editor_t *self);
+
+void cursor_select_left(line_editor_t *self);
+void cursor_select_left_word(line_editor_t *self);
+void cursor_select_right(line_editor_t *self);
+void cursor_select_right_word(line_editor_t *self);
+void cursor_select_up(line_editor_t *self);
+void cursor_select_down(line_editor_t *self);
+bool cursor_is_select_ltr(line_editor_t *self);
+void cursor_select_clear(line_editor_t *self);
+
+bool cursor_on_first_line(line_editor_t *self);
+bool cursor_on_first_col(line_editor_t *self);
+bool cursor_on_last_line(line_editor_t *self);
+bool cursor_above_visible_window(line_editor_t *self);
+bool cursor_below_visible_window(line_editor_t *self);
+bool cursor_left_of_visible_window(line_editor_t *self);
+bool cursor_right_of_visible_window(line_editor_t *self);
+bool cursor_in_cell_zero(line_editor_t *self);
+bool cursor_not_at_row_begin(line_editor_t *self);
 
 #endif /* CURSOR_H */

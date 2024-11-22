@@ -6,10 +6,9 @@
 #include <unistd.h>
 
 #include "cursor.h"
-#include "editor.h"
 #include "exception.h"
 #include "globals.h"
-#include "window.h"
+#include "line_editor.h"
 
 typedef enum {
   KEYPRESS_SHIFT = 1,
@@ -156,108 +155,110 @@ static void
 keypress_handle_edit_mode_key (int c) {
   switch (c) {
     case UNKNOWN: break;
-    case CTRL_Q: exit(0);
 
-    case ENTER: editor_insert_newline(); break;
-    case BACKSPACE: editor_delete_char(); break;
+    case ENTER: line_editor_insert_newline(&editor.line_ed); break;
+    case BACKSPACE: line_editor_delete_char(&editor.line_ed); break;
 
-    case CTRL_A: cursor_move_begin(); break;
-    case CTRL_E: cursor_move_end(); break;
-    case CTRL_U: editor_delete_line_before_x(); break;
-    case CTRL_Z: editor_undo(); break;
+    case CTRL_A: cursor_move_begin(&editor.line_ed); break;
+    case CTRL_E: cursor_move_end(&editor.line_ed); break;
+    case CTRL_U: line_editor_delete_line_before_x(&editor.line_ed); break;
+    case CTRL_Z: line_editor_undo(&editor.line_ed); break;
     case CTRL_C: {
       mode_chmod(COMMAND_MODE);
       break;
     }
 
     case DELETE:
-      cursor_move_right();
-      editor_delete_char();
+      cursor_move_right(&editor.line_ed);
+      line_editor_delete_char(&editor.line_ed);
       break;
 
     case PAGE_UP: {
-      cursor_move_visible_top();
+      cursor_move_visible_top(&editor.line_ed);
       break;
     }
     case PAGE_DOWN: {
-      cursor_move_visible_bottom();
+      cursor_move_visible_bottom(&editor.line_ed);
       break;
     }
     case HOME: {
-      cursor_move_begin();
+      cursor_move_begin(&editor.line_ed);
       break;
     }
     case END: {
-      cursor_move_end();
+      cursor_move_end(&editor.line_ed);
       break;
     }
 
     case ARROW_LEFT: {
-      cursor_move_left();
+      cursor_move_left(&editor.line_ed);
       break;
     }
     case ARROW_RIGHT: {
-      cursor_move_right();
+      cursor_move_right(&editor.line_ed);
       break;
     }
     case ARROW_UP: {
-      cursor_move_up();
+      cursor_move_up(&editor.line_ed);
       break;
     }
     case ARROW_DOWN: {
-      cursor_move_down();
+      cursor_move_down(&editor.line_ed);
       break;
     }
 
     case CTRL_ARROW_LEFT: {
-      cursor_move_left_word();
+      cursor_move_left_word(&editor.line_ed);
       break;
     }
     case CTRL_ARROW_RIGHT: {
-      cursor_move_right_word();
+      cursor_move_right_word(&editor.line_ed);
       break;
     }
     case CTRL_ARROW_UP: {
-      cursor_move_up();
+      cursor_move_up(&editor.line_ed);
       break;
     }
     case CTRL_ARROW_DOWN: {
-      cursor_move_down();
+      cursor_move_down(&editor.line_ed);
       break;
     }
 
     case SHIFT_ARROW_LEFT: {
-      cursor_select_left();
+      cursor_select_left(&editor.line_ed);
       break;
     }
     case SHIFT_ARROW_RIGHT: {
-      cursor_select_right();
+      cursor_select_right(&editor.line_ed);
       break;
     }
     case SHIFT_ARROW_UP: {
-      cursor_select_up();
+      cursor_select_up(&editor.line_ed);
       break;
     }
     case SHIFT_ARROW_DOWN: {
-      cursor_select_down();
+      cursor_select_down(&editor.line_ed);
       break;
     }
 
-    case CTRL_SHIFT_ARROW_LEFT: cursor_select_left_word(); break;
-    case CTRL_SHIFT_ARROW_RIGHT: cursor_select_right_word(); break;
+    case CTRL_SHIFT_ARROW_LEFT: cursor_select_left_word(&editor.line_ed); break;
+    case CTRL_SHIFT_ARROW_RIGHT: cursor_select_right_word(&editor.line_ed); break;
     case CTRL_SHIFT_ARROW_UP: break;
     case CTRL_SHIFT_ARROW_DOWN: break;
 
     default: {
-      editor_insert_char(c);
+      line_editor_insert_char(&editor.line_ed, c);
       break;
     }
   }
 
-  cursor_snap_to_end();
+  cursor_snap_to_end(&editor.line_ed);
 }
 
 static bool entering_cmd = false;
+
+int c_bar_x              = 0;
+int c_bar_y              = 0;
 
 static void
 keypress_handle_command_mode_key (int c) {
@@ -266,6 +267,16 @@ keypress_handle_command_mode_key (int c) {
       mode_chmod(EDIT_MODE);
       entering_cmd = false;
 
+      break;
+    }
+
+    case CTRL_Q: exit(0);
+
+    default: {
+      char cp[1];
+      cp[0] = c;
+      cp[1] = '\0';
+      line_buffer_insert(editor.c_bar.buf, c_bar_x++, c_bar_y, cp, NULL);
       break;
     }
   }
@@ -278,7 +289,7 @@ keypress_handle (void) {
   bool         select_clear = (flags & KEYPRESS_SHIFT) != KEYPRESS_SHIFT;
 
   if (select_clear) {
-    cursor_select_clear();
+    cursor_select_clear(&editor.line_ed);
   }
 
   switch (editor.mode) {

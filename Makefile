@@ -19,7 +19,7 @@ TEST_DEPS   := $(wildcard $(DEPSDIR)/tap.c/*.c)
 DEPS        := $(filter-out $(wildcard $(DEPSDIR)/tap.c/*), $(wildcard $(DEPSDIR)/*/*.c))
 
 LIBS        := -lm
-INCLUDES    := -I$(INCDIR) -I$(DEPSDIR) -I$(SRCDIR)
+INCLUDES    := -I$(INCDIR) -isystem$(DEPSDIR) -I$(SRCDIR)
 CFLAGS      := -Wall -Wextra -pedantic $(INCLUDES) -O0 -g
 
 all: $(TARGET)

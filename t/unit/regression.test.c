@@ -1,5 +1,9 @@
+#include <assert.h>
+
 #include "const.h"
+#include "cursor.h"
 #include "keypress.h"
+#include "line_editor.h"
 #include "tests.h"
 #include "window.h"
 
@@ -8,13 +12,12 @@
   buffer_free(buf);       \
   buf = buffer_init(NULL)
 
-static char  buf[128];
 static char *file_buffer;
 
 static void
 setup (void) {
-  editor.r              = line_buffer_init(NULL);
-  editor.curs           = DEFAULT_CURSOR_STATE;
+  editor.line_ed.r      = line_buffer_init(NULL);
+  editor.line_ed.curs   = DEFAULT_CURSOR_STATE;
   editor.win.cols       = 0;
   editor.win.rows       = 0;
 
@@ -33,25 +36,26 @@ setup (void) {
   file_buffer         = malloc(68300);
   size_t          sz  = sizeof(file_buffer);
   read_all_result ret = read_all(fd, &file_buffer, &sz);
-  line_buffer_insert(editor.r, editor.curs.x, editor.curs.y, file_buffer, NULL);
+  assert(ret == READ_ALL_OK);
+  line_buffer_insert(editor.line_ed.r, editor.line_ed.curs.x, editor.line_ed.curs.y, file_buffer, NULL);
 }
 
 static void
 teardown (void) {
-  free(editor.r);
+  free(editor.line_ed.r);
   free(file_buffer);
 }
 
 /* clang-format off */
 static void
 test_basic_draw (void) {
-  ok(editor.r->num_lines == 38, "sanity check");
+  ok(editor.line_ed.r->num_lines == 38, "sanity check");
 
   buffer_t *buf = buffer_init(NULL);
   window_draw_rows(buf);
 
-  ok(editor.curs.x == 0, "cursor at cell zero");
-  ok(editor.curs.y == 0, "cursor at cell zero");
+  ok(editor.line_ed.curs.x == 0, "cursor at cell zero");
+  ok(editor.line_ed.curs.y == 0, "cursor at cell zero");
   is(
     buffer_state(buf),
     ESC_SEQ_COLOR(3) "  1 " ESC_SEQ_NORM_COLOR ESC_SEQ_BG_COLOR(238) "amateuros                                     "
@@ -104,31 +108,31 @@ static void
 test_basic_insert (void) {
   buffer_t *buf = buffer_init(NULL);
 
-  CALL_N_TIMES(3, cursor_move_right());
-  editor_insert_char('x');
-  CALL_N_TIMES(13, cursor_move_right());
-  editor_insert_char('x');
-  CALL_N_TIMES(4, cursor_move_right_word());
-  CALL_N_TIMES(2, cursor_move_left());
-  editor_delete_char();
-  editor_insert_newline();
-  CALL_N_TIMES(3, editor_insert_char('x'));
-  CALL_N_TIMES(5, cursor_move_left());
-  editor_insert_newline();
-  CALL_N_TIMES(22, cursor_move_down());
-  CALL_N_TIMES(3, editor_insert_char('y'));
-  CALL_N_TIMES(3, cursor_move_down());
-  cursor_move_end();
-  editor_insert_char('_');
-  CALL_N_TIMES(3, editor_insert_char('z'));
-  cursor_move_begin();
-  CALL_N_TIMES(3, editor_insert_char('z'));
-  editor_insert_char('_');
+  CALL_N_TIMES(3, cursor_move_right(&editor.line_ed));
+  line_editor_insert_char(&editor.line_ed,'x');
+  CALL_N_TIMES(13, cursor_move_right(&editor.line_ed));
+  line_editor_insert_char(&editor.line_ed,'x');
+  CALL_N_TIMES(4, cursor_move_right_word(&editor.line_ed));
+  CALL_N_TIMES(2, cursor_move_left(&editor.line_ed));
+  line_editor_delete_char(&editor.line_ed);
+  line_editor_insert_newline(&editor.line_ed);
+  CALL_N_TIMES(3, line_editor_insert_char(&editor.line_ed,'x'));
+  CALL_N_TIMES(5, cursor_move_left(&editor.line_ed));
+  line_editor_insert_newline(&editor.line_ed);
+  CALL_N_TIMES(22, cursor_move_down(&editor.line_ed));
+  CALL_N_TIMES(3, line_editor_insert_char(&editor.line_ed,'y'));
+  CALL_N_TIMES(3, cursor_move_down(&editor.line_ed));
+  cursor_move_end(&editor.line_ed);
+  line_editor_insert_char(&editor.line_ed,'_');
+  CALL_N_TIMES(3, line_editor_insert_char(&editor.line_ed,'z'));
+  cursor_move_begin(&editor.line_ed);
+  CALL_N_TIMES(3, line_editor_insert_char(&editor.line_ed,'z'));
+  line_editor_insert_char(&editor.line_ed,'_');
 
   window_draw_rows(buf);
 
-  ok(editor.curs.x == 4, "cursor at cell zero");
-  ok(editor.curs.y == 29, "cursor at cell zero");
+  ok(editor.line_ed.curs.x == 4, "cursor at cell zero");
+  ok(editor.line_ed.curs.y == 29, "cursor at cell zero");
   is(
     buffer_state(buf),
     "  1 amaxteuros" ESC_SEQ_ERASE_LN_RIGHT_OF_CURSOR CRLF
@@ -183,19 +187,19 @@ test_basic_horizontal_viewport_shift (void) {
   buffer_t *buf = buffer_init(NULL);
 
   SET_CURSOR(4, 27);
-  CALL_N_TIMES(2, cursor_move_up());
-  cursor_move_end();
-  CALL_N_TIMES(20, editor_insert_char('x'));
+  CALL_N_TIMES(2, cursor_move_up(&editor.line_ed));
+  cursor_move_end(&editor.line_ed);
+  CALL_N_TIMES(20, line_editor_insert_char(&editor.line_ed,'x'));
   window_scroll();
-  CALL_N_TIMES(33, editor_insert_char('y'));
+  CALL_N_TIMES(33, line_editor_insert_char(&editor.line_ed,'y'));
   window_scroll();
-  CALL_N_TIMES(3, editor_insert_char('y'));
+  CALL_N_TIMES(3, line_editor_insert_char(&editor.line_ed,'y'));
   window_scroll();
 
   window_draw_rows(buf);
 
-  ok(editor.curs.x == 85, "cursor at cell zero");
-  ok(editor.curs.y == 25, "cursor at cell zero");
+  ok(editor.line_ed.curs.x == 85, "cursor at cell zero");
+  ok(editor.line_ed.curs.y == 25, "cursor at cell zero");
   is(
     buffer_state(buf),
     "  1 " ESC_SEQ_ERASE_LN_RIGHT_OF_CURSOR CRLF
@@ -250,22 +254,22 @@ test_basic_shift_back_viewport (void) {
   buffer_t *buf = buffer_init(NULL);
 
   SET_CURSOR(4, 27);
-  CALL_N_TIMES(2, cursor_move_up());
-  cursor_move_end();
-  CALL_N_TIMES(20, editor_insert_char('x'));
+  CALL_N_TIMES(2, cursor_move_up(&editor.line_ed));
+  cursor_move_end(&editor.line_ed);
+  CALL_N_TIMES(20, line_editor_insert_char(&editor.line_ed,'x'));
   window_scroll();
-  CALL_N_TIMES(33, editor_insert_char('y'));
+  CALL_N_TIMES(33, line_editor_insert_char(&editor.line_ed,'y'));
   window_scroll();
-  CALL_N_TIMES(3, editor_insert_char('y'));
+  CALL_N_TIMES(3, line_editor_insert_char(&editor.line_ed,'y'));
   window_scroll();
-  cursor_move_begin();
+  cursor_move_begin(&editor.line_ed);
   window_scroll();
-  editor_insert_char('p');
+  line_editor_insert_char(&editor.line_ed,'p');
 
   window_draw_rows(buf);
 
-  ok(editor.curs.x == 1, "cursor at cell zero");
-  ok(editor.curs.y == 25, "cursor at cell zero");
+  ok(editor.line_ed.curs.x == 1, "cursor at cell zero");
+  ok(editor.line_ed.curs.y == 25, "cursor at cell zero");
 
   is(
     buffer_state(buf),
@@ -321,24 +325,24 @@ test_basic_select (void) {
   buffer_t *buf = buffer_init(NULL);
 
   SET_CURSOR(0, 27);
-  CALL_N_TIMES(2, cursor_move_up());
-  cursor_move_end();
-  CALL_N_TIMES(20, editor_insert_char('x'));
-  CALL_N_TIMES(33, editor_insert_char('y'));
+  CALL_N_TIMES(2, cursor_move_up(&editor.line_ed));
+  cursor_move_end(&editor.line_ed);
+  CALL_N_TIMES(20, line_editor_insert_char(&editor.line_ed,'x'));
+  CALL_N_TIMES(33, line_editor_insert_char(&editor.line_ed,'y'));
   window_scroll();
-  CALL_N_TIMES(3, editor_insert_char('y'));
-  cursor_move_begin();
+  CALL_N_TIMES(3, line_editor_insert_char(&editor.line_ed,'y'));
+  cursor_move_begin(&editor.line_ed);
   window_scroll();
-  editor_insert_char('p');
-  CALL_N_TIMES(3, cursor_select_right());
+  line_editor_insert_char(&editor.line_ed,'p');
+  CALL_N_TIMES(3, cursor_select_right(&editor.line_ed));
 
   window_draw_rows(buf);
 
   char slice[1024];
   buffer_slice(buf, 393, 535, slice);
 
-  ok(editor.curs.x == 4, "cursor at cell zero");
-  ok(editor.curs.y == 25, "cursor at cell zero");
+  ok(editor.line_ed.curs.x == 4, "cursor at cell zero");
+  ok(editor.line_ed.curs.y == 25, "cursor at cell zero");
   is(
     slice,
     " 25 redis" ESC_SEQ_ERASE_LN_RIGHT_OF_CURSOR CRLF
@@ -352,13 +356,13 @@ test_basic_select (void) {
 
   RESET_BUFFERS();
 
-  cursor_select_down();
+  cursor_select_down(&editor.line_ed);
 
   window_draw_rows(buf);
   buffer_slice(buf, 393, 578, slice);
 
-  ok(editor.curs.x == 4, "cursor at cell zero");
-  ok(editor.curs.y == 26, "cursor at cell zero");
+  ok(editor.line_ed.curs.x == 4, "cursor at cell zero");
+  ok(editor.line_ed.curs.y == 26, "cursor at cell zero");
   is(
     slice,
     " 25 redis" ESC_SEQ_ERASE_LN_RIGHT_OF_CURSOR CRLF
@@ -371,13 +375,13 @@ test_basic_select (void) {
 
   RESET_BUFFERS();
 
-  CALL_N_TIMES(5, cursor_select_left());
+  CALL_N_TIMES(5, cursor_select_left(&editor.line_ed));
   window_scroll();
 
   window_draw_rows(buf);
 
-  ok(editor.curs.x == 86, "cursor at cell zero");
-  ok(editor.curs.y == 25, "cursor at cell zero");
+  ok(editor.line_ed.curs.x == 86, "cursor at cell zero");
+  ok(editor.line_ed.curs.y == 25, "cursor at cell zero");
   is(
     buffer_state(buf),
     "  1 " ESC_SEQ_ERASE_LN_RIGHT_OF_CURSOR CRLF
@@ -427,17 +431,17 @@ test_basic_select (void) {
 
   RESET_BUFFERS();
 
-  CALL_N_TIMES(86, cursor_select_left());
+  CALL_N_TIMES(86, cursor_select_left(&editor.line_ed));
   // Simulate refresh rate - normally we hit the scroll fn up every movement
   window_scroll();
-  CALL_N_TIMES(2, cursor_select_left());
+  CALL_N_TIMES(2, cursor_select_left(&editor.line_ed));
   window_scroll();
 
   window_draw_rows(buf);
   buffer_slice(buf, 393, 564, slice);
 
-  ok(editor.curs.x == 4, "cursor at cell zero");
-  ok(editor.curs.y == 24, "cursor at cell zero");
+  ok(editor.line_ed.curs.x == 4, "cursor at cell zero");
+  ok(editor.line_ed.curs.y == 24, "cursor at cell zero");
   is(
     slice,
     ESC_SEQ_COLOR(3) " 25 " ESC_SEQ_NORM_COLOR ESC_SEQ_BG_COLOR(238) "redi" ESC_SEQ_BG_COLOR(218) "s"
@@ -459,21 +463,21 @@ static void
 test_edge_case_1_select (void) {
   buffer_t *buf = buffer_init(NULL);
 
-  cursor_select_clear();
+  cursor_select_clear(&editor.line_ed);
 
   SET_CURSOR(0, 27);
-  CALL_N_TIMES(2, cursor_move_up());
-  cursor_move_end();
-  CALL_N_TIMES(20, editor_insert_char('x'));
-  CALL_N_TIMES(33, editor_insert_char('y'));
+  CALL_N_TIMES(2, cursor_move_up(&editor.line_ed));
+  cursor_move_end(&editor.line_ed);
+  CALL_N_TIMES(20, line_editor_insert_char(&editor.line_ed,'x'));
+  CALL_N_TIMES(33, line_editor_insert_char(&editor.line_ed,'y'));
   window_scroll();
-  CALL_N_TIMES(3, editor_insert_char('y'));
-  cursor_move_begin();
+  CALL_N_TIMES(3, line_editor_insert_char(&editor.line_ed,'y'));
+  cursor_move_begin(&editor.line_ed);
   window_scroll();
   SET_CURSOR(6, 25);
-  cursor_select_right();
+  cursor_select_right(&editor.line_ed);
   window_scroll();
-  cursor_select_down();
+  cursor_select_down(&editor.line_ed);
   window_scroll();
 
   window_draw_rows(buf);
@@ -481,8 +485,8 @@ test_edge_case_1_select (void) {
   char slice[1024];
   buffer_slice(buf, 393, 578, slice);
 
-  ok(editor.curs.x == 7, "cursor at cell zero");
-  ok(editor.curs.y == 26, "cursor at cell zero");
+  ok(editor.line_ed.curs.x == 7, "cursor at cell zero");
+  ok(editor.line_ed.curs.y == 26, "cursor at cell zero");
   is(
     slice,
     " 25 redis" ESC_SEQ_ERASE_LN_RIGHT_OF_CURSOR CRLF
@@ -501,27 +505,27 @@ static void
 test_basic_undo (void) {
   buffer_t *buf = buffer_init(NULL);
 
-  cursor_select_clear();
+  cursor_select_clear(&editor.line_ed);
   SET_CURSOR(0, 26);
-  cursor_move_begin();
-  CALL_N_TIMES(3, editor_insert_char('x'));
-  editor_undo();
-  CALL_N_TIMES(3, editor_insert_char('z'));
-  cursor_move_up();
-  CALL_N_TIMES(3, cursor_move_right());
-  CALL_N_TIMES(3, editor_delete_char());
-  cursor_move_up();
-  CALL_N_TIMES(3, cursor_move_left());
-  cursor_move_up();
-  CALL_N_TIMES(3, editor_insert_char('z'));
+  cursor_move_begin(&editor.line_ed);
+  CALL_N_TIMES(3, line_editor_insert_char(&editor.line_ed,'x'));
+  line_editor_undo(&editor.line_ed);
+  CALL_N_TIMES(3, line_editor_insert_char(&editor.line_ed,'z'));
+  cursor_move_up(&editor.line_ed);
+  CALL_N_TIMES(3, cursor_move_right(&editor.line_ed));
+  CALL_N_TIMES(3, line_editor_delete_char(&editor.line_ed));
+  cursor_move_up(&editor.line_ed);
+  CALL_N_TIMES(3, cursor_move_left(&editor.line_ed));
+  cursor_move_up(&editor.line_ed);
+  CALL_N_TIMES(3, line_editor_insert_char(&editor.line_ed,'z'));
 
   window_draw_rows(buf);
 
   char slice[1024];
   buffer_slice(buf, 369, 516, slice);
 
-  ok(editor.curs.x == 3, "cursor at cell zero");
-  ok(editor.curs.y == 23, "cursor at cell zero");
+  ok(editor.line_ed.curs.x == 3, "cursor at cell zero");
+  ok(editor.line_ed.curs.y == 23, "cursor at cell zero");
   is(
     slice,
     ESC_SEQ_COLOR(3) " 24 " ESC_SEQ_NORM_COLOR ESC_SEQ_BG_COLOR(238)
@@ -535,13 +539,13 @@ test_basic_undo (void) {
 
   RESET_BUFFERS();
 
-  editor_undo();
+  line_editor_undo(&editor.line_ed);
 
   window_draw_rows(buf);
   buffer_slice(buf, 369, 516, slice);
 
-  ok(editor.curs.x == 0, "cursor at cell zero");
-  ok(editor.curs.y == 23, "cursor at cell zero");
+  ok(editor.line_ed.curs.x == 0, "cursor at cell zero");
+  ok(editor.line_ed.curs.y == 23, "cursor at cell zero");
   is(
     slice,
     ESC_SEQ_COLOR(3) " 24 " ESC_SEQ_NORM_COLOR ESC_SEQ_BG_COLOR(238)
@@ -555,13 +559,13 @@ test_basic_undo (void) {
 
   RESET_BUFFERS();
 
-  editor_undo();
+  line_editor_undo(&editor.line_ed);
 
   window_draw_rows(buf);
   buffer_slice(buf, 369, 505, slice);
 
-  ok(editor.curs.x == 6, "cursor at cell zero");
-  ok(editor.curs.y == 25, "cursor at cell zero");
+  ok(editor.line_ed.curs.x == 6, "cursor at cell zero");
+  ok(editor.line_ed.curs.y == 25, "cursor at cell zero");
   is(
     slice,
     " 24 putlockertv.one" ESC_SEQ_ERASE_LN_RIGHT_OF_CURSOR CRLF
@@ -582,25 +586,25 @@ test_complex_undo (void) {
 
   SET_CURSOR(0, 25);
 
-  CALL_N_TIMES(3, editor_insert_char('x'));
-  cursor_move_end();
-  CALL_N_TIMES(3, editor_insert_char('x'));
-  CALL_N_TIMES(10, cursor_move_left());
-  editor_delete_char();
-  CALL_N_TIMES(4, cursor_move_left());
-  editor_delete_char();
-  CALL_N_TIMES(3, cursor_move_left());
-  editor_delete_char();
-  CALL_N_TIMES(5, cursor_move_left());
-  editor_delete_char();
-  cursor_move_up();
-  cursor_move_end();
-  CALL_N_TIMES(50, editor_insert_char('z'));
-  cursor_move_begin();
-  cursor_move_down();
-  editor_delete_char();
-  editor_delete_char();
-  cursor_move_end();
+  CALL_N_TIMES(3, line_editor_insert_char(&editor.line_ed,'x'));
+  cursor_move_end(&editor.line_ed);
+  CALL_N_TIMES(3, line_editor_insert_char(&editor.line_ed,'x'));
+  CALL_N_TIMES(10, cursor_move_left(&editor.line_ed));
+  line_editor_delete_char(&editor.line_ed);
+  CALL_N_TIMES(4, cursor_move_left(&editor.line_ed));
+  line_editor_delete_char(&editor.line_ed);
+  CALL_N_TIMES(3, cursor_move_left(&editor.line_ed));
+  line_editor_delete_char(&editor.line_ed);
+  CALL_N_TIMES(5, cursor_move_left(&editor.line_ed));
+  line_editor_delete_char(&editor.line_ed);
+  cursor_move_up(&editor.line_ed);
+  cursor_move_end(&editor.line_ed);
+  CALL_N_TIMES(50, line_editor_insert_char(&editor.line_ed,'z'));
+  cursor_move_begin(&editor.line_ed);
+  cursor_move_down(&editor.line_ed);
+  line_editor_delete_char(&editor.line_ed);
+  line_editor_delete_char(&editor.line_ed);
+  cursor_move_end(&editor.line_ed);
   window_scroll();
 
   window_draw_rows(buf);
@@ -608,8 +612,8 @@ test_complex_undo (void) {
   char slice[1024];
   buffer_slice(buf, 198, 305, slice);
 
-  ok(editor.curs.x == 85, "correct cursor pos");
-  ok(editor.curs.y == 24, "correct cursor pos");
+  ok(editor.line_ed.curs.x == 85, "correct cursor pos");
+  ok(editor.line_ed.curs.y == 24, "correct cursor pos");
   is(
     slice,
     " 23 " ESC_SEQ_ERASE_LN_RIGHT_OF_CURSOR CRLF
@@ -623,14 +627,14 @@ test_complex_undo (void) {
 
   RESET_BUFFERS();
 
-  editor_undo();
+  line_editor_undo(&editor.line_ed);
   window_scroll();
 
   window_draw_rows(buf);
   buffer_slice(buf, 369, 543, slice);
 
-  ok(editor.curs.x == 0, "correct cursor pos");
-  ok(editor.curs.y == 25, "correct cursor pos");
+  ok(editor.line_ed.curs.x == 0, "correct cursor pos");
+  ok(editor.line_ed.curs.y == 25, "correct cursor pos");
   is(
     slice,
     " 24 putlockertv.one" ESC_SEQ_ERASE_LN_RIGHT_OF_CURSOR CRLF
@@ -644,14 +648,14 @@ test_complex_undo (void) {
 
   RESET_BUFFERS();
 
-  editor_undo();
+  line_editor_undo(&editor.line_ed);
   window_scroll();
 
   window_draw_rows(buf);
   buffer_slice(buf, 369, 539, slice);
 
-  ok(editor.curs.x == 5, "correct cursor pos");
-  ok(editor.curs.y == 24, "correct cursor pos");
+  ok(editor.line_ed.curs.x == 5, "correct cursor pos");
+  ok(editor.line_ed.curs.y == 24, "correct cursor pos");
   is(
     slice,
     " 24 putlockertv.one" ESC_SEQ_ERASE_LN_RIGHT_OF_CURSOR CRLF
@@ -666,14 +670,14 @@ test_complex_undo (void) {
 
   RESET_BUFFERS();
 
-  editor_undo();
+  line_editor_undo(&editor.line_ed);
   window_scroll();
 
   window_draw_rows(buf);
   buffer_slice(buf, 407, 502, slice);
 
-  ok(editor.curs.x == 10, "correct cursor pos");
-  ok(editor.curs.y == 25, "correct cursor pos");
+  ok(editor.line_ed.curs.x == 10, "correct cursor pos");
+  ok(editor.line_ed.curs.y == 25, "correct cursor pos");
   is(
     slice,
     ESC_SEQ_COLOR(3) " 26 " ESC_SEQ_NORM_COLOR ESC_SEQ_BG_COLOR(238)
@@ -685,14 +689,14 @@ test_complex_undo (void) {
 
   RESET_BUFFERS();
 
-  editor_undo();
+  line_editor_undo(&editor.line_ed);
   window_scroll();
 
   window_draw_rows(buf);
   buffer_slice(buf, 407, 502, slice);
 
-  ok(editor.curs.x == 16, "correct cursor pos");
-  ok(editor.curs.y == 25, "correct cursor pos");
+  ok(editor.line_ed.curs.x == 16, "correct cursor pos");
+  ok(editor.line_ed.curs.y == 25, "correct cursor pos");
   is(
     slice,
     ESC_SEQ_COLOR(3) " 26 " ESC_SEQ_NORM_COLOR ESC_SEQ_BG_COLOR(238)
@@ -704,14 +708,14 @@ test_complex_undo (void) {
 
   RESET_BUFFERS();
 
-  editor_undo();
+  line_editor_undo(&editor.line_ed);
   window_scroll();
 
   window_draw_rows(buf);
   buffer_slice(buf, 407, 502, slice);
 
-  ok(editor.curs.x == 20, "correct cursor pos");
-  ok(editor.curs.y == 25, "correct cursor pos");
+  ok(editor.line_ed.curs.x == 20, "correct cursor pos");
+  ok(editor.line_ed.curs.y == 25, "correct cursor pos");
   is(
     slice,
     ESC_SEQ_COLOR(3) " 26 " ESC_SEQ_NORM_COLOR ESC_SEQ_BG_COLOR(238)
@@ -723,14 +727,14 @@ test_complex_undo (void) {
 
   RESET_BUFFERS();
 
-  editor_undo();
+  line_editor_undo(&editor.line_ed);
   window_scroll();
 
   window_draw_rows(buf);
   buffer_slice(buf, 407, 502, slice);
 
-  ok(editor.curs.x == 25, "correct cursor pos");
-  ok(editor.curs.y == 25, "correct cursor pos");
+  ok(editor.line_ed.curs.x == 25, "correct cursor pos");
+  ok(editor.line_ed.curs.y == 25, "correct cursor pos");
   is(
     slice,
     ESC_SEQ_COLOR(3) " 26 " ESC_SEQ_NORM_COLOR ESC_SEQ_BG_COLOR(238)
@@ -742,14 +746,14 @@ test_complex_undo (void) {
 
   RESET_BUFFERS();
 
-  editor_undo();
+  line_editor_undo(&editor.line_ed);
   window_scroll();
 
   window_draw_rows(buf);
   buffer_slice(buf, 407, 502, slice);
 
-  ok(editor.curs.x == 32, "correct cursor pos");
-  ok(editor.curs.y == 25, "correct cursor pos");
+  ok(editor.line_ed.curs.x == 32, "correct cursor pos");
+  ok(editor.line_ed.curs.y == 25, "correct cursor pos");
   is(
     slice,
     ESC_SEQ_COLOR(3) " 26 " ESC_SEQ_NORM_COLOR ESC_SEQ_BG_COLOR(238)
@@ -761,14 +765,14 @@ test_complex_undo (void) {
 
   RESET_BUFFERS();
 
-  editor_undo();
+  line_editor_undo(&editor.line_ed);
   window_scroll();
 
   window_draw_rows(buf);
   buffer_slice(buf, 407, 502, slice);
 
-  ok(editor.curs.x == 0, "correct cursor pos");
-  ok(editor.curs.y == 25, "correct cursor pos");
+  ok(editor.line_ed.curs.x == 0, "correct cursor pos");
+  ok(editor.line_ed.curs.y == 25, "correct cursor pos");
   is(
     slice,
     ESC_SEQ_COLOR(3) " 26 " ESC_SEQ_NORM_COLOR ESC_SEQ_BG_COLOR(238)
@@ -780,14 +784,14 @@ test_complex_undo (void) {
 
   RESET_BUFFERS();
 
-  editor_undo();
+  line_editor_undo(&editor.line_ed);
   window_scroll();
 
   window_draw_rows(buf);
   buffer_slice(buf, 0, 20, slice);
 
-  ok(editor.curs.x == 0, "correct cursor pos");
-  ok(editor.curs.y == 25, "correct cursor pos");
+  ok(editor.line_ed.curs.x == 0, "correct cursor pos");
+  ok(editor.line_ed.curs.y == 25, "correct cursor pos");
   is(
     slice,
     "  1 " ESC_SEQ_ERASE_LN_RIGHT_OF_CURSOR CRLF

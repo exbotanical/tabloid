@@ -6,97 +6,29 @@
 #include <string.h>
 
 #include "config.h"
+#include "cursor.h"
 #include "exception.h"
 #include "globals.h"
 
-// TODO: refactor for better separation of concerns
-void
-editor_insert (char *s) {
-  line_buffer_insert(editor.r, cursor_get_x(), cursor_get_y(), s, cursor_create_copy());
-}
-
-void
-editor_insert_char (int c) {
-  char cp[1];
-  cp[0] = c;
-  cp[1] = '\0';
-  line_buffer_insert(editor.r, cursor_get_x(), cursor_get_y(), cp, cursor_create_copy());
-
-  cursor_inc_x();
-}
-
-void
-editor_delete_char (void) {
-  // If at the beginning of the first line...
-  if (cursor_in_cell_zero()) {
-    return;
-  }
-
-  cursor_t *curs = cursor_create_copy();
-  // If char to the left of the cursor...
-  if (cursor_not_at_row_begin()) {
-    line_buffer_delete(editor.r, cursor_get_x() - 1, cursor_get_y(), curs);
-    cursor_dec_x();
-  } else {
-    line_info_t *row = (line_info_t *)array_get(editor.r->line_info, cursor_get_y() - 1);
-    // We're at the beginning of the row
-    cursor_set_x(row->line_length);
-    line_buffer_delete(editor.r, -1, cursor_get_y(), curs);
-    cursor_dec_y();
-  }
-}
-
-void
-editor_delete_line_before_x (void) {
-  cursor_t *curs = cursor_create_copy();
-
-  while (cursor_get_x() != 0) {
-    cursor_dec_x();
-    line_buffer_delete(editor.r, cursor_get_x(), cursor_get_y(), curs);
-  }
-
-  cursor_set_x(0);
-}
-
-void
-editor_insert_newline (void) {
-  char nl[1];
-  nl[0] = '\n';
-  nl[1] = '\0';
-  line_buffer_insert(editor.r, cursor_get_x(), cursor_get_y(), nl, cursor_create_copy());
-  cursor_inc_y();
-  cursor_set_x(0);
-}
-
 // editor_open
 void
-editor_init (void) {
-  if (tty_get_window_size(&editor.win.rows, &editor.win.cols) == -1) {
+editor_init (editor_t *self) {
+  if (tty_get_window_size(&(self->win.rows), &(self->win.cols)) == -1) {
     panic("Failed call to get terminal window size\n");
   }
 
-  editor.curs = (cursor_t){
-    .x             = 0,
-    .y             = 0,
-    .row_off       = 0,
-    .col_off       = 0,
-    .select_active = false,
-    .select_anchor = -1,
-    .select_offset = -1,
-  };
-
-  editor.conf.tab_sz               = DEFAULT_TAB_SZ;
-  editor.conf.ln_prefix            = DEFAULT_LINE_PREFIX;
+  self->conf.tab_sz               = DEFAULT_TAB_SZ;
+  self->conf.ln_prefix            = DEFAULT_LINE_PREFIX;
 
   // Subtract for the status bar
-  editor.win.rows                 -= 2;
-  editor.s_bar.left_component[0]   = '\0';
-  editor.s_bar.right_component[0]  = '\0';
-  editor.c_bar.buf                 = line_buffer_init(NULL);
+  self->win.rows                 -= 2;
+  self->s_bar.left_component[0]   = '\0';
+  self->s_bar.right_component[0]  = '\0';
+  self->c_bar.buf                 = line_buffer_init(NULL);
 
-  editor.r                         = line_buffer_init(NULL);
+  line_editor_init(&self->line_ed);
 
-  editor.filepath                  = NULL;
+  self->filepath = NULL;
 
   mode_chmod(EDIT_MODE);
 }
@@ -110,7 +42,7 @@ editor_open (const char *filepath) {
       panic("failed to open file %s\n", filepath);
     }
 
-    char           *data = malloc(0);
+    char           *data = malloc(1);
     size_t          sz   = sizeof(data);
     read_all_result ret  = read_all(fd, &data, &sz);
     fclose(fd);
@@ -124,17 +56,16 @@ editor_open (const char *filepath) {
       case READ_ALL_OK: break;
     }
 
-    line_buffer_insert(editor.r, 0, 0, data, NULL);
+    line_buffer_insert(editor.line_ed.r, 0, 0, data, NULL);
   }
 
   editor.filepath = filepath;
 }
 
-// TODO: Handle very large files
 // TODO: Logging
 void
 editor_save (const char *filepath) {
-  unsigned int sz = piece_table_size(editor.r->pt);
+  unsigned int sz = piece_table_size(editor.line_ed.r->pt);
   char         s[sz];
 
   FILE *fd = fopen(filepath, "wb+");
@@ -143,7 +74,7 @@ editor_save (const char *filepath) {
     panic("failed to open file %s\n", filepath);
   }
 
-  piece_table_render(editor.r->pt, 0, sz, s);
+  piece_table_render(editor.line_ed.r->pt, 0, sz, s);
   write_all_result ret = write_all(fd, s);
   fclose(fd);
 
@@ -157,22 +88,5 @@ editor_save (const char *filepath) {
       panic("an error occurred while writing %s - incomplete write. sorry we screwed up your file oops\n", filepath);
       break;
     case WRITE_ALL_OK: break;
-  }
-}
-
-void
-editor_undo (void) {
-  cursor_t *old_curs = (cursor_t *)line_buffer_undo(editor.r);
-  if (old_curs) {
-    cursor_set_xy(old_curs->x, old_curs->y);
-  }
-}
-
-// TODO: Need to implement shift key when not an escape sequence
-void
-editor_redo (void) {
-  cursor_t *old_curs = (cursor_t *)line_buffer_redo(editor.r);
-  if (old_curs) {
-    cursor_set_xy(old_curs->x, old_curs->y);
   }
 }
