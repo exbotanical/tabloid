@@ -1,7 +1,6 @@
 #include "window.h"
 
 #include <math.h>
-#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -13,6 +12,7 @@
 #include "keypress.h"
 #include "line_buffer.h"
 #include "line_editor.h"
+#include "status_bar.h"
 
 unsigned int line_pad = 0;
 
@@ -32,10 +32,10 @@ window_draw_status_bar (buffer_t* buf) {
   }
 
   char* file_info = s_fmt(" | %s | %s", mode_str, filename);
-  window_set_status_bar_left_component_msg(file_info);
+  status_bar_set_left_component_msg(file_info);
 
   char* curs_info = s_fmt("| Ln %d, Col %d ", lineno, colno);
-  window_set_status_bar_right_component_msg(curs_info);
+  status_bar_set_right_component_msg(curs_info);
 
   buffer_append(buf, ESC_SEQ_INVERT_COLOR);
 
@@ -56,24 +56,26 @@ window_draw_status_bar (buffer_t* buf) {
 // TODO: Make everything generic so we can use the cursor and editor fns with different buffers
 void
 window_draw_command_bar (buffer_t* buf) {
-  line_info_t* row = (line_info_t*)array_get(editor.c_bar.buf->line_info, 0);
+  line_info_t* row = (line_info_t*)array_get(editor.c_bar.line_ed->r->line_info, 0);
   if (!row) {
     return;
   }
 
-  int len = row->line_length - (cursor_get_col_off(&editor.line_ed));
+  int len = row->line_length - (cursor_get_col_off(editor.c_bar.line_ed));
   if (len < 0) {
     len = 0;
   }
 
-  if ((unsigned int)len > (window_get_num_cols() - (line_pad + 1))) {
-    len = (window_get_num_cols() - (line_pad + 1));
+  if ((unsigned int)len > (window_get_num_cols() - 1)) {
+    len = (window_get_num_cols() - 1);
   }
 
   char line[row->line_length];
-  line_buffer_get_line(editor.c_bar.buf, 0, line);
+  line_buffer_get_line(editor.c_bar.line_ed->r, 0, line);
 
-  for (unsigned int i = cursor_get_col_off(&editor.line_ed); i < cursor_get_col_off(&editor.line_ed) + len; i++) {
+  for (unsigned int i = cursor_get_col_off(editor.c_bar.line_ed);
+       i < cursor_get_col_off(editor.c_bar.line_ed) + len;
+       i++) {
     char tmp[2];
     tmp[0] = line[i];
     tmp[1] = '\0';
@@ -246,22 +248,6 @@ window_scroll (void) {
   if (cursor_right_of_visible_window(&editor.line_ed)) {
     cursor_set_col_off(&editor.line_ed, cursor_get_x(&editor.line_ed) - (window_get_num_cols() - (line_pad + 1)) + 1);
   }
-}
-
-void
-window_set_status_bar_left_component_msg (const char* fmt, ...) {
-  va_list ap;
-  va_start(ap, fmt);
-  vsnprintf(editor.s_bar.left_component, sizeof(editor.s_bar.left_component), fmt, ap);
-  va_end(ap);
-}
-
-void
-window_set_status_bar_right_component_msg (const char* fmt, ...) {
-  va_list ap;
-  va_start(ap, fmt);
-  vsnprintf(editor.s_bar.right_component, sizeof(editor.s_bar.right_component), fmt, ap);
-  va_end(ap);
 }
 
 void

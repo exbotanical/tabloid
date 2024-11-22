@@ -1,24 +1,18 @@
 #ifndef EDITOR_H
 #define EDITOR_H
 
+#include "command_bar.h"
 #include "config.h"
 #include "file.h"
 #include "line_editor.h"
 #include "mode.h"
+#include "status_bar.h"
 #include "tty.h"
 #include "window.h"
 
-typedef struct {
-  // TODO: size guards
-  char left_component[64];
-  char right_component[64];
-} s_bar_state_t;
-
-typedef struct {
-  line_buffer_t* buf;
-} c_bar_state_t;
-
 // TODO: no more global state
+// TODO: pointers or no? either way, be consistent.
+// Read: https://stackoverflow.com/questions/24452323/whats-the-difference-between-pointer-and-value-in-struct
 typedef struct {
   window_t      win;
   tty_t         tty;

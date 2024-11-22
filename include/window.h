@@ -18,8 +18,6 @@ extern inline unsigned int window_get_num_cols(void);
 void window_clear(void);
 void window_refresh(void);
 void window_scroll(void);
-void window_set_status_bar_left_component_msg(const char* fmt, ...);
-void window_set_status_bar_right_component_msg(const char* fmt, ...);
 
 void window_draw_rows(buffer_t* buf);
 void window_draw_status_bar(buffer_t* buf);

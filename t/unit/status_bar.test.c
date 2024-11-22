@@ -1,3 +1,5 @@
+#include "status_bar.h"
+
 #include <assert.h>
 
 #include "const.h"
