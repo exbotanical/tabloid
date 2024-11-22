@@ -25,7 +25,7 @@ editor_init (editor_t *self) {
   self->s_bar.left_component[0]   = '\0';
   self->s_bar.right_component[0]  = '\0';
 
-  line_editor_init(self->c_bar.line_ed);
+  line_editor_init(&self->c_bar);
   line_editor_init(&self->line_ed);
 
   self->filepath = NULL;

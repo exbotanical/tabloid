@@ -16,7 +16,7 @@ typedef enum {
 } keypress_flags_t;
 
 static int
-keypress_read (unsigned int *flags) {
+keypress_read (unsigned int* flags) {
   int  bytes_read;
   char c;
 
@@ -152,103 +152,67 @@ keypress_read (unsigned int *flags) {
 }
 
 static void
-keypress_handle_edit_mode_key (int c) {
-  switch (c) {
-    case UNKNOWN: break;
+keypress_handle_edit_mode_key (int c, bool should_act) {
+  if (should_act) {
+    switch (c) {
+      case CTRL_C: {
+        mode_chmod(COMMAND_MODE);
+        break;
+      }
 
-    case ENTER: line_editor_insert_newline(&editor.line_ed); break;
-    case BACKSPACE: line_editor_delete_char(&editor.line_ed); break;
+      case PAGE_UP: {
+        cursor_move_visible_top(&editor.line_ed);
+        break;
+      }
+      case PAGE_DOWN: {
+        cursor_move_visible_bottom(&editor.line_ed);
+        break;
+      }
 
-    case CTRL_A: cursor_move_begin(&editor.line_ed); break;
-    case CTRL_E: cursor_move_end(&editor.line_ed); break;
-    case CTRL_U: line_editor_delete_line_before_x(&editor.line_ed); break;
-    case CTRL_Z: line_editor_undo(&editor.line_ed); break;
-    case CTRL_C: {
-      mode_chmod(COMMAND_MODE);
-      break;
-    }
+      case ARROW_UP: {
+        cursor_move_up(&editor.line_ed);
+        break;
+      }
+      case ARROW_DOWN: {
+        cursor_move_down(&editor.line_ed);
+        break;
+      }
 
-    case DELETE:
-      cursor_move_right(&editor.line_ed);
-      line_editor_delete_char(&editor.line_ed);
-      break;
+      case CTRL_ARROW_UP: {
+        cursor_move_up(&editor.line_ed);
+        break;
+      }
+      case CTRL_ARROW_DOWN: {
+        cursor_move_down(&editor.line_ed);
+        break;
+      }
 
-    case PAGE_UP: {
-      cursor_move_visible_top(&editor.line_ed);
-      break;
-    }
-    case PAGE_DOWN: {
-      cursor_move_visible_bottom(&editor.line_ed);
-      break;
-    }
-    case HOME: {
-      cursor_move_begin(&editor.line_ed);
-      break;
-    }
-    case END: {
-      cursor_move_end(&editor.line_ed);
-      break;
-    }
+      case SHIFT_ARROW_LEFT: {
+        cursor_select_left(&editor.line_ed);
+        break;
+      }
+      case SHIFT_ARROW_RIGHT: {
+        cursor_select_right(&editor.line_ed);
+        break;
+      }
+      case SHIFT_ARROW_UP: {
+        cursor_select_up(&editor.line_ed);
+        break;
+      }
+      case SHIFT_ARROW_DOWN: {
+        cursor_select_down(&editor.line_ed);
+        break;
+      }
 
-    case ARROW_LEFT: {
-      cursor_move_left(&editor.line_ed);
-      break;
-    }
-    case ARROW_RIGHT: {
-      cursor_move_right(&editor.line_ed);
-      break;
-    }
-    case ARROW_UP: {
-      cursor_move_up(&editor.line_ed);
-      break;
-    }
-    case ARROW_DOWN: {
-      cursor_move_down(&editor.line_ed);
-      break;
-    }
+      case CTRL_SHIFT_ARROW_LEFT: cursor_select_left_word(&editor.line_ed); break;
+      case CTRL_SHIFT_ARROW_RIGHT: cursor_select_right_word(&editor.line_ed); break;
+      case CTRL_SHIFT_ARROW_UP: break;
+      case CTRL_SHIFT_ARROW_DOWN: break;
 
-    case CTRL_ARROW_LEFT: {
-      cursor_move_left_word(&editor.line_ed);
-      break;
-    }
-    case CTRL_ARROW_RIGHT: {
-      cursor_move_right_word(&editor.line_ed);
-      break;
-    }
-    case CTRL_ARROW_UP: {
-      cursor_move_up(&editor.line_ed);
-      break;
-    }
-    case CTRL_ARROW_DOWN: {
-      cursor_move_down(&editor.line_ed);
-      break;
-    }
-
-    case SHIFT_ARROW_LEFT: {
-      cursor_select_left(&editor.line_ed);
-      break;
-    }
-    case SHIFT_ARROW_RIGHT: {
-      cursor_select_right(&editor.line_ed);
-      break;
-    }
-    case SHIFT_ARROW_UP: {
-      cursor_select_up(&editor.line_ed);
-      break;
-    }
-    case SHIFT_ARROW_DOWN: {
-      cursor_select_down(&editor.line_ed);
-      break;
-    }
-
-    case CTRL_SHIFT_ARROW_LEFT: cursor_select_left_word(&editor.line_ed); break;
-    case CTRL_SHIFT_ARROW_RIGHT: cursor_select_right_word(&editor.line_ed); break;
-    case CTRL_SHIFT_ARROW_UP: break;
-    case CTRL_SHIFT_ARROW_DOWN: break;
-
-    default: {
-      line_editor_insert_char(&editor.line_ed, c);
-      break;
+      default: {
+        line_editor_insert_char(&editor.line_ed, c);
+        break;
+      }
     }
   }
 
@@ -261,23 +225,22 @@ int c_bar_x              = 0;
 int c_bar_y              = 0;
 
 static void
-keypress_handle_command_mode_key (int c) {
-  switch (c) {
-    case 'i': {
-      mode_chmod(EDIT_MODE);
-      entering_cmd = false;
+keypress_handle_command_mode_key (int c, bool should_act) {
+  if (should_act) {
+    switch (c) {
+      case 'i': {
+        mode_chmod(EDIT_MODE);
+        entering_cmd = false;
 
-      break;
-    }
+        break;
+      }
 
-    case CTRL_Q: exit(0);
+      case CTRL_Q: exit(0);
 
-    default: {
-      char cp[1];
-      cp[0] = c;
-      cp[1] = '\0';
-      line_buffer_insert(editor.c_bar.buf, c_bar_x++, c_bar_y, cp, NULL);
-      break;
+      default: {
+        line_editor_insert_char(&editor.c_bar, c);
+        break;
+      }
     }
   }
 }
@@ -292,13 +255,65 @@ keypress_handle (void) {
     cursor_select_clear(&editor.line_ed);
   }
 
+  line_editor_t* line_ed = editor.mode == EDIT_MODE ? &editor.line_ed : &editor.c_bar;
+
+  bool unprocessed       = false;
+  switch (c) {
+    case UNKNOWN: break;
+
+    case ENTER: line_editor_insert_newline(line_ed); break;
+    case BACKSPACE: line_editor_delete_char(line_ed); break;
+
+    case CTRL_A: cursor_move_begin(line_ed); break;
+    case CTRL_E: cursor_move_end(line_ed); break;
+    case CTRL_U: line_editor_delete_line_before_x(line_ed); break;
+    case CTRL_Z: line_editor_undo(line_ed); break;
+
+    case DELETE:
+      cursor_move_right(line_ed);
+      line_editor_delete_char(line_ed);
+      break;
+
+    case HOME: {
+      cursor_move_begin(line_ed);
+      break;
+    }
+    case END: {
+      cursor_move_end(line_ed);
+      break;
+    }
+
+    case ARROW_LEFT: {
+      cursor_move_left(line_ed);
+      break;
+    }
+    case ARROW_RIGHT: {
+      cursor_move_right(line_ed);
+      break;
+    }
+
+    case CTRL_ARROW_LEFT: {
+      cursor_move_left_word(line_ed);
+      break;
+    }
+    case CTRL_ARROW_RIGHT: {
+      cursor_move_right_word(line_ed);
+      break;
+    }
+
+    default: {
+      unprocessed = true;
+      break;
+    }
+  }
+
   switch (editor.mode) {
     case EDIT_MODE: {
-      keypress_handle_edit_mode_key(c);
+      keypress_handle_edit_mode_key(c, unprocessed);
       break;
     }
     case COMMAND_MODE: {
-      keypress_handle_command_mode_key(c);
+      keypress_handle_command_mode_key(c, unprocessed);
       break;
     }
   }

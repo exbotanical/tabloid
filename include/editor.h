@@ -18,7 +18,7 @@ typedef struct {
   tty_t         tty;
   config_t      conf;
   s_bar_state_t s_bar;
-  c_bar_state_t c_bar;
+  line_editor_t c_bar;
   editor_mode_t mode;
   line_editor_t line_ed;
   const char*   filepath;

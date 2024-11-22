@@ -56,12 +56,12 @@ window_draw_status_bar (buffer_t* buf) {
 // TODO: Make everything generic so we can use the cursor and editor fns with different buffers
 void
 window_draw_command_bar (buffer_t* buf) {
-  line_info_t* row = (line_info_t*)array_get(editor.c_bar.line_ed->r->line_info, 0);
+  line_info_t* row = (line_info_t*)array_get(editor.c_bar.r->line_info, 0);
   if (!row) {
     return;
   }
 
-  int len = row->line_length - (cursor_get_col_off(editor.c_bar.line_ed));
+  int len = row->line_length - (cursor_get_col_off(&editor.c_bar));
   if (len < 0) {
     len = 0;
   }
@@ -71,11 +71,9 @@ window_draw_command_bar (buffer_t* buf) {
   }
 
   char line[row->line_length];
-  line_buffer_get_line(editor.c_bar.line_ed->r, 0, line);
+  line_buffer_get_line(editor.c_bar.r, 0, line);
 
-  for (unsigned int i = cursor_get_col_off(editor.c_bar.line_ed);
-       i < cursor_get_col_off(editor.c_bar.line_ed) + len;
-       i++) {
+  for (unsigned int i = cursor_get_col_off(&editor.c_bar); i < cursor_get_col_off(&editor.c_bar) + len; i++) {
     char tmp[2];
     tmp[0] = line[i];
     tmp[1] = '\0';
