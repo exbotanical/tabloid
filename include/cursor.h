@@ -110,7 +110,9 @@ cursor_set_is_active (line_editor_t *self, bool next) {
   self->curs.select_active = next;
 }
 
-void      cursor_set_position(line_editor_t *self, buffer_t *buf);
+void cursor_set_position(line_editor_t *self, buffer_t *buf);
+void cursor_set_position_command_bar(line_editor_t *self, buffer_t *buf);
+
 cursor_t *cursor_create_copy(line_editor_t *self);
 
 void cursor_move_down(line_editor_t *self);

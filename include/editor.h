@@ -1,7 +1,6 @@
 #ifndef EDITOR_H
 #define EDITOR_H
 
-#include "command_bar.h"
 #include "config.h"
 #include "file.h"
 #include "line_editor.h"

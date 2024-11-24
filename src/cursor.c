@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "command_bar.h"
 #include "globals.h"
 #include "keypress.h"
 #include "tty.h"
@@ -97,6 +98,21 @@ cursor_set_position (line_editor_t *self, buffer_t *buf) {
     ESC_SEQ_CURSOR_POS_FMT,
     (cursor_get_y(self) - cursor_get_row_off(self)) + 1,
     ((cursor_get_x(self) + line_pad + 1) - cursor_get_col_off(self)) + 1
+  );
+  // clang-format on
+  buffer_append(buf, curs);
+}
+
+void
+cursor_set_position_command_bar (line_editor_t *self, buffer_t *buf) {
+  char curs[32];
+  // clang-format off
+  snprintf(
+    curs,
+    sizeof(curs),
+    ESC_SEQ_CURSOR_POS_FMT,
+    window_get_num_rows() + 2,
+    (cursor_get_x(self) - cursor_get_col_off(self)) + 1 + COMMAND_BAR_PREFIX_OFFSET
   );
   // clang-format on
   buffer_append(buf, curs);

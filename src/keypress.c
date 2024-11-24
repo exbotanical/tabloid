@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "command_bar.h"
 #include "cursor.h"
 #include "exception.h"
 #include "globals.h"
@@ -155,6 +156,8 @@ static void
 keypress_handle_edit_mode_key (int c, bool should_act) {
   if (should_act) {
     switch (c) {
+      case ENTER: line_editor_insert_newline(&editor.line_ed); break;
+
       case CTRL_C: {
         mode_chmod(COMMAND_MODE);
         break;
@@ -219,23 +222,20 @@ keypress_handle_edit_mode_key (int c, bool should_act) {
   cursor_snap_to_end(&editor.line_ed);
 }
 
-static bool entering_cmd = false;
-
-int c_bar_x              = 0;
-int c_bar_y              = 0;
-
+// TODO: Optimize
 static void
 keypress_handle_command_mode_key (int c, bool should_act) {
   if (should_act) {
     switch (c) {
-      case 'i': {
+      case CTRL_C: {
         mode_chmod(EDIT_MODE);
-        entering_cmd = false;
-
         break;
       }
 
-      case CTRL_Q: exit(0);
+      case ENTER: {
+        command_bar_process_command(&editor.c_bar);
+        break;
+      }
 
       default: {
         line_editor_insert_char(&editor.c_bar, c);
@@ -258,10 +258,10 @@ keypress_handle (void) {
   line_editor_t* line_ed = editor.mode == EDIT_MODE ? &editor.line_ed : &editor.c_bar;
 
   bool unprocessed       = false;
+
   switch (c) {
     case UNKNOWN: break;
 
-    case ENTER: line_editor_insert_newline(line_ed); break;
     case BACKSPACE: line_editor_delete_char(line_ed); break;
 
     case CTRL_A: cursor_move_begin(line_ed); break;
@@ -312,6 +312,7 @@ keypress_handle (void) {
       keypress_handle_edit_mode_key(c, unprocessed);
       break;
     }
+
     case COMMAND_MODE: {
       keypress_handle_command_mode_key(c, unprocessed);
       break;

@@ -6,6 +6,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "command_bar.h"
 #include "const.h"
 #include "cursor.h"
 #include "globals.h"
@@ -27,8 +28,15 @@ window_draw_status_bar (buffer_t* buf) {
   char* mode_str;
 
   switch (editor.mode) {
-    case EDIT_MODE: mode_str = "EDIT"; break;
-    case COMMAND_MODE: mode_str = "COMMAND"; break;
+    case EDIT_MODE: {
+      mode_str = "EDIT";
+      break;
+    }
+
+    case COMMAND_MODE: {
+      mode_str = "COMMAND";
+      break;
+    }
   }
 
   char* file_info = s_fmt(" | %s | %s", mode_str, filename);
@@ -41,7 +49,6 @@ window_draw_status_bar (buffer_t* buf) {
 
   unsigned int component_len = strlen(editor.s_bar.left_component) + strlen(editor.s_bar.right_component);
 
-  // TODO: Status bar left component, right component. Each has max len and is auto-truncated
   buffer_append(buf, editor.s_bar.left_component);
   for (unsigned int len = 0; len < num_cols - component_len; len++) {
     buffer_append(buf, " ");
@@ -53,11 +60,16 @@ window_draw_status_bar (buffer_t* buf) {
   free(curs_info);
 }
 
-// TODO: Make everything generic so we can use the cursor and editor fns with different buffers
 void
 window_draw_command_bar (buffer_t* buf) {
+  if (editor.mode == COMMAND_MODE) {
+    buffer_append(buf, COMMAND_BAR_PREFIX);
+  }
+
   line_info_t* row = (line_info_t*)array_get(editor.c_bar.r->line_info, 0);
   if (!row) {
+    buffer_append(buf, " ");
+    buffer_append(buf, ESC_SEQ_ERASE_LN_RIGHT_OF_CURSOR);
     return;
   }
 
@@ -77,8 +89,11 @@ window_draw_command_bar (buffer_t* buf) {
     char tmp[2];
     tmp[0] = line[i];
     tmp[1] = '\0';
-
     buffer_append(buf, tmp);
+  }
+
+  if (len == 0) {
+    buffer_append(buf, " ");
   }
 
   buffer_append(buf, ESC_SEQ_ERASE_LN_RIGHT_OF_CURSOR);
@@ -86,10 +101,6 @@ window_draw_command_bar (buffer_t* buf) {
 
 static void
 window_compute_select_range (unsigned int row_num, line_info_t* current_line, int* start_ptr, int* end_ptr) {
-  // // TODO: refactor
-  // int *start_ptr = -1;
-  // int *end_ptr   = -1;
-
   if (cursor_is_select_active(&editor.line_ed)) {
     bool is_ltr = cursor_is_select_ltr(&editor.line_ed);
 
@@ -216,10 +227,21 @@ window_refresh (void) {
   buffer_append(buf, ESC_SEQ_CURSOR_POS);
 
   window_draw_rows(buf);
+
   window_draw_status_bar(buf);
   window_draw_command_bar(buf);
 
-  cursor_set_position(&editor.line_ed, buf);
+  switch (editor.mode) {
+    case EDIT_MODE: {
+      cursor_set_position(&editor.line_ed, buf);
+      break;
+    }
+
+    case COMMAND_MODE: {
+      cursor_set_position_command_bar(&editor.c_bar, buf);
+      break;
+    }
+  }
 
   buffer_append(buf, ESC_SEQ_CURSOR_SHOW);
 
