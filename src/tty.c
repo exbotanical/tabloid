@@ -80,7 +80,7 @@ tty_enable_raw_mode (void) {
   }
 }
 
-int
+__attribute__((weak)) int
 tty_get_window_size (unsigned int *rows, unsigned int *cols) {
   struct winsize ws;
 

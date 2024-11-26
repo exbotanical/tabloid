@@ -251,7 +251,7 @@ void
 piece_table_insert (piece_table_t* self, unsigned int index, char* piece, void* metadata) {
   unsigned int length = strlen(piece);
 
-  assert(index <= self->seq_length);  // TODO:
+  assert(index <= self->seq_length);
 
   piece_descriptor_t* pd;
   unsigned int        pd_index   = piece_table_desc_from_index(self, index, &pd);
@@ -692,4 +692,16 @@ piece_table_can_optimize (piece_table_t* self, piece_table_event ev, unsigned in
 void
 piece_table_break (piece_table_t* self) {
   self->last_event = PT_SENTINEL;
+}
+
+bool
+piece_table_dirty (piece_table_t* self) {
+  return array_size(self->undo_stack->event_captures) != 0;
+}
+
+void
+piece_table_dirty_reset (piece_table_t* self) {
+  event_stack_clear(self->undo_stack);
+  self->last_event_index = 0;
+  self->last_event       = PT_SENTINEL;
 }

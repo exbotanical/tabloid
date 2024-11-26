@@ -96,9 +96,38 @@ test_piece_table_empty_initial (void) {
   free(buffer);
 }
 
+static void
+test_piece_table_dirty (void) {
+  piece_table_t* pt = piece_table_init();
+  piece_table_setup(pt, "xxx");
+
+  ok(piece_table_dirty(pt) == false, "");
+
+  piece_table_insert(pt, 0, "hello", NULL);
+  ok(piece_table_dirty(pt) == true, "");
+
+  piece_table_undo(pt);
+  ok(piece_table_dirty(pt) == false, "");
+
+  piece_table_redo(pt);
+  ok(piece_table_dirty(pt) == true, "");
+
+  piece_table_undo(pt);
+  ok(piece_table_dirty(pt) == false, "");
+
+  piece_table_delete(pt, 1, 1, PT_DELETE, NULL);
+  ok(piece_table_dirty(pt) == true, "");
+
+  piece_table_undo(pt);
+  ok(piece_table_dirty(pt) == false, "");
+
+  piece_table_free(pt);
+}
+
 void
 run_piece_table_tests (void) {
   test_piece_table();
   test_piece_table_no_initial();
   test_piece_table_empty_initial();
+  test_piece_table_dirty();
 }

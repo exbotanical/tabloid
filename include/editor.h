@@ -24,6 +24,7 @@ typedef struct {
 } editor_t;
 
 void editor_init(editor_t* self);
+void editor_free(editor_t* self);
 void editor_open(const char* filename);
 
 #endif /* EDITOR_H */

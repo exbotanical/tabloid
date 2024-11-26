@@ -24,7 +24,6 @@ line_editor_init (line_editor_t *self) {
   self->r = line_buffer_init(NULL);
 }
 
-// TODO: refactor for better separation of concerns
 void
 line_editor_insert (line_editor_t *self, char *s) {
   line_buffer_insert(self->r, cursor_get_x(self), cursor_get_y(self), s, cursor_create_copy(self));

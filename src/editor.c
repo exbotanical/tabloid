@@ -10,7 +10,6 @@
 #include "exception.h"
 #include "globals.h"
 
-// editor_open
 void
 editor_init (editor_t *self) {
   if (tty_get_window_size(&(self->win.rows), &(self->win.cols)) == -1) {
@@ -31,6 +30,12 @@ editor_init (editor_t *self) {
   self->filepath = NULL;
 
   mode_chmod(EDIT_MODE);
+}
+
+void
+editor_free (editor_t *self) {
+  line_buffer_free(self->c_bar.r);
+  line_buffer_free(self->line_ed.r);
 }
 
 // TODO: Handle very large files
@@ -57,6 +62,9 @@ editor_open (const char *filepath) {
     }
 
     line_buffer_insert(editor.line_ed.r, 0, 0, data, NULL);
+    event_stack_clear(editor.line_ed.r->pt->undo_stack);
+    editor.line_ed.r->pt->last_event_index = 0;
+    editor.line_ed.r->pt->last_event       = PT_SENTINEL;
   }
 
   editor.filepath = filepath;

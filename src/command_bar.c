@@ -26,7 +26,11 @@ command_bar_process_command (line_editor_t* self) {
 
   if (strncmp(line, "q", strlen(line)) == 0) {
     // TODO: Dirty mode, write+quit, etc
-    exit(0);
+    if (line_buffer_dirty(editor.line_ed.r)) {
+      exit(0);
+    } else {
+      exit(0);
+    }
   }
 
   command_bar_clear(self);

@@ -167,3 +167,8 @@ line_buffer_redo (line_buffer_t *self) {
   line_buffer_refresh(self);
   return metadata;
 }
+
+bool
+line_buffer_dirty (line_buffer_t *self) {
+  return piece_table_dirty(self->pt);
+}

@@ -31,10 +31,7 @@ main (int argc, char const *argv[]) {
 
   // TODO: consolidate in init?
   if (argc >= 2) {
-    // TODO: Fix undo on file open
     editor_open(argv[1]);
-  } else {
-    line_editor_insert(&editor.line_ed, "");
   }
 
   while (true) {

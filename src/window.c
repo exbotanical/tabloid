@@ -1,5 +1,6 @@
 #include "window.h"
 
+#include <libgen.h>  // TODO: compat?
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,8 +21,10 @@ unsigned int line_pad = 0;
 void
 window_draw_status_bar (buffer_t* buf) {
   // TODO: Cleanup
+  bool has_file         = !!editor.filepath;
+  bool is_dirty         = line_buffer_dirty(editor.line_ed.r);
+
   unsigned int num_cols = window_get_num_cols();
-  const char*  filename = editor.filepath ? editor.filepath : "[No Name]";
   unsigned int lineno   = editor.line_ed.curs.y + 1;
   unsigned int colno    = editor.line_ed.curs.x + 1;
 
@@ -39,7 +42,17 @@ window_draw_status_bar (buffer_t* buf) {
     }
   }
 
-  char* file_info = s_fmt(" | %s | %s", mode_str, filename);
+  char* dirty_modifier = is_dirty ? "*" : "";
+
+  char* file_info;
+  if (has_file) {
+    char* filepath_cp = s_copy(editor.filepath);
+    file_info         = s_fmt(" | %s | %s%s", mode_str, basename(filepath_cp), dirty_modifier);
+    free(filepath_cp);
+  } else {
+    file_info = s_fmt(" | %s | [%s%s]", mode_str, "No Name", dirty_modifier);
+  }
+
   status_bar_set_left_component_msg(file_info);
 
   char* curs_info = s_fmt("| Ln %d, Col %d ", lineno, colno);
@@ -294,22 +307,18 @@ window_draw_rows (buffer_t* buf) {
       if (is_current_line) {
         buffer_append(buf, ESC_SEQ_COLOR(3));
       }
+
       buffer_append(buf, lineno_str);
-
-      // Highlighted line
-      if (is_current_line) {
-        buffer_append(buf, ESC_SEQ_NORM_COLOR);
-      }
-
       free(lineno_str);
-
-      // Has row content; render it...
-      line_info_t* current_row = (line_info_t*)array_get(editor.line_ed.r->line_info, visible_row_idx);
 
       // Highlight the current row where the cursor is
       if (is_current_line) {
+        buffer_append(buf, ESC_SEQ_NORM_COLOR);
         buffer_append(buf, ESC_SEQ_BG_COLOR(238));
       }
+
+      // Has row content; render it...
+      line_info_t* current_row = (line_info_t*)array_get(editor.line_ed.r->line_info, visible_row_idx);
 
       // TODO: refactor
       int select_start = -1;
@@ -363,12 +372,14 @@ window_draw_rows (buffer_t* buf) {
         }
       }
 
-      window_draw_row(buf, current_row, visible_row_idx, select_start, select_end, is_current_line);
+      if (current_row) {
+        window_draw_row(buf, current_row, visible_row_idx, select_start, select_end, is_current_line);
+      }
 
       if (is_current_line) {
+        int current_row_len = current_row ? current_row->line_length : 0;
         // If it's the current row, reset the highlight after drawing the row
-        int padding_len
-          = (window_get_num_cols() + cursor_get_col_off(&editor.line_ed)) - (current_row->line_length + line_pad + 1);
+        int padding_len = (window_get_num_cols() + cursor_get_col_off(&editor.line_ed)) - (current_row_len + line_pad + 1);
         if (padding_len > 0) {
           for (int i = 0; i < padding_len; i++) {
             buffer_append(buf, " ");  // Highlight entire row till the end
