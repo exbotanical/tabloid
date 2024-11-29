@@ -172,3 +172,8 @@ bool
 line_buffer_dirty (line_buffer_t *self) {
   return piece_table_dirty(self->pt);
 }
+
+void
+line_buffer_dirty_reset (line_buffer_t *self) {
+  piece_table_dirty_reset(self->pt);
+}

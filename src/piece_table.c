@@ -696,12 +696,10 @@ piece_table_break (piece_table_t* self) {
 
 bool
 piece_table_dirty (piece_table_t* self) {
-  return array_size(self->undo_stack->event_captures) != 0;
+  return (array_size(self->undo_stack->event_captures) - self->offset_since_dirty_reset) != 0;
 }
 
 void
 piece_table_dirty_reset (piece_table_t* self) {
-  event_stack_clear(self->undo_stack);
-  self->last_event_index = 0;
-  self->last_event       = PT_SENTINEL;
+  self->offset_since_dirty_reset = array_size(self->undo_stack->event_captures);
 }

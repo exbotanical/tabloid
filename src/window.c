@@ -76,36 +76,47 @@ window_draw_status_bar (buffer_t* buf) {
 void
 window_draw_command_bar (buffer_t* buf) {
   if (editor.mode == COMMAND_MODE) {
+    unsigned int num_cols = window_get_num_cols();
+    if (editor.cmode == CB_MESSAGE) {
+      buffer_append(buf, editor.cbar_msg);
+      for (unsigned int len = 0; len < num_cols - strlen(editor.cbar_msg); len++) {
+        buffer_append(buf, " ");
+      }
+      return;
+    }
+
     buffer_append(buf, COMMAND_BAR_PREFIX);
-  }
 
-  line_info_t* row = (line_info_t*)array_get(editor.c_bar.r->line_info, 0);
-  if (!row) {
-    buffer_append(buf, " ");
-    buffer_append(buf, ESC_SEQ_ERASE_LN_RIGHT_OF_CURSOR);
-    return;
-  }
+    line_info_t* row = (line_info_t*)array_get(editor.c_bar.r->line_info, 0);
+    if (!row) {
+      buffer_append(buf, " ");
+      buffer_append(buf, ESC_SEQ_ERASE_LN_RIGHT_OF_CURSOR);
+      return;
+    }
 
-  int len = row->line_length - (cursor_get_col_off(&editor.c_bar));
-  if (len < 0) {
-    len = 0;
-  }
+    int len = row->line_length - (cursor_get_col_off(&editor.c_bar));
+    if (len < 0) {
+      len = 0;
+    }
 
-  if ((unsigned int)len > (window_get_num_cols() - 1)) {
-    len = (window_get_num_cols() - 1);
-  }
+    if ((unsigned int)len > (num_cols - 1)) {
+      len = (num_cols - 1);
+    }
 
-  char line[row->line_length];
-  line_buffer_get_line(editor.c_bar.r, 0, line);
+    char line[row->line_length];
+    line_buffer_get_line(editor.c_bar.r, 0, line);
 
-  for (unsigned int i = cursor_get_col_off(&editor.c_bar); i < cursor_get_col_off(&editor.c_bar) + len; i++) {
-    char tmp[2];
-    tmp[0] = line[i];
-    tmp[1] = '\0';
-    buffer_append(buf, tmp);
-  }
+    for (unsigned int i = cursor_get_col_off(&editor.c_bar); i < cursor_get_col_off(&editor.c_bar) + len; i++) {
+      char tmp[2];
+      tmp[0] = line[i];
+      tmp[1] = '\0';
+      buffer_append(buf, tmp);
+    }
 
-  if (len == 0) {
+    if (len == 0) {
+      buffer_append(buf, " ");
+    }
+  } else {
     buffer_append(buf, " ");
   }
 
@@ -251,6 +262,10 @@ window_refresh (void) {
     }
 
     case COMMAND_MODE: {
+      if (editor.cmode == CB_MESSAGE) {
+        cursor_set_position(&editor.line_ed, buf);
+        break;
+      }
       cursor_set_position_command_bar(&editor.c_bar, buf);
       break;
     }

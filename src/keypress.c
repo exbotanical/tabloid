@@ -259,6 +259,17 @@ keypress_handle (void) {
 
   bool unprocessed       = false;
 
+  if (editor.mode == COMMAND_MODE && editor.cmode == CB_MESSAGE) {
+    switch (c) {
+      case CTRL_C: {
+        mode_chmod(EDIT_MODE);
+        break;
+      }
+    }
+
+    return;
+  }
+
   switch (c) {
     case UNKNOWN: break;
 

@@ -29,5 +29,6 @@ void  line_buffer_delete(line_buffer_t *self, int x, int y, void *metadata);
 void *line_buffer_undo(line_buffer_t *self);
 void *line_buffer_redo(line_buffer_t *self);
 bool  line_buffer_dirty(line_buffer_t *self);
+void  line_buffer_dirty_reset(line_buffer_t *self);
 
 #endif /* LINE_BUFFER_H */

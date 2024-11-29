@@ -7,7 +7,7 @@
 #include "libutil.h"
 
 write_all_result
-write_all (FILE *fd, const char *data) {
+write_all (FILE *fd, const char *data, size_t *n_write_ptr) {
   size_t sz            = strlen(data);
   size_t total_written = 0;
   size_t n_written;
@@ -41,6 +41,8 @@ write_all (FILE *fd, const char *data) {
   if (fflush(fd) != 0) {
     return WRITE_ALL_ERR;
   }
+
+  *n_write_ptr = total_written;
 
   return WRITE_ALL_OK;
 }

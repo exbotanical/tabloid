@@ -1,16 +1,17 @@
 # TODOs
-- [ ] status bar
-- [ ] file I/O
+
+- [x] status bar
+- [x] file I/O
   - [ ] swap files
 - [x] history (undo/redo stack)
   - [ ] undo/redo groups
-- [ ] command mode
+- [x] command mode
 - [ ] keybindings config support
   - [ ] default keybindings/config
 - [ ] LSP support
 - [x] line numbers
 - [ ] terminfo
-- [ ] modes (editor, command)
+- [x] modes (editor, command)
 - [ ] plugins system
   - [ ] git
   - [ ] search
@@ -28,7 +29,7 @@
   - [ ] copy
     - [ ] copy full line preceding cursor when no select
   - [ ] paste
-  - [ ] ctrl+k delete
+  - [ ] ctrl+shift+k delete
   - [ ] delete word (ctrl+backspace)
   - [x] select char
   - [x] select word
@@ -46,3 +47,9 @@
 - [ ] optimize line buffer
 - [ ] unicode!
 - [ ] piece-table: optimize delete (delete range)
+
+---
+
+- [ ] Use config for keybindings
+- [ ] Use config for commands
+- [ ] Use parser for commands

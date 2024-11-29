@@ -380,7 +380,7 @@ read_all_result read_all(FILE *fd, char **data_ptr, size_t *n_read_ptr);
  * @param data A pointer to the data to be written in full.
  * @return write_all_result
  */
-write_all_result write_all(FILE *fd, const char *data);
+write_all_result write_all(FILE *fd, const char *data, size_t *n_write_ptr);
 
 #ifdef __cplusplus
 }

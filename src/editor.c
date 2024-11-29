@@ -47,8 +47,8 @@ editor_open (const char *filepath) {
       panic("failed to open file %s\n", filepath);
     }
 
+    size_t          sz;
     char           *data = malloc(1);
-    size_t          sz   = sizeof(data);
     read_all_result ret  = read_all(fd, &data, &sz);
     fclose(fd);
 
@@ -71,7 +71,7 @@ editor_open (const char *filepath) {
 }
 
 // TODO: Logging
-void
+int
 editor_save (const char *filepath) {
   unsigned int sz = piece_table_size(editor.line_ed.r->pt);
   char         s[sz];
@@ -83,7 +83,9 @@ editor_save (const char *filepath) {
   }
 
   piece_table_render(editor.line_ed.r->pt, 0, sz, s);
-  write_all_result ret = write_all(fd, s);
+
+  size_t           n_bytes;
+  write_all_result ret = write_all(fd, s, &n_bytes);
   fclose(fd);
 
   switch (ret) {
@@ -97,4 +99,8 @@ editor_save (const char *filepath) {
       break;
     case WRITE_ALL_OK: break;
   }
+
+  line_buffer_dirty_reset(editor.line_ed.r);
+
+  return (int)n_bytes;
 }

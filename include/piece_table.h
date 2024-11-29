@@ -59,7 +59,7 @@ typedef struct {
   /// array_t<seq_buffer_t*>
   array_t*            buffer_list;
   piece_table_event   last_event;
-  int                 dirty_counter;
+  int                 offset_since_dirty_reset;
 } piece_table_t;
 
 seq_buffer_t* seq_buffer_init(void);
