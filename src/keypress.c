@@ -16,6 +16,38 @@ typedef enum {
   KEYPRESS_CTRL  = 2,
 } keypress_flags_t;
 
+static int CTRL_SHIFT_UP_MAP[] = {
+  // 0 -> None
+  ESC_SEQ_CHAR,
+  // 1 -> Shift
+  SHIFT_ARROW_UP,
+  // 2 -> Ctrl
+  CTRL_ARROW_UP,
+  // 3 -> Ctrl+Shift
+  CTRL_SHIFT_ARROW_UP,
+};
+
+static int CTRL_SHIFT_DOWN_MAP[] = {
+  ESC_SEQ_CHAR,
+  SHIFT_ARROW_DOWN,
+  CTRL_ARROW_DOWN,
+  CTRL_SHIFT_ARROW_DOWN,
+};
+
+static int CTRL_SHIFT_RIGHT_MAP[] = {
+  ESC_SEQ_CHAR,
+  SHIFT_ARROW_RIGHT,
+  CTRL_ARROW_RIGHT,
+  CTRL_SHIFT_ARROW_RIGHT,
+};
+
+static int CTRL_SHIFT_LEFT_MAP[] = {
+  ESC_SEQ_CHAR,
+  SHIFT_ARROW_LEFT,
+  CTRL_ARROW_LEFT,
+  CTRL_SHIFT_ARROW_LEFT,
+};
+
 static int
 keypress_read (unsigned int* flags) {
   int  bytes_read;
@@ -77,35 +109,21 @@ keypress_read (unsigned int* flags) {
             return ESC_SEQ_CHAR;
           }
 
-          bool isCtrl  = (*flags & KEYPRESS_CTRL) == KEYPRESS_CTRL;
-          bool isShift = (*flags & KEYPRESS_SHIFT) == KEYPRESS_SHIFT;
           switch (seq[4]) {
             case 'A': {
-              if (isShift) {
-                return isCtrl ? CTRL_SHIFT_ARROW_UP : SHIFT_ARROW_UP;
-              }
-              return isCtrl ? CTRL_ARROW_UP : ESC_SEQ_CHAR;
+              return CTRL_SHIFT_UP_MAP[*flags];
             }
 
             case 'B': {
-              if (isShift) {
-                return isCtrl ? CTRL_SHIFT_ARROW_DOWN : SHIFT_ARROW_DOWN;
-              }
-              return isCtrl ? CTRL_ARROW_DOWN : ESC_SEQ_CHAR;
+              return CTRL_SHIFT_DOWN_MAP[*flags];
             }
 
             case 'C': {
-              if (isShift) {
-                return isCtrl ? CTRL_SHIFT_ARROW_RIGHT : SHIFT_ARROW_RIGHT;
-              }
-              return isCtrl ? CTRL_ARROW_RIGHT : ESC_SEQ_CHAR;
+              return CTRL_SHIFT_RIGHT_MAP[*flags];
             }
 
             case 'D': {
-              if (isShift) {
-                return isCtrl ? CTRL_SHIFT_ARROW_LEFT : SHIFT_ARROW_LEFT;
-              }
-              return isCtrl ? CTRL_ARROW_LEFT : ESC_SEQ_CHAR;
+              return CTRL_SHIFT_LEFT_MAP[*flags];
             }
           }
         }
@@ -156,7 +174,10 @@ static void
 keypress_handle_edit_mode_key (int c, bool should_act) {
   if (should_act) {
     switch (c) {
-      case ENTER: line_editor_insert_newline(&editor.line_ed); break;
+      case ENTER: {
+        line_editor_insert_newline(&editor.line_ed);
+        break;
+      }
 
       case CTRL_C: {
         mode_chmod(COMMAND_MODE);
@@ -245,12 +266,27 @@ keypress_handle_command_mode_key (int c, bool should_act) {
   }
 }
 
+static void
+keypress_handle_command_message_mode (int c) {
+  switch (c) {
+    case CTRL_C: {
+      mode_chmod(EDIT_MODE);
+      break;
+    }
+  }
+}
+
 void
 keypress_handle (void) {
-  unsigned int flags        = 0;
-  int          c            = keypress_read(&flags);
-  bool         select_clear = (flags & KEYPRESS_SHIFT) != KEYPRESS_SHIFT;
+  unsigned int flags = 0;
+  int          c     = keypress_read(&flags);
 
+  if (editor.mode == COMMAND_MODE && editor.cmode == CB_MESSAGE) {
+    keypress_handle_command_message_mode(c);
+    return;
+  }
+
+  bool select_clear = (flags & KEYPRESS_SHIFT) != KEYPRESS_SHIFT;
   if (select_clear) {
     cursor_select_clear(&editor.line_ed);
   }
@@ -258,17 +294,6 @@ keypress_handle (void) {
   line_editor_t* line_ed = editor.mode == EDIT_MODE ? &editor.line_ed : &editor.c_bar;
 
   bool unprocessed       = false;
-
-  if (editor.mode == COMMAND_MODE && editor.cmode == CB_MESSAGE) {
-    switch (c) {
-      case CTRL_C: {
-        mode_chmod(EDIT_MODE);
-        break;
-      }
-    }
-
-    return;
-  }
 
   switch (c) {
     case UNKNOWN: break;

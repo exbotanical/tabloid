@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <stdnoreturn.h>
 
+// TODO: Fix clear screen, then panic (never see msg)
 static noreturn void
 panic (const char *fmt, ...) {
   va_list va;

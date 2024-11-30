@@ -28,6 +28,17 @@ command_bar_process_command (line_editor_t* self) {
   char line[row->line_length];
   line_buffer_get_line(editor.c_bar.r, 0, line);
 
+  /*
+  L = 1
+  w, q
+
+  L = 2
+  w, q - mod ! - unknown
+
+  L = n
+  w <fpath> - mod ! - unknown
+  */
+
   // TODO: parser
   if (s_equals(line, "q")) {
     if (line_buffer_dirty(editor.line_ed.r)) {

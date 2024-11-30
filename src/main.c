@@ -30,6 +30,7 @@ main (int argc, char const *argv[]) {
   editor_init(&editor);
 
   // TODO: consolidate in init?
+  // TODO: Fix read empty file
   if (argc >= 2) {
     editor_open(argv[1]);
   }
