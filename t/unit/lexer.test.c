@@ -96,9 +96,7 @@ test_lexer_basic (void) {
 
   lexer_t lexer;
 
-  for (unsigned int i = 0; i < sizeof(test_cases) / sizeof(test_case); i++) {
-    test_case tc = test_cases[i];
-
+  FOR_EACH_TEST({
     lexer_init(&lexer, tc.in);
     array_t* tokens = lexer_tokenize(&lexer);
 
@@ -116,7 +114,7 @@ test_lexer_basic (void) {
     }
 
     free(tokens);
-  }
+  })
 }
 
 void

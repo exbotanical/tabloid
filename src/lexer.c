@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "xmalloc.h"
+
 void
 lexer_init (lexer_t* self, const char* source) {
   scanner_init(&self->scanner, source);
@@ -21,8 +23,8 @@ lexer_tokenize (lexer_t* self) {
     switch (c) {
       case ' ': break;
 
-      default:
-        token_t*  token = malloc(sizeof(token_t));
+      default: {
+        token_t*  token = xmalloc(sizeof(token_t));
         buffer_t* buf   = buffer_init(NULL);
 
         bool has_bang   = false;
@@ -33,13 +35,15 @@ lexer_tokenize (lexer_t* self) {
 
         if (buffer_size(buf)) {
           token->type  = TOKEN_STRING;
-          token->value = buffer_state(buf);
+          token->value = s_copy(buffer_state(buf));
           array_push(tokens, token);
         } else {
           free(token);
         }
 
+        buffer_free(buf);
         break;
+      }
     }
   }
 

@@ -6,7 +6,7 @@ file_handle_t logger;
 
 int
 main () {
-  plan(887);
+  plan(913);
 
   run_calc_tests();
   run_cursor_tests();
@@ -19,6 +19,7 @@ main () {
   run_file_mgmt_tests();
   run_scanner_tests();
   run_lexer_tests();
+  run_parser_tests();
 
   done_testing();
 }

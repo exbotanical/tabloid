@@ -17,6 +17,12 @@
 #define CALL_N_TIMES(n, call) \
   for (unsigned int i = 0; i < n; i++) call
 
+#define FOR_EACH_TEST(code)                                                   \
+  for (unsigned int i = 0; i < sizeof(test_cases) / sizeof(test_case); i++) { \
+    test_case tc = test_cases[i];                                             \
+    code                                                                      \
+  }
+
 // FILE *fp = fopen("./t/fixtures/tmp.txt", "rw+");
 // write(fp->_fileno, buffer_state(buf), buffer_size(buf));
 
