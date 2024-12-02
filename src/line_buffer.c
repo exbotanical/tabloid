@@ -5,10 +5,11 @@
 #include <string.h>
 
 #include "globals.h"
+#include "xmalloc.h"
 
 static line_info_t *
 line_info_init (unsigned int start, unsigned int length) {
-  line_info_t *self = malloc(sizeof(line_info_t));
+  line_info_t *self = xmalloc(sizeof(line_info_t));
   self->line_start  = start;
   self->line_length = length;
 
@@ -34,7 +35,7 @@ line_buffer_reset (line_buffer_t *self) {
 
 line_buffer_t *
 line_buffer_init (char *initial) {
-  line_buffer_t *self = malloc(sizeof(line_buffer_t));
+  line_buffer_t *self = xmalloc(sizeof(line_buffer_t));
   self->line_info     = array_init();
   self->num_lines     = 1;
   self->line          = array_init();

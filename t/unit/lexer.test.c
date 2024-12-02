@@ -1,6 +1,7 @@
 #include "lexer.h"
 
 #include "tests.h"
+#include "xmalloc.h"
 
 typedef struct {
   array_t* expect;
@@ -9,7 +10,7 @@ typedef struct {
 
 token_t*
 make_token (token_type_t type, char* value) {
-  token_t* tok = malloc(sizeof(tok));
+  token_t* tok = xmalloc(sizeof(tok));
   tok->type    = type;
   tok->value   = value;
 

@@ -3,11 +3,12 @@
 #include <stdlib.h>
 
 #include "tests.h"
+#include "xmalloc.h"
 
 static void
 test_piece_table (void) {
 #define buffer_reset() memset(buffer, 0, 1000)
-  char* buffer      = malloc(1000);
+  char* buffer      = xmalloc(1000);
 
   piece_table_t* pt = piece_table_init();
   piece_table_setup(pt, "hello world");
@@ -61,7 +62,7 @@ test_piece_table (void) {
 static void
 test_piece_table_no_initial (void) {
 #define buffer_reset() memset(buffer, 0, 1000)
-  char* buffer      = malloc(1000);
+  char* buffer      = xmalloc(1000);
 
   piece_table_t* pt = piece_table_init();
   piece_table_setup(pt, NULL);
@@ -80,7 +81,7 @@ test_piece_table_no_initial (void) {
 static void
 test_piece_table_empty_initial (void) {
 #define buffer_reset() memset(buffer, 0, 1000)
-  char* buffer      = malloc(1000);
+  char* buffer      = xmalloc(1000);
 
   piece_table_t* pt = piece_table_init();
   piece_table_setup(pt, "");

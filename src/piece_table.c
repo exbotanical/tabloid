@@ -5,10 +5,11 @@
 #include <string.h>
 
 #include "calc.h"
+#include "xmalloc.h"
 
 seq_buffer_t*
 seq_buffer_init (void) {
-  seq_buffer_t* self = malloc(sizeof(seq_buffer_t));
+  seq_buffer_t* self = xmalloc(sizeof(seq_buffer_t));
   self->length       = 0;
   self->max_size     = 0;
   self->id           = 0;
@@ -80,7 +81,7 @@ static int id_source = -2;  // TODO:
 
 piece_descriptor_t*
 piece_descriptor_init (void) {
-  piece_descriptor_t* self = malloc(sizeof(piece_descriptor_t));
+  piece_descriptor_t* self = xmalloc(sizeof(piece_descriptor_t));
 
   self->id                 = id_source++;
   self->offset             = 0;
@@ -108,7 +109,7 @@ piece_descriptor_remove (piece_descriptor_t* self) {
 
 piece_descriptor_range_t*
 piece_descriptor_range_init (void) {
-  piece_descriptor_range_t* self = malloc(sizeof(piece_descriptor_range_t));
+  piece_descriptor_range_t* self = xmalloc(sizeof(piece_descriptor_range_t));
   self->is_boundary              = true;
   self->seq_length               = 0;
   self->index                    = 0;
@@ -185,7 +186,7 @@ piece_descriptor_range_as_boundary (piece_descriptor_range_t* self, piece_descri
 
 piece_table_t*
 piece_table_init (void) {
-  piece_table_t* self            = malloc(sizeof(piece_table_t));
+  piece_table_t* self            = xmalloc(sizeof(piece_table_t));
   self->undo_stack               = event_stack_init();
   self->redo_stack               = event_stack_init();
   self->buffer_list              = array_init();

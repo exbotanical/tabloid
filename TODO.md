@@ -1,5 +1,6 @@
 # TODOs
 
+- [ ] GO ON A FREE SPREE
 - [x] status bar
 - [x] file I/O
   - [ ] swap files

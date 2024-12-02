@@ -9,6 +9,7 @@
 #include "cursor.h"
 #include "exception.h"
 #include "globals.h"
+#include "xmalloc.h"
 
 void
 editor_init (editor_t *self) {
@@ -48,7 +49,7 @@ editor_open (const char *filepath) {
     }
 
     size_t          sz;
-    char           *data = malloc(1);
+    char           *data = xmalloc(1);
     read_all_result ret  = read_all(fd, &data, &sz);
     fclose(fd);
 

@@ -4,6 +4,7 @@
 
 #include "piece_table.h"
 #include "tests.h"
+#include "xmalloc.h"
 
 static char buf[128];
 
@@ -16,7 +17,7 @@ get_line (line_buffer_t* lb, int lineno) {
 
 static cursor_t*
 create_test_cursor (int x, int y) {
-  cursor_t* curs = malloc(sizeof(cursor_t));
+  cursor_t* curs = xmalloc(sizeof(cursor_t));
   curs->x        = x;
   curs->y        = y;
   curs->col_off  = x;
@@ -58,7 +59,7 @@ test_line_buffer_get_all (void) {
   line_buffer_t* lb  = line_buffer_init(raw);
   line_buffer_refresh(lb);
 
-  char* s = malloc(0);
+  char* s = xmalloc(0);
 
   line_buffer_get_all(lb, &s);
   is(s, raw, "retrieves the full buffer state");

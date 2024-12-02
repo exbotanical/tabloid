@@ -9,6 +9,7 @@
 #include "globals.h"
 #include "keypress.h"
 #include "tty.h"
+#include "xmalloc.h"
 
 typedef enum {
   SELECT_LEFT,
@@ -120,7 +121,7 @@ cursor_set_position_command_bar (line_editor_t *self, buffer_t *buf) {
 
 cursor_t *
 cursor_create_copy (line_editor_t *self) {
-  cursor_t *curs = malloc(sizeof(cursor_t));
+  cursor_t *curs = xmalloc(sizeof(cursor_t));
   curs->x        = cursor_get_x(self);
   curs->y        = cursor_get_y(self);
   curs->col_off  = cursor_get_col_off(self);
