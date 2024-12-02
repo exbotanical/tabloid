@@ -5,18 +5,21 @@
 #include "line_editor.h"
 #include "tests.h"
 
+int
+tty_get_window_size (unsigned int *rows, unsigned int *cols) {
+  *rows = 0;
+  *cols = 0;
+  return 0;
+}
+
 static void
 setup (void) {
-  editor.line_ed.r    = line_buffer_init(NULL);
-  editor.line_ed.curs = DEFAULT_CURSOR_STATE;
-  editor.win.cols     = 0;
-  editor.win.rows     = 0;
-  line_pad            = 0;
+  editor_init(&editor);
 }
 
 static void
 teardown (void) {
-  line_buffer_free(editor.line_ed.r);
+  editor_free(&editor);
 }
 
 static void

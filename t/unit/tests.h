@@ -16,5 +16,7 @@ void run_regression_tests(void);
 void run_status_bar_tests(void);
 void run_command_bar_tests(void);
 void run_file_mgmt_tests(void);
+void run_scanner_tests(void);
+void run_lexer_tests(void);
 
 #endif /* TESTS_H */

@@ -28,16 +28,42 @@ command_bar_process_command (line_editor_t* self) {
   char line[row->line_length];
   line_buffer_get_line(editor.c_bar.r, 0, line);
 
-  /*
-  L = 1
-  w, q
+  bool is_override = false;
+  switch (strlen(line)) {
+    case 1: goto proc_single_char; break;
+    case 2: {
+      switch (*line + 1) {
+        case '!': {
+          is_override = true;
+          goto proc_single_char;
+          break;
+        }
+      }
+    }
+    default: {
+      switch (*line) {
+        case 'w': {
+          char* filename = line + 2;
+          if (filename) {
+            logger.write("C:> write file %s\n", filename);
+          }
+          break;
+        }
+      }
+    }
+  }
 
-  L = 2
-  w, q - mod ! - unknown
-
-  L = n
-  w <fpath> - mod ! - unknown
-  */
+proc_single_char:
+  switch (*line) {
+    case 'w': {
+      logger.write("C:> write\n");
+      break;
+    }
+    case 'q': {
+      logger.write("C:> quit\n");
+      break;
+    }
+  }
 
   // TODO: parser
   if (s_equals(line, "q")) {

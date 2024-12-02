@@ -185,21 +185,23 @@ piece_descriptor_range_as_boundary (piece_descriptor_range_t* self, piece_descri
 
 piece_table_t*
 piece_table_init (void) {
-  piece_table_t* self    = malloc(sizeof(piece_table_t));
-  self->undo_stack       = event_stack_init();
-  self->redo_stack       = event_stack_init();
-  self->buffer_list      = array_init();
-  self->head             = piece_descriptor_init();
-  self->tail             = piece_descriptor_init();
-  self->frag_1           = NULL;
-  self->frag_2           = NULL;
-  self->seq_length       = 0;
-  self->add_buffer_id    = 0;
-  self->last_event_index = 0;
-  self->last_event       = PT_SENTINEL;
+  piece_table_t* self            = malloc(sizeof(piece_table_t));
+  self->undo_stack               = event_stack_init();
+  self->redo_stack               = event_stack_init();
+  self->buffer_list              = array_init();
+  self->head                     = piece_descriptor_init();
+  self->tail                     = piece_descriptor_init();
+  self->frag_1                   = NULL;
+  self->frag_2                   = NULL;
+  self->seq_length               = 0;
+  self->add_buffer_id            = 0;
 
-  self->head->next       = self->tail;
-  self->tail->prev       = self->head;
+  self->last_event_index         = 0;
+  self->last_event               = PT_SENTINEL;
+  self->offset_since_dirty_reset = 0;
+
+  self->head->next               = self->tail;
+  self->tail->prev               = self->head;
 
   return self;
 }

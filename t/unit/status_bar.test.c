@@ -13,8 +13,6 @@
   buffer_free(buf);     \
   buf = buffer_init(NULL)
 
-static char *file_buffer;
-
 int
 tty_get_window_size (unsigned int *rows, unsigned int *cols) {
   *rows = 40;
@@ -43,7 +41,6 @@ test_basic_draw_status_bar (void) {
   buffer_t *buf = buffer_init(NULL);
 
   window_draw_status_bar(buf);
-  printf(">>> %s\n",buffer_state(buf));
   is(
     buffer_state(buf),
     ESC_SEQ_INVERT_COLOR " | EDIT | file.txt                  | Ln 1, Col 1 " ESC_SEQ_NORM_COLOR,

@@ -3,39 +3,23 @@
 #include "keypress.h"
 #include "tests.h"
 
-#define RESET_BUFFERS()   \
-  memset(slice, 0, 1024); \
-  buffer_free(buf);       \
-  buf = buffer_init(NULL)
-
-static char  buf[128];
-static char *file_buffer;
+int
+tty_get_window_size (unsigned int *rows, unsigned int *cols) {
+  *rows = 40;
+  *cols = 50;
+  return 0;
+}
 
 static void
 setup (void) {
-  // TODO: can we use editor_init somehow? maybe mock get_win
-  editor.line_ed.r                = line_buffer_init(NULL);
-  editor.line_ed.curs             = DEFAULT_CURSOR_STATE;
-  editor.win.cols                 = 0;
-  editor.win.rows                 = 0;
-  editor.filepath                 = NULL;
-
-  editor.conf.ln_prefix           = DEFAULT_LINE_PREFIX;
-
-  line_pad                        = DEFAULT_LNPAD;
-
-  editor.win.rows                 = 40;
-  editor.win.cols                 = 50;
-
-  editor.s_bar.left_component[0]  = '\0';
-  editor.s_bar.right_component[0] = '\0';
-  editor.mode                     = EDIT_MODE;
+  editor_init(&editor);
+  // Undo the offset for the status and command bars since we're not drawing them.
+  editor.win.rows += 2;
 }
 
 static void
 teardown (void) {
-  free(editor.line_ed.r);
-  free(file_buffer);
+  editor_free(&editor);
 }
 
 /* clang-format off */

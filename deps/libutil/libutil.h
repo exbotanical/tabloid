@@ -214,6 +214,8 @@ buffer_t *buffer_init(const char *init);
  */
 bool buffer_append(buffer_t *buf, const char *s);
 
+bool buffer_append_char(buffer_t *buf, const char c);
+
 /**
  * buffer_append_with appends a string `s` to a given buffer `buf`, reallocating
  * the required memory as needed. A third parameter `len` specifies how many

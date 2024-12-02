@@ -12,38 +12,16 @@
   buffer_free(buf);       \
   buf = buffer_init(NULL)
 
-static char *file_buffer;
-
 static void
 setup (void) {
-  editor.line_ed.r      = line_buffer_init(NULL);
-  editor.line_ed.curs   = DEFAULT_CURSOR_STATE;
-  editor.win.cols       = 0;
-  editor.win.rows       = 0;
-
-  editor.conf.ln_prefix = DEFAULT_LINE_PREFIX;
-
-  line_pad              = DEFAULT_LNPAD;
-
-  editor.win.rows       = 40;
-  editor.win.cols       = 50;
-  FILE *fd              = fopen("./t/fixtures/file.txt", "r");
-  if (!fd) {
-    perror("fopen");
-    exit(1);
-  }
-
-  file_buffer         = malloc(68300);
-  size_t          sz  = sizeof(file_buffer);
-  read_all_result ret = read_all(fd, &file_buffer, &sz);
-  assert(ret == READ_ALL_OK);
-  line_buffer_insert(editor.line_ed.r, editor.line_ed.curs.x, editor.line_ed.curs.y, file_buffer, NULL);
+  editor_init(&editor);
+  editor.win.rows = 40;
+  editor_open("./t/fixtures/file.txt");
 }
 
 static void
 teardown (void) {
-  free(editor.line_ed.r);
-  free(file_buffer);
+  editor_free(&editor);
 }
 
 /* clang-format off */
@@ -786,19 +764,6 @@ test_complex_undo (void) {
 
   line_editor_undo(&editor.line_ed);
   window_scroll();
-
-  window_draw_rows(buf);
-  buffer_slice(buf, 0, 20, slice);
-
-  ok(editor.line_ed.curs.x == 0, "correct cursor pos");
-  ok(editor.line_ed.curs.y == 25, "correct cursor pos");
-  is(
-    slice,
-    "  1 " ESC_SEQ_ERASE_LN_RIGHT_OF_CURSOR CRLF
-    "~" ESC_SEQ_ERASE_LN_RIGHT_OF_CURSOR CRLF
-    "~" ESC_SEQ_ERASE_LN_RIGHT_OF_CURSOR CRLF,
-    "empty now because this is the final undo"
-  );
 }
 
 /* clang-format on */

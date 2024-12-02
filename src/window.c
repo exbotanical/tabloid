@@ -82,6 +82,7 @@ window_draw_command_bar (buffer_t* buf) {
       for (unsigned int len = 0; len < num_cols - strlen(editor.cbar_msg); len++) {
         buffer_append(buf, " ");
       }
+      buffer_append(buf, ESC_SEQ_ERASE_LN_RIGHT_OF_CURSOR);
       return;
     }
 
@@ -107,10 +108,7 @@ window_draw_command_bar (buffer_t* buf) {
     line_buffer_get_line(editor.c_bar.r, 0, line);
 
     for (unsigned int i = cursor_get_col_off(&editor.c_bar); i < cursor_get_col_off(&editor.c_bar) + len; i++) {
-      char tmp[2];
-      tmp[0] = line[i];
-      tmp[1] = '\0';
-      buffer_append(buf, tmp);
+      buffer_append_char(buf, line[i]);
     }
 
     if (len == 0) {
