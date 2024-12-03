@@ -9,18 +9,18 @@ typedef enum {
 } token_modifier_t;
 
 typedef enum {
-  WRITE,
-  QUIT,
-  WRITE_QUIT,
+  COMMAND_WRITE,
+  COMMAND_QUIT,
+  COMMAND_WRITE_QUIT,
 
-  INVALID,
+  COMMAND_INVALID,
 } command_t;
 
 static const char* command_enum_displays[] = {
-  X(WRITE),
-  X(QUIT),
-  X(WRITE_QUIT),
-  X(INVALID),
+  X(COMMAND_WRITE),
+  X(COMMAND_QUIT),
+  X(COMMAND_WRITE_QUIT),
+  X(COMMAND_INVALID),
 };
 
 typedef struct {

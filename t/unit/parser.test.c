@@ -14,17 +14,17 @@ typedef struct {
 static void
 test_parser_basic (void) {
   test_case test_cases[] = {
-    {.in = "w!", .command = WRITE, .arg = NULL, .error = NULL, .override = true},
-    {.in = "w", .command = WRITE, .arg = NULL, .error = NULL, .override = false},
-    {.in = "w! hello", .command = WRITE, .arg = "hello", .error = NULL, .override = true},
+    {.in = "w!", .command = COMMAND_WRITE, .arg = NULL, .error = NULL, .override = true},
+    {.in = "w", .command = COMMAND_WRITE, .arg = NULL, .error = NULL, .override = false},
+    {.in = "w! hello", .command = COMMAND_WRITE, .arg = "hello", .error = NULL, .override = true},
 
-    {.in = "wq!", .command = WRITE_QUIT, .arg = NULL, .error = NULL, .override = true},
-    {.in = "wq", .command = WRITE_QUIT, .arg = NULL, .error = NULL, .override = false},
-    {.in = "wq! hello", .command = WRITE_QUIT, .arg = "hello", .error = NULL, .override = true},
+    {.in = "wq!", .command = COMMAND_WRITE_QUIT, .arg = NULL, .error = NULL, .override = true},
+    {.in = "wq", .command = COMMAND_WRITE_QUIT, .arg = NULL, .error = NULL, .override = false},
+    {.in = "wq! hello", .command = COMMAND_WRITE_QUIT, .arg = "hello", .error = NULL, .override = true},
 
-    {.in = "q!", .command = QUIT, .arg = NULL, .error = NULL, .override = true},
-    {.in = "q", .command = QUIT, .arg = NULL, .error = NULL, .override = false},
-    {.in = "q! hello", .command = INVALID, .arg = NULL, .error = "trailing text"},
+    {.in = "q!", .command = COMMAND_QUIT, .arg = NULL, .error = NULL, .override = true},
+    {.in = "q", .command = COMMAND_QUIT, .arg = NULL, .error = NULL, .override = false},
+    {.in = "q! hello", .command = COMMAND_INVALID, .arg = NULL, .error = "trailing text"},
   };
 
   /* clang-format off */

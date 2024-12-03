@@ -12,11 +12,11 @@
     ret         = true;              \
   }
 
-#define SET_ERROR(str)     \
-  {                        \
-    ct->command = INVALID; \
-    ct->error   = str;     \
-    ret         = false;   \
+#define SET_ERROR(str)             \
+  {                                \
+    ct->command = COMMAND_INVALID; \
+    ct->error   = str;             \
+    ret         = false;           \
   }
 
 command_token_t*
@@ -32,7 +32,7 @@ parser_command_token_init (void) {
 
 void
 parser_command_token_free (command_token_t* self) {
-  if (self->command != INVALID && self->arg) {
+  if (self->command != COMMAND_INVALID && self->arg) {
     free(self->arg);
   }
   free(self);
@@ -56,13 +56,13 @@ parser_parse_command (parser_t* self, array_t* tokens, command_token_t* ct) {
     ct->mods              |= TOKEN_MOD_OVERRIDE;
   }
 
-  IF_COMMAND("w", WRITE)
-  IF_COMMAND("q", QUIT)
-  IF_COMMAND("wq", WRITE_QUIT)
+  IF_COMMAND("w", COMMAND_WRITE)
+  IF_COMMAND("q", COMMAND_QUIT)
+  IF_COMMAND("wq", COMMAND_WRITE_QUIT)
 
   switch (ct->command) {
-    case WRITE:
-    case WRITE_QUIT: {
+    case COMMAND_WRITE:
+    case COMMAND_WRITE_QUIT: {
       if (has_args) {
         buffer_t* buf = buffer_init(NULL);
         foreach_i(tokens, i, 1) {
@@ -84,7 +84,7 @@ parser_parse_command (parser_t* self, array_t* tokens, command_token_t* ct) {
       }
     }
 
-    case QUIT: {
+    case COMMAND_QUIT: {
       if (has_args) {
         SET_ERROR("trailing text");
       }
