@@ -3,7 +3,7 @@
 #include "tests.h"
 
 static void
-assert_next (scanner_t* self, int pos, char c) {
+assert_next (scanner_t* self, ssize_t pos, char c) {
   ok(self->pos == pos, "expected pos");
   ok(scanner_peek(self) == c, "expected peek next char");
   ok(scanner_next(self) == c, "expected next char");

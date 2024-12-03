@@ -74,10 +74,10 @@ editor_open (const char *filepath) {
 }
 
 // TODO: Logging
-int
+ssize_t
 editor_save (const char *filepath) {
-  unsigned int sz = piece_table_size(editor.line_ed.r->pt);
-  char         s[sz];
+  size_t sz = piece_table_size(editor.line_ed.r->pt);
+  char   s[sz];
 
   FILE *fd = fopen(filepath, "wb+");
   if (!fd) {
@@ -105,5 +105,5 @@ editor_save (const char *filepath) {
 
   line_buffer_dirty_reset(editor.line_ed.r);
 
-  return (int)n_bytes;
+  return n_bytes;
 }

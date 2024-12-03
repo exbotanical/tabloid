@@ -50,8 +50,8 @@ static int CTRL_SHIFT_LEFT_MAP[] = {
 
 static int
 keypress_read (unsigned int* flags) {
-  int  bytes_read;
-  char c;
+  ssize_t bytes_read;
+  char    c;
 
   while ((bytes_read = read(STDIN_FILENO, &c, 1)) != 1) {
     if (bytes_read == -1 && errno != EAGAIN) {

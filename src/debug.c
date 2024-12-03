@@ -55,9 +55,9 @@ logger_write (const char *fmt, ...) {
   time_t     ts                = time(NULL);
   struct tm *ts_info           = localtime(&ts);
 
-  unsigned int buflen;
-  unsigned int headerlen = 0;
-  buf[0]                 = 0;
+  size_t buflen;
+  size_t headerlen = 0;
+  buf[0]           = 0;
 
   if (!suppress_header) {
     char header[SMALL_BUFFER];

@@ -80,8 +80,8 @@ tty_enable_raw_mode (void) {
   }
 }
 
-unsigned int
-tty_get_window_size (unsigned int *rows, unsigned int *cols) {
+size_t
+tty_get_window_size (size_t *rows, size_t *cols) {
   struct winsize ws;
 
   if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) == -1 || ws.ws_col == 0) {
@@ -90,7 +90,7 @@ tty_get_window_size (unsigned int *rows, unsigned int *cols) {
     if (write(STDOUT_FILENO, ESC_SEQ_CURSOR_MAX_FWD ESC_SEQ_CURSOR_MAX_DWN, 12) != 12) {
       return -1;
     }
-    return cursor_get_position(rows, cols);
+    return cursor_get_position((size_t *)rows, (size_t *)cols);
   }
 
   *rows = ws.ws_row;

@@ -26,9 +26,9 @@ typedef struct {
   const char*    filepath;
 } editor_t;
 
-void editor_init(editor_t* self);
-void editor_free(editor_t* self);
-void editor_open(const char* filename);
-int  editor_save(const char* filepath);
+void    editor_init(editor_t* self);
+void    editor_free(editor_t* self);
+void    editor_open(const char* filename);
+ssize_t editor_save(const char* filepath);
 
 #endif /* EDITOR_H */

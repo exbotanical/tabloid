@@ -9,14 +9,14 @@
 static char buf[128];
 
 static char*
-get_line (line_buffer_t* lb, int lineno) {
+get_line (line_buffer_t* lb, ssize_t lineno) {
   memset(buf, 0, 128);
   line_buffer_get_line(lb, lineno, buf);
   return buf;
 }
 
 static cursor_t*
-create_test_cursor (int x, int y) {
+create_test_cursor (ssize_t x, ssize_t y) {
   cursor_t* curs = xmalloc(sizeof(cursor_t));
   curs->x        = x;
   curs->y        = y;

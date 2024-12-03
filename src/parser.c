@@ -45,11 +45,11 @@ parser_init (parser_t* self) {
 
 static bool
 parser_parse_command (parser_t* self, array_t* tokens, command_token_t* ct) {
-  bool ret              = true;
+  bool ret          = true;
 
-  token_t*     token    = (token_t*)array_get(tokens, 0);
-  bool         has_args = array_size(tokens) > 1;
-  unsigned int len      = strlen(token->value);
+  token_t* token    = (token_t*)array_get(tokens, 0);
+  bool     has_args = array_size(tokens) > 1;
+  size_t   len      = strlen(token->value);
 
   if (token->value[len - 1] == '!') {
     token->value[len - 1]  = '\0';

@@ -16,17 +16,17 @@
 #include "line_editor.h"
 #include "status_bar.h"
 
-unsigned int line_pad = 0;
+size_t line_pad = 0;
 
 void
 window_draw_status_bar (buffer_t* buf) {
   // TODO: Cleanup
-  bool has_file         = !!editor.filepath;
-  bool is_dirty         = line_buffer_dirty(editor.line_ed.r);
+  bool has_file   = !!editor.filepath;
+  bool is_dirty   = line_buffer_dirty(editor.line_ed.r);
 
-  unsigned int num_cols = window_get_num_cols();
-  unsigned int lineno   = editor.line_ed.curs.y + 1;
-  unsigned int colno    = editor.line_ed.curs.x + 1;
+  size_t num_cols = window_get_num_cols();
+  size_t lineno   = editor.line_ed.curs.y + 1;
+  size_t colno    = editor.line_ed.curs.x + 1;
 
   char* mode_str;
 
@@ -60,10 +60,10 @@ window_draw_status_bar (buffer_t* buf) {
 
   buffer_append(buf, ESC_SEQ_INVERT_COLOR);
 
-  unsigned int component_len = strlen(editor.s_bar.left_component) + strlen(editor.s_bar.right_component);
+  size_t component_len = strlen(editor.s_bar.left_component) + strlen(editor.s_bar.right_component);
 
   buffer_append(buf, editor.s_bar.left_component);
-  for (unsigned int len = 0; len < num_cols - component_len; len++) {
+  for (size_t len = 0; len < num_cols - component_len; len++) {
     buffer_append(buf, " ");
   }
   buffer_append(buf, editor.s_bar.right_component);
@@ -76,10 +76,10 @@ window_draw_status_bar (buffer_t* buf) {
 void
 window_draw_command_bar (buffer_t* buf) {
   if (editor.mode == COMMAND_MODE) {
-    unsigned int num_cols = window_get_num_cols();
+    size_t num_cols = window_get_num_cols();
     if (editor.cmode == CB_MESSAGE) {
       buffer_append(buf, editor.cbar_msg);
-      for (unsigned int len = 0; len < num_cols - strlen(editor.cbar_msg); len++) {
+      for (size_t len = 0; len < num_cols - strlen(editor.cbar_msg); len++) {
         buffer_append(buf, " ");
       }
       buffer_append(buf, ESC_SEQ_ERASE_LN_RIGHT_OF_CURSOR);
@@ -95,19 +95,19 @@ window_draw_command_bar (buffer_t* buf) {
       return;
     }
 
-    int len = row->line_length - (cursor_get_col_off(&editor.c_bar));
+    ssize_t len = row->line_length - (cursor_get_col_off(&editor.c_bar));
     if (len < 0) {
       len = 0;
     }
 
-    if ((unsigned int)len > (num_cols - 1)) {
+    if (len > (num_cols - 1)) {
       len = (num_cols - 1);
     }
 
     char line[row->line_length];
     line_buffer_get_line(editor.c_bar.r, 0, line);
 
-    for (unsigned int i = cursor_get_col_off(&editor.c_bar); i < cursor_get_col_off(&editor.c_bar) + len; i++) {
+    for (size_t i = cursor_get_col_off(&editor.c_bar); i < cursor_get_col_off(&editor.c_bar) + len; i++) {
       buffer_append_char(buf, line[i]);
     }
 
@@ -122,7 +122,7 @@ window_draw_command_bar (buffer_t* buf) {
 }
 
 static void
-window_compute_select_range (unsigned int row_num, line_info_t* current_line, int* start_ptr, int* end_ptr) {
+window_compute_select_range (size_t row_num, line_info_t* current_line, int* start_ptr, int* end_ptr) {
   if (cursor_is_select_active(&editor.line_ed)) {
     bool is_ltr = cursor_is_select_ltr(&editor.line_ed);
 
@@ -173,13 +173,13 @@ window_compute_select_range (unsigned int row_num, line_info_t* current_line, in
 }
 
 static void
-window_draw_row (buffer_t* buf, line_info_t* row, unsigned int lineno, int select_start, int select_end, bool is_current) {
-  int len = row->line_length - (cursor_get_col_off(&editor.line_ed));
+window_draw_row (buffer_t* buf, line_info_t* row, size_t lineno, ssize_t select_start, ssize_t select_end, bool is_current) {
+  ssize_t len = row->line_length - (cursor_get_col_off(&editor.line_ed));
   if (len < 0) {
     len = 0;
   }
 
-  if ((unsigned int)len > (window_get_num_cols() - (line_pad + 1))) {
+  if (len > (window_get_num_cols() - (line_pad + 1))) {
     len = (window_get_num_cols() - (line_pad + 1));
   }
 
@@ -187,7 +187,7 @@ window_draw_row (buffer_t* buf, line_info_t* row, unsigned int lineno, int selec
   if (select_start < cursor_get_col_off(&editor.line_ed)) {
     select_start = cursor_get_col_off(&editor.line_ed);
   }
-  if (select_end >= (len + (int)cursor_get_col_off(&editor.line_ed))) {
+  if (select_end >= (len + (ssize_t)cursor_get_col_off(&editor.line_ed))) {
     select_end = len + cursor_get_col_off(&editor.line_ed) - 1;
   }
 
@@ -197,7 +197,7 @@ window_draw_row (buffer_t* buf, line_info_t* row, unsigned int lineno, int selec
   bool is_selected = select_end != -1 && cursor_is_select_active(&editor.line_ed) && select_end >= select_start;
 
   // Start at &line[col_off], go for `len` chars
-  for (unsigned int i = cursor_get_col_off(&editor.line_ed); i < cursor_get_col_off(&editor.line_ed) + len; i++) {
+  for (size_t i = cursor_get_col_off(&editor.line_ed); i < cursor_get_col_off(&editor.line_ed) + len; i++) {
     if (is_selected) {
       if (i == select_start) {
         buffer_append(buf, ESC_SEQ_BG_COLOR(218));
@@ -222,12 +222,12 @@ window_draw_row (buffer_t* buf, line_info_t* row, unsigned int lineno, int selec
   }
 }
 
-extern inline unsigned int
+extern inline size_t
 window_get_num_rows (void) {
   return editor.win.rows;
 }
 
-extern inline unsigned int
+extern inline size_t
 window_get_num_cols (void) {
   return editor.win.cols;
 }
@@ -298,17 +298,17 @@ window_scroll (void) {
 
 void
 window_draw_rows (buffer_t* buf) {
-  unsigned int lineno = cursor_get_row_off(&editor.line_ed);
-  line_pad            = log10(editor.line_ed.r->num_lines) + 1;
+  size_t lineno = cursor_get_row_off(&editor.line_ed);
+  line_pad      = log10(editor.line_ed.r->num_lines) + 1;
 
   if (line_pad < DEFAULT_LNPAD) {
     line_pad = DEFAULT_LNPAD;
   }
 
   // For every row in the entire window...
-  for (unsigned int y = 0; y < window_get_num_rows(); y++) {
+  for (size_t y = 0; y < window_get_num_rows(); y++) {
     // Grab the visible row
-    unsigned int visible_row_idx = y + cursor_get_row_off(&editor.line_ed);
+    size_t visible_row_idx = y + cursor_get_row_off(&editor.line_ed);
     // If the visible row index is > the number of buffered rows...
     if (visible_row_idx >= editor.line_ed.r->num_lines) {
       buffer_append(buf, editor.conf.ln_prefix);
@@ -334,8 +334,8 @@ window_draw_rows (buffer_t* buf) {
       line_info_t* current_row = (line_info_t*)array_get(editor.line_ed.r->line_info, visible_row_idx);
 
       // TODO: refactor
-      int select_start = -1;
-      int select_end   = -1;
+      ssize_t select_start = -1;
+      ssize_t select_end   = -1;
 
       if (cursor_is_select_active(&editor.line_ed)) {
         bool is_ltr = cursor_is_select_ltr(&editor.line_ed);
@@ -390,11 +390,11 @@ window_draw_rows (buffer_t* buf) {
       }
 
       if (is_current_line) {
-        int current_row_len = current_row ? current_row->line_length : 0;
+        ssize_t current_row_len = current_row ? current_row->line_length : 0;
         // If it's the current row, reset the highlight after drawing the row
-        int padding_len = (window_get_num_cols() + cursor_get_col_off(&editor.line_ed)) - (current_row_len + line_pad + 1);
+        ssize_t padding_len = (window_get_num_cols() + cursor_get_col_off(&editor.line_ed)) - (current_row_len + line_pad + 1);
         if (padding_len > 0) {
-          for (int i = 0; i < padding_len; i++) {
+          for (size_t i = 0; i < padding_len; i++) {
             buffer_append(buf, " ");  // Highlight entire row till the end
           }
         }

@@ -54,7 +54,7 @@ command_bar_process_command (line_editor_t* self) {
       if (!editor.filepath) {
         command_bar_set_message_mode(self, "No file name");
       } else {
-        int n_bytes = editor_save(editor.filepath);
+        ssize_t n_bytes = editor_save(editor.filepath);
         command_bar_set_message_mode(self, "Wrote %d bytes to %s", n_bytes, editor.filepath);
       }
 

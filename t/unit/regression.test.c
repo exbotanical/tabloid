@@ -784,7 +784,7 @@ run_regression_tests (void) {
     // TODO: move word tests
   };
 
-  for (unsigned int i = 0; i < sizeof(functions) / sizeof(functions[0]); i++) {
+  for (size_t i = 0; i < sizeof(functions) / sizeof(functions[0]); i++) {
     setup();
     functions[i]();
     teardown();

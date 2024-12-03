@@ -13,10 +13,8 @@ typedef struct {
   char*        value;
 } token_t;
 
-// TODO: Choose and rationalize: int v unsigned int v unsigned int vs unsigned int
 typedef struct {
-  scanner_t    scanner;
-  unsigned int lineno;
+  scanner_t scanner;
 } lexer_t;
 
 void     lexer_init(lexer_t* self, const char* source);

@@ -5,8 +5,8 @@
 #include "line_editor.h"
 #include "tests.h"
 
-unsigned int
-tty_get_window_size (unsigned int *rows, unsigned int *cols) {
+size_t
+tty_get_window_size (size_t *rows, size_t *cols) {
   *rows = 0;
   *cols = 0;
   return 0;
@@ -1206,7 +1206,7 @@ run_cursor_tests (void) {
     test_cursor_select_x_axis,
   };
 
-  for (unsigned int i = 0; i < sizeof(functions) / sizeof(functions[0]); i++) {
+  for (size_t i = 0; i < sizeof(functions) / sizeof(functions[0]); i++) {
     setup();
     functions[i]();
     teardown();

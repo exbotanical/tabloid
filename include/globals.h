@@ -6,6 +6,6 @@
 
 extern file_handle_t logger;
 extern editor_t      editor;
-extern unsigned int  line_pad;
+extern size_t        line_pad;
 
 #endif /* GLOBALS_H */
