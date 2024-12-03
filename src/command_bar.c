@@ -19,10 +19,25 @@ command_bar_do_quit (line_editor_t* self, command_token_t* command) {
 }
 
 static void
+command_bar_save_file (line_editor_t* self, const char* filepath) {
+  ssize_t n_bytes = editor_save(filepath);
+  command_bar_set_message_mode(self, "Wrote %d bytes to %s", n_bytes, filepath);
+}
+
+static void
 command_bar_do_write (line_editor_t* self, command_token_t* command) {
-  // if dirty:
-  // if new_name && exists:
-  // Still dirty if write to another file?
+  if (command->arg) {
+    if ((command->mods & TOKEN_MOD_OVERRIDE) != TOKEN_MOD_OVERRIDE && file_exists(command->arg)) {
+      command_bar_set_message_mode(self, "Cannot overwrite existing file");
+    } else {
+      command_bar_save_file(self, command->arg);
+    }
+
+  } else if (!editor.filepath) {
+    command_bar_set_message_mode(self, "No file name");
+  } else {
+    command_bar_save_file(self, editor.filepath);
+  }
 }
 
 void
@@ -49,8 +64,20 @@ command_bar_process_command (line_editor_t* self) {
   bool             is_override = false;
   command_token_t* command     = parser_parse_wrapped(line);
 
+  // TODO: Rename member, rename enums w/prefix
   switch (command->command) {
     case COMMAND_WRITE: {
+      if (command->arg) {
+        if ((command->mods & TOKEN_MOD_OVERRIDE) != TOKEN_MOD_OVERRIDE && file_exists(command->arg)) {
+          command_bar_set_message_mode(self, "Cannot overwrite existing file");
+        } else {
+          ssize_t n_bytes = editor_save(command->arg);
+          command_bar_set_message_mode(self, "Wrote %d bytes to %s", n_bytes, command->arg);
+        }
+
+        break;
+      }
+
       if (!editor.filepath) {
         command_bar_set_message_mode(self, "No file name");
       } else {
@@ -73,7 +100,6 @@ command_bar_process_command (line_editor_t* self) {
   }
 
   parser_command_token_free(command);
-  command_bar_clear(self);
 }
 
 void

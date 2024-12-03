@@ -11,6 +11,19 @@
 #include "globals.h"
 #include "xmalloc.h"
 
+static void
+editor_update_file_state_on_write (const char *filepath) {
+  if (!editor.filepath) {
+    editor.filepath = s_copy(filepath);
+    line_buffer_dirty_reset(editor.line_ed.r);
+  } else {
+    // Only clear dirty flag if we're actually writing to the current file.
+    if (s_equals(filepath, editor.filepath)) {
+      line_buffer_dirty_reset(editor.line_ed.r);
+    }
+  }
+}
+
 void
 editor_init (editor_t *self) {
   if (tty_get_window_size(&(self->win.rows), &(self->win.cols)) == -1) {
@@ -103,7 +116,7 @@ editor_save (const char *filepath) {
     case IO_WRITE_ALL_OK: break;
   }
 
-  line_buffer_dirty_reset(editor.line_ed.r);
+  editor_update_file_state_on_write(filepath);
 
   return n_bytes;
 }

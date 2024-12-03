@@ -53,4 +53,4 @@
 
 - [ ] Use config for keybindings
 - [ ] Use config for commands
-- [ ] Use parser for commands
+- [x] Use parser for commands
