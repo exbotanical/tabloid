@@ -48,18 +48,20 @@ editor_open (const char *filepath) {
       panic("failed to open file %s\n", filepath);
     }
 
-    size_t          sz;
-    char           *data = xmalloc(1);
-    read_all_result ret  = read_all(fd, &data, &sz);
+    size_t             sz;
+    char              *data = xmalloc(1);
+    io_read_all_result ret  = io_read_all(fd, &data, &sz);
     fclose(fd);
 
     // TODO: status bar, not panic
     switch (ret) {
-      case READ_ALL_INVALID: panic("an error occurred while reading %s\n", filepath); break;
-      case READ_ALL_ERR: panic("a stream error occurred while reading %s\n", filepath); break;
-      case READ_ALL_TOO_LARGE: panic("failed to read %s - input was too large\n", filepath); break;
-      case READ_ALL_NOMEM: panic("ran out of memory while reading %s\n", filepath); break;
-      case READ_ALL_OK: break;
+      case IO_READ_ALL_INVALID: panic("an error occurred while reading %s\n", filepath); break;
+      case IO_READ_ALL_ERR: panic("a stream error occurred while reading %s\n", filepath); break;
+      case IO_READ_ALL_TOO_LARGE:
+        panic("failed to read %s - input was too large\n", filepath);
+        break;
+      case IO_READ_ALL_NOMEM: panic("ran out of memory while reading %s\n", filepath); break;
+      case IO_READ_ALL_OK: break;
     }
 
     line_buffer_insert(editor.line_ed.r, 0, 0, data, NULL);
@@ -85,20 +87,20 @@ editor_save (const char *filepath) {
 
   piece_table_render(editor.line_ed.r->pt, 0, sz, s);
 
-  size_t           n_bytes;
-  write_all_result ret = write_all(fd, s, &n_bytes);
+  size_t              n_bytes;
+  io_write_all_result ret = io_write_all(fd, s, &n_bytes);
   fclose(fd);
 
   switch (ret) {
-    case WRITE_ALL_INVALID:
+    case IO_WRITE_ALL_INVALID:
       panic("an error occurred while writing %s - invalid data or file descriptor\n", filepath);
       break;
-    case WRITE_ALL_ERR: panic("an error occurred while writing %s\n", filepath); break;
+    case IO_WRITE_ALL_ERR: panic("an error occurred while writing %s\n", filepath); break;
     // TODO: Actually handle this somehow. Either use a swapfile or atomic op so we can rollback the file.
-    case WRITE_ALL_INCOMPLETE:
+    case IO_WRITE_ALL_INCOMPLETE:
       panic("an error occurred while writing %s - incomplete write. sorry we screwed up your file oops\n", filepath);
       break;
-    case WRITE_ALL_OK: break;
+    case IO_WRITE_ALL_OK: break;
   }
 
   line_buffer_dirty_reset(editor.line_ed.r);

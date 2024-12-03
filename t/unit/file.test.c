@@ -3,7 +3,7 @@
 #include "keypress.h"
 #include "tests.h"
 
-int
+unsigned int
 tty_get_window_size (unsigned int *rows, unsigned int *cols) {
   *rows = 40;
   *cols = 50;

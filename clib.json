@@ -6,13 +6,11 @@
   "license": "MIT",
   "description": "",
   "keywords": [],
-  "src": [
-    "include/tabloid.h"
-  ],
+  "src": ["include/tabloid.h"],
   "development": {
     "exbotanical/libtap": "0.0.5"
   },
   "dependencies": {
-    "exbotanical/libutil": "1.0.1"
+    "exbotanical/libutil": "1.0.5"
   }
 }

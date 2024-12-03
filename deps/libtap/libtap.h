@@ -16,15 +16,15 @@ extern "C" {
 
 // TODO: parser for gh actions, etc
 
-static char*
+static inline char*
 __s_fmt__ (char* fmt, ...) {
   va_list args, args_cp;
   va_start(args, fmt);
   va_copy(args_cp, args);
 
   // Pass length of zero first to determine number of bytes needed
-  unsigned int n   = vsnprintf(NULL, 0, fmt, args) + 1;
-  char*        buf = (char*)malloc(n);
+  int   n   = vsnprintf(NULL, 0, fmt, args) + 1;
+  char* buf = (char*)malloc(n);
   if (!buf) {
     return NULL;
   }
@@ -37,17 +37,17 @@ __s_fmt__ (char* fmt, ...) {
   return buf;
 }
 
-unsigned int __ok(
-  unsigned int       ok,
-  const char*        fn_name,
-  const char*        file,
-  const unsigned int line,
-  char*              msg
+size_t __ok(
+  size_t       ok,
+  const char*  fn_name,
+  const char*  file,
+  const size_t line,
+  char*        msg
 );
 
-void __skip(unsigned int num_skips, char* msg);
+void __skip(size_t num_skips, char* msg);
 
-int __write_shared_mem(int status);
+ssize_t __write_shared_mem(ssize_t status);
 
 void todo_start(const char* fmt, ...);
 
@@ -55,14 +55,44 @@ void todo_end(void);
 
 void diag(const char* fmt, ...);
 
-void plan(unsigned int num_tests);
+void plan(size_t num_tests);
 
-unsigned int exit_status(void);
+size_t exit_status(void);
 
-unsigned int bail_out(const char* fmt, ...);
+size_t bail_out(const char* fmt, ...);
 
 #define ok(test, ...) \
   __ok(test ? 1 : 0, __func__, __FILE__, __LINE__, __s_fmt__(__VA_ARGS__))
+
+#define eq_num(a, b, ...) \
+  __ok(a == b ? 1 : 0, __func__, __FILE__, __LINE__, __s_fmt__(__VA_ARGS__))
+
+#define neq_num(a, b, ...) \
+  __ok(a != b ? 1 : 0, __func__, __FILE__, __LINE__, __s_fmt__(__VA_ARGS__))
+
+#define eq_str(a, b, ...)      \
+  __ok(                        \
+    strcmp(a, b) == 0 ? 1 : 0, \
+    __func__,                  \
+    __FILE__,                  \
+    __LINE__,                  \
+    __s_fmt__(__VA_ARGS__)     \
+  )
+
+#define neq_str(a, b, ...)     \
+  __ok(                        \
+    strcmp(a, b) == 0 ? 0 : 1, \
+    __func__,                  \
+    __FILE__,                  \
+    __LINE__,                  \
+    __s_fmt__(__VA_ARGS__)     \
+  )
+
+#define eq_null(a, ...) \
+  __ok(a == NULL, __func__, __FILE__, __LINE__, __s_fmt__(__VA_ARGS__))
+
+#define neq_null(a, ...) \
+  __ok(a != NULL, __func__, __FILE__, __LINE__, __s_fmt__(__VA_ARGS__))
 
 #define is(actual, expected, ...)              \
   __ok(                                        \
@@ -99,7 +129,7 @@ unsigned int bail_out(const char* fmt, ...);
     /* set shared memory to 1 */                                \
     __write_shared_mem(1);                                      \
                                                                 \
-    int pid = fork();                                           \
+    pid_t pid = fork();                                         \
     switch (pid) {                                              \
       case -1: {                                                \
         perror("fork");                                         \
@@ -119,7 +149,7 @@ unsigned int bail_out(const char* fmt, ...);
       exit(EXIT_FAILURE);                                       \
     }                                                           \
     /* grab prev value (and reset) - if 0, code succeeded */    \
-    int test_died = __write_shared_mem(0);                      \
+    ssize_t test_died = __write_shared_mem(0);                  \
     if (!test_died) {                                           \
       code                                                      \
     }                                                           \

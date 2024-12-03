@@ -55,23 +55,21 @@ logger_write (const char *fmt, ...) {
   time_t     ts                = time(NULL);
   struct tm *ts_info           = localtime(&ts);
 
-  unsigned int buflen, headerlen = 0;
-  buf[0] = 0;
+  unsigned int buflen;
+  unsigned int headerlen = 0;
+  buf[0]                 = 0;
 
   if (!suppress_header) {
     char header[SMALL_BUFFER];
 
     if (strftime(header, sizeof(header), LOG_HEADER, ts_info)) {
-      if ((headerlen = snprintf(buf, sizeof(header), header, hostname))
-          >= sizeof(header)) {
+      if ((headerlen = snprintf(buf, sizeof(header), header, hostname)) >= sizeof(header)) {
         headerlen = sizeof(header) - 1;
       }
     }
   }
 
-  if ((buflen = vsnprintf(buf + headerlen, sizeof(buf) - headerlen, fmt, va)
-                + headerlen)
-      >= sizeof(buf)) {
+  if ((buflen = vsnprintf(buf + headerlen, sizeof(buf) - headerlen, fmt, va) + headerlen) >= sizeof(buf)) {
     buflen = sizeof(buf) - 1;
   }
 

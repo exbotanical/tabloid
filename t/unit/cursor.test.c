@@ -5,7 +5,7 @@
 #include "line_editor.h"
 #include "tests.h"
 
-int
+unsigned int
 tty_get_window_size (unsigned int *rows, unsigned int *cols) {
   *rows = 0;
   *cols = 0;

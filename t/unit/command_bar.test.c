@@ -10,7 +10,7 @@
   buffer_free(buf);     \
   buf = buffer_init(NULL)
 
-int
+unsigned int
 tty_get_window_size (unsigned int *rows, unsigned int *cols) {
   *rows = 40;
   *cols = 50;
