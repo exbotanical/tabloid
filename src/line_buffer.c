@@ -8,7 +8,7 @@
 #include "xmalloc.h"
 
 static line_info_t *
-line_info_init (size_t start, size_t length) {
+line_info_init (unsigned int start, unsigned int length) {
   line_info_t *self = xmalloc(sizeof(line_info_t));
   self->line_start  = start;
   self->line_length = length;
@@ -60,12 +60,12 @@ void
 line_buffer_refresh (line_buffer_t *self) {
   line_buffer_reset(self);
 
-  size_t doc_size     = piece_table_size(self->pt);
+  unsigned int doc_size     = piece_table_size(self->pt);
 
-  size_t offset_chars = 0;
-  size_t line_start   = 0;
-  size_t num_lines    = 1;
-  size_t line_length  = 0;
+  unsigned int offset_chars = 0;
+  unsigned int line_start   = 0;
+  unsigned int num_lines    = 1;
+  unsigned int line_length  = 0;
 
   if (doc_size == 0) {
     line_info_t *li = line_info_init(0, 0);
@@ -100,12 +100,12 @@ line_buffer_refresh (line_buffer_t *self) {
 }
 
 void
-line_buffer_get_line (line_buffer_t *self, size_t lineno, char *buffer) {
+line_buffer_get_line (line_buffer_t *self, unsigned int lineno, char *buffer) {
   assert(self->num_lines > lineno);
 
   line_info_t *line_info   = (line_info_t *)array_get(self->line_info, lineno);
-  size_t       line_start  = line_info->line_start;
-  size_t       line_length = line_info->line_length;
+  unsigned int line_start  = line_info->line_start;
+  unsigned int line_length = line_info->line_length;
 
   if (line_length == 0) {
     buffer = "";
@@ -122,15 +122,15 @@ line_buffer_get_line (line_buffer_t *self, size_t lineno, char *buffer) {
 
 void
 line_buffer_get_all (line_buffer_t *self, char **buffer) {
-  size_t sz = piece_table_size(self->pt);
-  char   s[sz];
+  unsigned int sz = piece_table_size(self->pt);
+  char         s[sz];
 
   piece_table_render(self->pt, 0, sz, s);
   *buffer = s;
 }
 
-static size_t
-get_absolute_index (line_buffer_t *self, ssize_t x, ssize_t y) {
+static unsigned int
+get_absolute_index (line_buffer_t *self, int x, int y) {
   if (array_size(self->line_info) == 0) {
     return 0;
   }
@@ -160,15 +160,15 @@ line_buffer_get_xy_from_index (line_buffer_t *self, unsigned int index, unsigned
 // so the caller can call free immediately. Storing a cursor on the heap for
 // every single piece table update is a bit heavy-handed.
 void
-line_buffer_insert (line_buffer_t *self, ssize_t x, ssize_t y, char *insert_chars, void *metadata) {
-  size_t absolute_index = get_absolute_index(self, x, y);
+line_buffer_insert (line_buffer_t *self, int x, int y, char *insert_chars, void *metadata) {
+  unsigned int absolute_index = get_absolute_index(self, x, y);
   piece_table_insert(self->pt, absolute_index, insert_chars, metadata);
   line_buffer_refresh(self);
 }
 
 void
-line_buffer_delete (line_buffer_t *self, ssize_t x, ssize_t y, void *metadata) {
-  size_t absolute_index = get_absolute_index(self, x, y);
+line_buffer_delete (line_buffer_t *self, int x, int y, void *metadata) {
+  unsigned int absolute_index = get_absolute_index(self, x, y);
   piece_table_delete(self->pt, absolute_index, 1, PT_DELETE, metadata);
   line_buffer_refresh(self);
 }

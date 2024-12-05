@@ -7,13 +7,13 @@
 
 typedef struct {
   // Num rows in the window
-  size_t rows;
+  unsigned int rows;
   // Num cols in the window
-  size_t cols;
+  unsigned int cols;
 } window_t;
 
-extern inline size_t window_get_num_rows(void);
-extern inline size_t window_get_num_cols(void);
+extern inline unsigned int window_get_num_rows(void);
+extern inline unsigned int window_get_num_cols(void);
 
 void window_clear(void);
 void window_refresh(void);

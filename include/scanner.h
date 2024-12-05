@@ -2,12 +2,11 @@
 #define SCANNER_H
 
 #include <stdbool.h>
-#include <sys/types.h>
 
 typedef struct {
   const char* start;
   const char* current;
-  ssize_t     pos;
+  int         pos;
   const char* buf;
 } scanner_t;
 

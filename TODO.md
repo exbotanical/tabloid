@@ -1,7 +1,7 @@
 # TODOs
 
 - [ ] GO ON A FREE SPREE
-- [ ] Prune size_ts
+- [ ] size_t, int, unsigned int
 - [ ] Utilize alloca where possible
 - [x] status bar
 - [x] file I/O

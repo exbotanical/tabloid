@@ -6,7 +6,7 @@
 static char buf[128];
 
 static char*
-get_line (ssize_t lineno) {
+get_line (int lineno) {
   memset(buf, 0, 128);
   line_buffer_get_line(editor.line_ed.r, lineno, buf);
   return buf;
@@ -209,7 +209,7 @@ run_line_editor_tests (void) {
     test_line_editor_delete_line_before_x,
   };
 
-  for (size_t i = 0; i < sizeof(functions) / sizeof(functions[0]); i++) {
+  for (unsigned int i = 0; i < sizeof(functions) / sizeof(functions[0]); i++) {
     setup();
     functions[i]();
     teardown();

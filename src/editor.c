@@ -87,10 +87,10 @@ editor_open (const char *filepath) {
 }
 
 // TODO: Logging
-ssize_t
+int
 editor_save (const char *filepath) {
-  size_t sz = piece_table_size(editor.line_ed.r->pt);
-  char   s[sz];
+  unsigned int sz = piece_table_size(editor.line_ed.r->pt);
+  char         s[sz];
 
   FILE *fd = fopen(filepath, "wb+");
   if (!fd) {
@@ -118,5 +118,5 @@ editor_save (const char *filepath) {
 
   editor_update_file_state_on_write(filepath);
 
-  return n_bytes;
+  return (int)n_bytes;
 }

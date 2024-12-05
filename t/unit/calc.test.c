@@ -4,73 +4,73 @@
 
 static void
 test_min (void) {
-  ssize_t a   = 1;
-  ssize_t b   = 2;
+  int a   = 1;
+  int b   = 2;
 
-  ssize_t ret = min(a, b);
+  int ret = min(a, b);
   ok(ret == 1, "returns the smaller number");
 }
 
 static void
 test_min_neg (void) {
-  ssize_t a   = 1;
-  ssize_t b   = -2;
+  int a   = 1;
+  int b   = -2;
 
-  ssize_t ret = min(a, b);
+  int ret = min(a, b);
   ok(ret == -2, "returns the smaller number");
 }
 
 static void
 test_min_both_neg (void) {
-  ssize_t a   = -100;
-  ssize_t b   = -20;
+  int a   = -100;
+  int b   = -20;
 
-  ssize_t ret = min(a, b);
+  int ret = min(a, b);
   ok(ret == -100, "returns the smaller number");
 }
 
 static void
 test_min_eq (void) {
-  ssize_t a   = 2;
-  ssize_t b   = 2;
+  int a   = 2;
+  int b   = 2;
 
-  ssize_t ret = min(a, b);
+  int ret = min(a, b);
   ok(ret == 2, "returns the equivalent number");
 }
 
 static void
 test_max (void) {
-  ssize_t a   = 1;
-  ssize_t b   = 2;
+  int a   = 1;
+  int b   = 2;
 
-  ssize_t ret = max(a, b);
+  int ret = max(a, b);
   ok(ret == 2, "returns the larger number");
 }
 
 static void
 test_max_neg (void) {
-  ssize_t a   = 1;
-  ssize_t b   = -2;
+  int a   = 1;
+  int b   = -2;
 
-  ssize_t ret = max(a, b);
+  int ret = max(a, b);
   ok(ret == 1, "returns the larger number");
 }
 
 static void
 test_max_both_neg (void) {
-  ssize_t a   = -100;
-  ssize_t b   = -20;
+  int a   = -100;
+  int b   = -20;
 
-  ssize_t ret = max(a, b);
+  int ret = max(a, b);
   ok(ret == -20, "returns the larger number");
 }
 
 static void
 test_max_eq (void) {
-  ssize_t a   = 2;
-  ssize_t b   = 2;
+  int a   = 2;
+  int b   = 2;
 
-  ssize_t ret = max(a, b);
+  int ret = max(a, b);
   ok(ret == 2, "returns the equivalent number");
 }
 

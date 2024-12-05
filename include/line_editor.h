@@ -4,8 +4,8 @@
 #include "line_buffer.h"
 
 typedef struct {
-  size_t x;
-  size_t y;
+  unsigned int x;
+  unsigned int y;
 } coords_t;
 
 /**
@@ -17,13 +17,13 @@ typedef struct {
 
   // TODO: use coords_t
   // x coordinate of cursor
-  size_t x;
+  unsigned int x;
   // y coordinate of cursor
-  size_t y;
+  unsigned int y;
   // Row (y) offset used for scroll i.e. number of rows past the window size
-  size_t row_off;
+  unsigned int row_off;
   // Column (x) offset used for scroll i.e. number of columns past the window size
-  size_t col_off;
+  unsigned int col_off;
 
   bool select_active;
 } cursor_t;
@@ -34,7 +34,7 @@ typedef struct {
 } line_editor_t;
 
 void line_editor_init(line_editor_t* self);
-void line_editor_insert_char(line_editor_t* self, ssize_t c);
+void line_editor_insert_char(line_editor_t* self, int c);
 void line_editor_delete_char(line_editor_t* self);
 void line_editor_delete_line_before_x(line_editor_t* self);
 void line_editor_insert_newline(line_editor_t* self);

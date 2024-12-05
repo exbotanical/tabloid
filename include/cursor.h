@@ -7,45 +7,45 @@
 #include "line_editor.h"
 
 // TODO: Move me
-ssize_t cursor_get_position(size_t *rows, size_t *cols);
+int cursor_get_position(unsigned int *rows, unsigned int *cols);
 
-static inline size_t
+static inline unsigned int
 cursor_get_x (line_editor_t *self) {
   return self->curs.x;
 }
 
-static inline size_t
+static inline unsigned int
 cursor_get_y (line_editor_t *self) {
   return self->curs.y;
 }
 
-static inline size_t
+static inline unsigned int
 cursor_get_anchor_x (line_editor_t *self) {
   return self->curs.select_anchor.x;
 }
 
-static inline size_t
+static inline unsigned int
 cursor_get_anchor_y (line_editor_t *self) {
   return self->curs.select_anchor.y;
 }
 
-static inline size_t
+static inline unsigned int
 cursor_get_offset_x (line_editor_t *self) {
   return self->curs.select_offset.x;
 }
 
 // TODO: PAY CC!!!!
-static inline size_t
+static inline unsigned int
 cursor_get_offset_y (line_editor_t *self) {
   return self->curs.select_offset.y;
 }
 
-static inline size_t
+static inline unsigned int
 cursor_get_row_off (line_editor_t *self) {
   return self->curs.row_off;
 }
 
-static inline size_t
+static inline unsigned int
 cursor_get_col_off (line_editor_t *self) {
   return self->curs.col_off;
 }
@@ -56,52 +56,52 @@ cursor_is_select_active (line_editor_t *self) {
 }
 
 static inline void
-cursor_set_x (line_editor_t *self, size_t x) {
+cursor_set_x (line_editor_t *self, unsigned int x) {
   self->curs.x = x;
 }
 
-static inline size_t
+static inline unsigned int
 cursor_inc_x (line_editor_t *self) {
   self->curs.x++;
   return cursor_get_x(self);
 }
 
-static inline size_t
+static inline unsigned int
 cursor_dec_x (line_editor_t *self) {
   self->curs.x--;
   return cursor_get_x(self);
 }
 
 static inline void
-cursor_set_y (line_editor_t *self, size_t y) {
+cursor_set_y (line_editor_t *self, unsigned int y) {
   self->curs.y = y;
 }
 
-static inline size_t
+static inline unsigned int
 cursor_inc_y (line_editor_t *self) {
   self->curs.y++;
   return cursor_get_y(self);
 }
 
-static inline size_t
+static inline unsigned int
 cursor_dec_y (line_editor_t *self) {
   self->curs.y--;
   return cursor_get_y(self);
 }
 
 static inline void
-cursor_set_xy (line_editor_t *self, size_t x, size_t y) {
+cursor_set_xy (line_editor_t *self, unsigned int x, unsigned int y) {
   cursor_set_x(self, x);
   cursor_set_y(self, y);
 }
 
 static inline void
-cursor_set_row_off (line_editor_t *self, size_t row_off) {
+cursor_set_row_off (line_editor_t *self, unsigned int row_off) {
   self->curs.row_off = row_off;
 }
 
 static inline void
-cursor_set_col_off (line_editor_t *self, size_t col_off) {
+cursor_set_col_off (line_editor_t *self, unsigned int col_off) {
   self->curs.col_off = col_off;
 }
 

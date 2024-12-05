@@ -30,7 +30,7 @@ line_editor_insert (line_editor_t *self, char *s) {
 }
 
 void
-line_editor_insert_char (line_editor_t *self, ssize_t c) {
+line_editor_insert_char (line_editor_t *self, int c) {
   char cp[1];
   cp[0] = c;
   cp[1] = '\0';

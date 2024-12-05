@@ -13,8 +13,8 @@
   buffer_free(buf);     \
   buf = buffer_init(NULL)
 
-size_t
-tty_get_window_size (size_t *rows, size_t *cols) {
+unsigned int
+tty_get_window_size (unsigned int *rows, unsigned int *cols) {
   *rows = 40;
   *cols = 50;
   return 0;
@@ -95,7 +95,7 @@ run_status_bar_tests (void) {
     test_basic_draw_status_bar,
   };
 
-  for (size_t i = 0; i < sizeof(functions) / sizeof(functions[0]); i++) {
+  for (unsigned int i = 0; i < sizeof(functions) / sizeof(functions[0]); i++) {
     setup();
     functions[i]();
     teardown();

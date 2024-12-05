@@ -19,13 +19,13 @@ typedef enum {
 } select_mode_t;
 
 static void
-cursor_set_select_anchor (line_editor_t *self, ssize_t x, ssize_t y) {
+cursor_set_select_anchor (line_editor_t *self, int x, int y) {
   self->curs.select_anchor.x = x;
   self->curs.select_anchor.y = y;
 }
 
 static void
-cursor_set_select_offset (line_editor_t *self, ssize_t x, ssize_t y) {
+cursor_set_select_offset (line_editor_t *self, int x, int y) {
   self->curs.select_offset.x = x;
   self->curs.select_offset.y = y;
 }
@@ -58,10 +58,10 @@ cursor_select (line_editor_t *self, select_mode_t mode) {
   cursor_copy_to_select_offset(self);
 }
 
-ssize_t
-cursor_get_position (size_t *rows, size_t *cols) {
-  char   buf[32];
-  size_t i = 0;
+int
+cursor_get_position (unsigned int *rows, unsigned int *cols) {
+  char         buf[32];
+  unsigned int i = 0;
 
   if (write(STDOUT_FILENO, ESC_SEQ "[6n", 4) != 4) {
     return -1;
@@ -172,7 +172,7 @@ cursor_move_left_word (line_editor_t *self) {
     return;
   }
 
-  size_t i = cursor_get_x(self);
+  unsigned int i = cursor_get_x(self);
 
   char buf[line_info->line_length];
   line_buffer_get_line(self->r, cursor_get_y(self), buf);
@@ -230,7 +230,7 @@ cursor_move_right_word (line_editor_t *self) {
     return;
   }
 
-  size_t i = cursor_get_x(self);
+  unsigned int i = cursor_get_x(self);
 
   // TODO: cache all lines in current window
   char buf[line_info->line_length];
@@ -304,7 +304,7 @@ void
 cursor_snap_to_end (line_editor_t *self) {
   line_info_t *line_info = (line_info_t *)array_get(self->r->line_info, cursor_get_y(self));
 
-  size_t length          = line_info ? line_info->line_length : 0;
+  unsigned int length    = line_info ? line_info->line_length : 0;
   if (cursor_get_x(self) > length) {
     cursor_set_x(self, length);
   }

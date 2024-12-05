@@ -41,7 +41,7 @@ typedef struct {
 } command_token_t;
 
 typedef struct {
-  ssize_t cursor;
+  int cursor;
 } parser_t;
 
 command_token_t* parser_command_token_init(void);

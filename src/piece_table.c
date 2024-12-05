@@ -70,14 +70,14 @@ event_stack_clear (event_stack_t* self) {
 }
 
 piece_descriptor_range_t*
-event_stack_back (event_stack_t* self, size_t index) {
-  size_t size = array_size(self->event_captures);
+event_stack_back (event_stack_t* self, unsigned int index) {
+  unsigned int size = array_size(self->event_captures);
   // TODO:
   assert(size > 0 && index < size);
   return (piece_descriptor_range_t*)array_get(self->event_captures, size - index - 1);
 }
 
-static ssize_t id_source = -2;  // TODO:
+static int id_source = -2;  // TODO:
 
 piece_descriptor_t*
 piece_descriptor_init (void) {
@@ -209,14 +209,14 @@ piece_table_init (void) {
 
 void
 piece_table_setup (piece_table_t* self, char* piece) {
-  size_t        length     = piece ? strlen(piece) : 0;
+  unsigned int  length     = piece ? strlen(piece) : 0;
   seq_buffer_t* add_buffer = piece_table_alloc_add_buffer(self, length);
   if (piece) {
     buffer_append(add_buffer->buffer, piece);
   }
   add_buffer->length     = length;
 
-  size_t              id = array_size(self->buffer_list) - 1;
+  unsigned int        id = array_size(self->buffer_list) - 1;
   piece_descriptor_t* pd = piece_descriptor_init();
   pd->offset             = 0;
   pd->length             = length;
@@ -245,25 +245,25 @@ piece_table_free (piece_table_t* self) {
   free(self);
 }
 
-size_t
+unsigned int
 piece_table_size (piece_table_t* self) {
   return self->seq_length;
 }
 
 void
-piece_table_insert (piece_table_t* self, size_t index, char* piece, void* metadata) {
-  size_t length = strlen(piece);
+piece_table_insert (piece_table_t* self, unsigned int index, char* piece, void* metadata) {
+  unsigned int length = strlen(piece);
 
   assert(index <= self->seq_length);
 
   piece_descriptor_t* pd;
-  size_t              pd_index = piece_table_desc_from_index(self, index, &pd);
+  unsigned int        pd_index   = piece_table_desc_from_index(self, index, &pd);
 
-  size_t add_buffer_offset     = piece_table_import_buffer(self, piece, length);
+  unsigned int add_buffer_offset = piece_table_import_buffer(self, piece, length);
 
   event_stack_clear(self->redo_stack);
 
-  size_t insert_offset              = index - pd_index;
+  unsigned int insert_offset        = index - pd_index;
 
   piece_descriptor_range_t* new_pds = piece_descriptor_range_init();
 
@@ -319,16 +319,16 @@ piece_table_insert (piece_table_t* self, size_t index, char* piece, void* metada
 }
 
 void
-piece_table_delete (piece_table_t* self, size_t index, size_t length, piece_table_event ev, void* metadata) {
+piece_table_delete (piece_table_t* self, unsigned int index, unsigned int length, piece_table_event ev, void* metadata) {
   assert(length != 0);
   assert(length <= self->seq_length);
   assert(index <= self->seq_length - length);
 
   piece_descriptor_t* pd;
-  size_t              pd_index = piece_table_desc_from_index(self, index, &pd);
+  unsigned int        pd_index = piece_table_desc_from_index(self, index, &pd);
 
-  size_t rm_offset             = index - pd_index;
-  size_t rm_length             = length;
+  unsigned int rm_offset       = index - pd_index;
+  unsigned int rm_length       = length;
 
   bool append_pd_range         = false;
 
@@ -443,7 +443,7 @@ done:
 }
 
 piece_descriptor_range_t*
-piece_table_undo_range_init (piece_table_t* self, size_t index, size_t length, void* metadata) {
+piece_table_undo_range_init (piece_table_t* self, unsigned int index, unsigned int length, void* metadata) {
   piece_descriptor_range_t* undo_range = piece_descriptor_range_init();
   undo_range->seq_length               = self->seq_length;
   undo_range->index                    = index;
@@ -465,18 +465,18 @@ piece_table_redo (piece_table_t* self) {
   return piece_table_do_stack_event(self, self->redo_stack, self->undo_stack);
 }
 
-size_t
-piece_table_render (piece_table_t* self, size_t index, size_t length, char* dest) {
+unsigned int
+piece_table_render (piece_table_t* self, unsigned int index, unsigned int length, char* dest) {
   // TODO: cache
-  size_t total = 0;
+  unsigned int total = 0;
 
   piece_descriptor_t* pd;
-  size_t              pd_index  = piece_table_desc_from_index(self, index, &pd);
-  size_t              pd_offset = index - pd_index;
+  unsigned int        pd_index  = piece_table_desc_from_index(self, index, &pd);
+  unsigned int        pd_offset = index - pd_index;
 
   while (length && (pd && pd != self->tail)) {
-    size_t copy_len = min(pd->length - pd_offset, length);
-    char*  src = buffer_state(((seq_buffer_t*)array_get(self->buffer_list, pd->buffer))->buffer);
+    unsigned int copy_len = min(pd->length - pd_offset, length);
+    char* src = buffer_state(((seq_buffer_t*)array_get(self->buffer_list, pd->buffer))->buffer);
 
     memcpy(dest, src + pd->offset + pd_offset, copy_len * sizeof(char));
 
@@ -502,8 +502,8 @@ piece_table_do_stack_event (piece_table_t* self, event_stack_t* src, event_stack
     return NULL;  // TODO:
   }
 
-  size_t group_id;
-  void*  metadata;
+  unsigned int group_id;
+  void*        metadata;
 
   piece_table_record_event(self, PT_SENTINEL, 0);
   group_id = event_stack_last(src)->group_id;
@@ -521,7 +521,7 @@ piece_table_do_stack_event (piece_table_t* self, event_stack_t* src, event_stack
 }
 
 seq_buffer_t*
-piece_table_alloc_buffer (piece_table_t* self, size_t max_size) {
+piece_table_alloc_buffer (piece_table_t* self, unsigned int max_size) {
   seq_buffer_t* sb = seq_buffer_init();
   sb->length       = 0;
   sb->max_size     = max_size;
@@ -531,14 +531,14 @@ piece_table_alloc_buffer (piece_table_t* self, size_t max_size) {
 }
 
 seq_buffer_t*
-piece_table_alloc_add_buffer (piece_table_t* self, size_t max_size) {
+piece_table_alloc_add_buffer (piece_table_t* self, unsigned int max_size) {
   seq_buffer_t* sb    = piece_table_alloc_buffer(self, max_size);
   self->add_buffer_id = sb->id;
   return sb;
 }
 
-size_t
-piece_table_import_buffer (piece_table_t* self, char* s, size_t length) {
+unsigned int
+piece_table_import_buffer (piece_table_t* self, char* s, unsigned int length) {
   seq_buffer_t* buf = (seq_buffer_t*)array_get(self->buffer_list, self->add_buffer_id);
   if (buf->length + length >= buf->max_size) {
     buf = piece_table_alloc_add_buffer(self, length + 0x10000);
@@ -547,8 +547,8 @@ piece_table_import_buffer (piece_table_t* self, char* s, size_t length) {
 
   buffer_append(buf->buffer, s);
 
-  size_t ret   = buf->length;
-  buf->length += length;
+  unsigned int ret  = buf->length;
+  buf->length      += length;
 
   return ret;
 }
@@ -649,15 +649,15 @@ piece_table_restore_desc_ranges (piece_table_t* self, piece_descriptor_range_t* 
     }
   }
 
-  size_t tmp       = pdr->seq_length;
+  unsigned int tmp = pdr->seq_length;
   pdr->seq_length  = self->seq_length;
   self->seq_length = tmp;
 }
 
-size_t
-piece_table_desc_from_index (piece_table_t* self, size_t index, piece_descriptor_t** pd) {
-  size_t curr_index = 0;
-  size_t pd_index   = 0;
+unsigned int
+piece_table_desc_from_index (piece_table_t* self, unsigned int index, piece_descriptor_t** pd) {
+  unsigned int curr_index = 0;
+  unsigned int pd_index   = 0;
 
   for (*pd = self->head->next; (*pd)->next; *pd = (*pd)->next) {
     if (index >= curr_index && index < curr_index + (*pd)->length) {
@@ -682,13 +682,13 @@ piece_table_desc_from_index (piece_table_t* self, size_t index, piece_descriptor
 }
 
 void
-piece_table_record_event (piece_table_t* self, piece_table_event ev, size_t index) {
+piece_table_record_event (piece_table_t* self, piece_table_event ev, unsigned int index) {
   self->last_event       = ev;
   self->last_event_index = index;
 }
 
 bool
-piece_table_can_optimize (piece_table_t* self, piece_table_event ev, size_t index) {
+piece_table_can_optimize (piece_table_t* self, piece_table_event ev, unsigned int index) {
   return self->last_event == ev && self->last_event_index == index;
 }
 
