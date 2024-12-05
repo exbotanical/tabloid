@@ -21,7 +21,13 @@ lexer_tokenize (lexer_t* self) {
     }
 
     switch (c) {
-      case ' ': break;
+      case ' ': {
+        token_t* token = xmalloc(sizeof(token_t));
+        token->type    = TOKEN_SPACE;
+        token->value   = s_copy(" ");
+        array_push(tokens, token);
+        break;
+      };
 
       default: {
         token_t*  token = xmalloc(sizeof(token_t));
@@ -42,6 +48,13 @@ lexer_tokenize (lexer_t* self) {
         }
 
         buffer_free(buf);
+
+        if (c == ' ') {
+          token_t* s_token = xmalloc(sizeof(token_t));
+          s_token->type    = TOKEN_SPACE;
+          s_token->value   = s_copy(" ");
+          array_push(tokens, s_token);
+        }
         break;
       }
     }

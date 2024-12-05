@@ -134,7 +134,25 @@ get_absolute_index (line_buffer_t *self, ssize_t x, ssize_t y) {
   if (array_size(self->line_info) == 0) {
     return 0;
   }
+
   return ((line_info_t *)array_get(self->line_info, y))->line_start + x;
+}
+
+void
+line_buffer_get_xy_from_index (line_buffer_t *self, unsigned int index, unsigned int *x, unsigned int *y) {
+  foreach (self->line_info, i) {
+    line_info_t *li    = (line_info_t *)array_get(self->line_info, i);
+    unsigned int start = li->line_start;
+    unsigned int end   = li->line_start + li->line_length;
+
+    if (start <= index && end >= index) {
+      *x = index - start;
+      *y = i;
+      return;
+    }
+  }
+
+  assert(false);
 }
 
 // TODO: store metadata only when needed (when dealing with a group)

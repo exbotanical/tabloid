@@ -17,14 +17,21 @@ test_parser_basic (void) {
     {.in = "w!", .command = COMMAND_WRITE, .arg = NULL, .error = NULL, .override = true},
     {.in = "w", .command = COMMAND_WRITE, .arg = NULL, .error = NULL, .override = false},
     {.in = "w! hello", .command = COMMAND_WRITE, .arg = "hello", .error = NULL, .override = true},
+    {.in = "w! hello world", .command = COMMAND_WRITE, .arg = "hello world", .error = NULL, .override = true},
 
     {.in = "wq!", .command = COMMAND_WRITE_QUIT, .arg = NULL, .error = NULL, .override = true},
     {.in = "wq", .command = COMMAND_WRITE_QUIT, .arg = NULL, .error = NULL, .override = false},
     {.in = "wq! hello", .command = COMMAND_WRITE_QUIT, .arg = "hello", .error = NULL, .override = true},
+    {.in = "wq!  hello ", .command = COMMAND_WRITE_QUIT, .arg = " hello ", .error = NULL, .override = true},
 
     {.in = "q!", .command = COMMAND_QUIT, .arg = NULL, .error = NULL, .override = true},
     {.in = "q", .command = COMMAND_QUIT, .arg = NULL, .error = NULL, .override = false},
     {.in = "q! hello", .command = COMMAND_INVALID, .arg = NULL, .error = "trailing text"},
+
+    {.in = "/", .command = PCOMMAND_SEARCH, .arg = NULL, .error = NULL, .override = false},
+    {.in = "/query", .command = PCOMMAND_SEARCH, .arg = "query", .error = NULL, .override = false},
+    {.in = "/query with spaces", .command = PCOMMAND_SEARCH, .arg = "query with spaces", .error = NULL, .override = false},
+    {.in = "/ query preceded by space", .command = PCOMMAND_SEARCH, .arg = " query preceded by space", .error = NULL, .override = false},
   };
 
   /* clang-format off */

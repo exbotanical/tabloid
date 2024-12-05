@@ -66,6 +66,37 @@ test_line_buffer_get_all (void) {
 }
 
 static void
+test_line_buffer_get_xy_from_index (void) {
+  typedef struct {
+    unsigned int x;
+    unsigned int y;
+    unsigned int abs;
+  } test_case;
+
+  test_case test_cases[] = {
+    {.x = 1,  .y = 2, .abs = 13},
+    {.x = 10, .y = 4, .abs = 37},
+    {.x = 0,  .y = 0, .abs = 0 },
+    {.x = 1,  .y = 0, .abs = 1 },
+    {.x = 5,  .y = 1, .abs = 11},
+    {.x = 36, .y = 4, .abs = 63},
+  };
+
+  char*          raw = "hello\nworld\nthis\nis a line\na super duper long yellowjacket line";
+  line_buffer_t* lb  = line_buffer_init(raw);
+  line_buffer_refresh(lb);
+
+  FOR_EACH_TEST({
+    unsigned int x;
+    unsigned int y;
+    line_buffer_get_xy_from_index(lb, tc.abs, &x, &y);
+
+    eq_num(x, tc.x, "abs index -> x, y - want x=%d, got x=%d", tc.x, x);
+    eq_num(y, tc.y, "abs index -> x, y - want y=%d, got y=%d", tc.y, y);
+  });
+}
+
+static void
 test_line_buffer_newline (void) {
   char*          raw = "hello\nworld\nthis\nis a line";
   line_buffer_t* lb  = line_buffer_init(raw);
@@ -472,6 +503,7 @@ run_line_buffer_tests (void) {
   test_line_buffer_newlines_only();
   test_line_buffer_get_line();
   test_line_buffer_get_all();
+  test_line_buffer_get_xy_from_index();
   test_line_buffer_undo();
   test_line_buffer_undo_delete_blocks();
   test_line_buffer_undo_breaks();

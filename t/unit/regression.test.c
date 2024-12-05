@@ -593,8 +593,7 @@ test_complex_undo (void) {
   ok(editor.line_ed.curs.x == 85, "correct cursor pos");
   ok(editor.line_ed.curs.y == 24, "correct cursor pos");
 
-  printf(">>> %s\n",slice);
-  is(
+   is(
     slice,
     " 23 " ESC_SEQ_ERASE_LN_RIGHT_OF_CURSOR CRLF
     " 24 " ESC_SEQ_ERASE_LN_RIGHT_OF_CURSOR CRLF

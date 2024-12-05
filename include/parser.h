@@ -13,6 +13,8 @@ typedef enum {
   COMMAND_QUIT,
   COMMAND_WRITE_QUIT,
 
+  PCOMMAND_SEARCH,
+
   COMMAND_INVALID,
 } command_t;
 
@@ -20,6 +22,9 @@ static const char* command_enum_displays[] = {
   X(COMMAND_WRITE),
   X(COMMAND_QUIT),
   X(COMMAND_WRITE_QUIT),
+
+  X(PCOMMAND_SEARCH),
+
   X(COMMAND_INVALID),
 };
 

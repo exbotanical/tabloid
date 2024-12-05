@@ -6,8 +6,9 @@ file_handle_t logger;
 
 int
 main () {
-  plan(1937);
+  plan(2018);
 
+  run_str_search_tests();
   run_calc_tests();
   run_cursor_tests();
   run_piece_table_tests();
@@ -20,7 +21,6 @@ main () {
   run_scanner_tests();
   run_lexer_tests();
   run_parser_tests();
-  run_str_search_tests();
 
   done_testing();
 }

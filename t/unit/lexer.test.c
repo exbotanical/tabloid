@@ -19,33 +19,34 @@ make_token (token_type_t type, char* value) {
 
 static void
 test_lexer_basic (void) {
-  token_t* str_token = make_token(TOKEN_STRING, "tok");
+  token_t* str_token   = make_token(TOKEN_STRING, "tok");
+  token_t* space_token = make_token(TOKEN_SPACE, " ");
 
   /* clang-format off */
   test_case test_cases[] = {
     {
       .in     = "  tok",
-      .expect = array_collect(str_token),
+      .expect = array_collect(space_token, space_token, str_token),
     },
     {
       .in     = "  tok !",
-      .expect = array_collect(str_token, make_token(TOKEN_STRING, "!")),
+      .expect = array_collect(space_token, space_token, str_token, space_token, make_token(TOKEN_STRING, "!")),
     },
     {
       .in     = "  tok!!",
-      .expect = array_collect(make_token(TOKEN_STRING, "tok!!")),
+      .expect = array_collect(space_token, space_token, make_token(TOKEN_STRING, "tok!!")),
     },
     {
       .in     = "  tok tok",
-      .expect = array_collect(str_token, str_token),
+      .expect = array_collect(space_token, space_token, str_token, space_token,str_token),
     },
     {
       .in     = "  tok ! tok",
-      .expect = array_collect(str_token, make_token(TOKEN_STRING, "!"), str_token),
+      .expect = array_collect(space_token, space_token, str_token, space_token, make_token(TOKEN_STRING, "!"), space_token, str_token),
     },
     {
-      .in     = "  tok!! tok",
-      .expect = array_collect(make_token(TOKEN_STRING, "tok!!"), str_token),
+      .in     = " tok!! tok",
+      .expect = array_collect(space_token, make_token(TOKEN_STRING, "tok!!"), space_token, str_token),
     },
     {
       .in     = "tok",
@@ -53,7 +54,7 @@ test_lexer_basic (void) {
     },
     {
       .in     = "tok !",
-      .expect = array_collect(str_token, make_token(TOKEN_STRING, "!")),
+      .expect = array_collect(str_token, space_token, make_token(TOKEN_STRING, "!")),
     },
     {
       .in     = "tok!!",
@@ -61,35 +62,35 @@ test_lexer_basic (void) {
     },
     {
       .in     = "tok tok",
-      .expect = array_collect(str_token, str_token),
+      .expect = array_collect(str_token, space_token, str_token),
     },
     {
       .in     = "tok ! tok",
-      .expect = array_collect(str_token, make_token(TOKEN_STRING, "!"), str_token),
+      .expect = array_collect(str_token, space_token, make_token(TOKEN_STRING, "!"), space_token, str_token),
     },
     {
       .in     = "tok!! tok",
-      .expect = array_collect(make_token(TOKEN_STRING, "tok!!"), str_token),
+      .expect = array_collect(make_token(TOKEN_STRING, "tok!!"), space_token, str_token),
     },
     {
       .in     = "!",
       .expect = array_collect(make_token(TOKEN_STRING, "!")),
     },
     {
-      .in     = "  !",
-      .expect = array_collect(make_token(TOKEN_STRING, "!")),
+      .in     = " !",
+      .expect = array_collect(space_token, make_token(TOKEN_STRING, "!")),
     },
     {
-      .in     = "    ",
-      .expect = array_collect(NULL),
+      .in     = "  ",
+      .expect = array_collect(space_token, space_token),
     },
     {
-      .in = " w! 'name'",
-      .expect = array_collect(make_token(TOKEN_STRING, "w!"), make_token(TOKEN_STRING, "'name'")),
+      .in = "w! 'name'",
+      .expect = array_collect(make_token(TOKEN_STRING, "w!"), space_token, make_token(TOKEN_STRING, "'name'")),
     },
     {
-      .in = " w! name",
-      .expect = array_collect(make_token(TOKEN_STRING, "w!"), make_token(TOKEN_STRING, "name")),
+      .in = "w! name",
+      .expect = array_collect(make_token(TOKEN_STRING, "w!"), space_token, make_token(TOKEN_STRING, "name")),
     },
   };
 
@@ -110,8 +111,8 @@ test_lexer_basic (void) {
         continue;
       }
 
-      ok(expect->type == actual->type, "has expected token type");
-      is(expect->value, actual->value, "has expected token value");
+      ok(expect->type == actual->type, "has expected token type (got=%d, want=%d)", actual->type, expect->type);
+      is(expect->value, actual->value, "has expected token value (got=%s, want=%s)", actual->value, expect->value);
     }
 
     free(tokens);

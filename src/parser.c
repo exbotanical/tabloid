@@ -45,13 +45,20 @@ parser_init (parser_t* self) {
 
 static bool
 parser_parse_command (parser_t* self, array_t* tokens, command_token_t* ct) {
+  ct->arg           = NULL;
   bool ret          = true;
 
   token_t* token    = (token_t*)array_get(tokens, 0);
   bool     has_args = array_size(tokens) > 1;
   size_t   len      = strlen(token->value);
 
-  if (token->value[len - 1] == '!') {
+  if (*token->value == '/') {
+    ct->command = PCOMMAND_SEARCH;
+    ret         = true;
+    if (strlen(token->value) > 1) {
+      ct->arg = s_copy(token->value + 1);
+    }
+  } else if (token->value[len - 1] == '!') {
     token->value[len - 1]  = '\0';
     ct->mods              |= TOKEN_MOD_OVERRIDE;
   }
@@ -68,7 +75,17 @@ parser_parse_command (parser_t* self, array_t* tokens, command_token_t* ct) {
         foreach_i(tokens, i, 1) {
           token_t* ctoken = (token_t*)array_get(tokens, i);
 
-          if (ctoken->type != TOKEN_STRING) {
+          if (i == 1) {
+            // Must be a space between the command and first arg
+            // TODO: test
+            if (ctoken->type != TOKEN_SPACE) {
+              SET_ERROR("unknown command");
+              break;
+            }
+            continue;
+          }
+
+          if (ctoken->type != TOKEN_STRING && ctoken->type != TOKEN_SPACE) {
             SET_ERROR("invalid type");
             break;
           }
@@ -79,9 +96,31 @@ parser_parse_command (parser_t* self, array_t* tokens, command_token_t* ct) {
         ct->arg = s_copy(buffer_state(buf));
 
         buffer_free(buf);
-
-        break;
       }
+
+      break;
+    }
+
+    case PCOMMAND_SEARCH: {
+      if (has_args) {
+        buffer_t* buf = buffer_init(ct->arg);
+        foreach_i(tokens, i, 1) {
+          token_t* ctoken = (token_t*)array_get(tokens, i);
+
+          if (ctoken->type != TOKEN_STRING && ctoken->type != TOKEN_SPACE) {
+            SET_ERROR("invalid type");
+            break;
+          }
+
+          buffer_append(buf, ctoken->value);
+        }
+
+        ct->arg = s_copy(buffer_state(buf));
+
+        buffer_free(buf);
+      }
+
+      break;
     }
 
     case COMMAND_QUIT: {

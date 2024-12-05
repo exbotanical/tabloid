@@ -7,6 +7,8 @@
 
 #include "globals.h"
 #include "parser.h"
+#include "str_search.h"
+#include "xmalloc.h"
 
 static void
 command_bar_do_quit (line_editor_t* self, command_token_t* command) {
@@ -38,6 +40,21 @@ command_bar_do_write (line_editor_t* self, command_token_t* command) {
   } else {
     command_bar_save_file(self, editor.filepath);
   }
+}
+
+static void
+command_bar_do_search (line_editor_t* self, command_token_t* command) {
+  char* s = xmalloc(1);
+  line_buffer_get_all(editor.line_ed.r, &s);
+
+  string_finder_t sf;
+  string_finder_init(&sf, command->arg);
+  int found = string_finder_next(&sf, s);
+  // if (found != -1) {
+  //   line_buffer_get_xy_from_index(self, found, self->curs.x, self->curs.y);
+  // }
+
+  free(s);
 }
 
 void
@@ -95,6 +112,10 @@ command_bar_process_command (line_editor_t* self) {
     case COMMAND_INVALID: {
       // TODO: message level e.g. error, warn, info, etc
       command_bar_set_message_mode(self, "Unknown command");
+      break;
+    }
+    case PCOMMAND_SEARCH: {
+      command_bar_do_search(self, command);
       break;
     }
   }

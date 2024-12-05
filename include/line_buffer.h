@@ -24,6 +24,7 @@ void           line_buffer_free(line_buffer_t *self);
 void           line_buffer_refresh(line_buffer_t *self);
 void           line_buffer_get_line(line_buffer_t *self, size_t lineno, char *buffer);
 void           line_buffer_get_all(line_buffer_t *self, char **buffer);
+void line_buffer_get_xy_from_index(line_buffer_t *self, unsigned int index, unsigned int *x, unsigned int *y);
 void line_buffer_insert(line_buffer_t *self, ssize_t x, ssize_t y, char *insert_chars, void *metadata);
 void  line_buffer_delete(line_buffer_t *self, ssize_t x, ssize_t y, void *metadata);
 void *line_buffer_undo(line_buffer_t *self);

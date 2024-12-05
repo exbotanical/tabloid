@@ -6,6 +6,7 @@
 
 typedef enum {
   TOKEN_STRING,
+  TOKEN_SPACE,
 } token_type_t;
 
 typedef struct {
