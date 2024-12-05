@@ -19,5 +19,6 @@ void run_file_mgmt_tests(void);
 void run_scanner_tests(void);
 void run_lexer_tests(void);
 void run_parser_tests(void);
+void run_str_search_tests(void);
 
 #endif /* TESTS_H */

@@ -2,7 +2,7 @@
 
 A minimalist, extensible text editor.
 
-Implemented using a piece table data structure, lexer & parser for commands, Knuth–Morris–Pratt search.
+Implemented using a piece table data structure, lexer & parser for commands, <TODO:> search.
 
 Features:
 

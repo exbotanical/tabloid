@@ -37,17 +37,11 @@ __s_fmt__ (char* fmt, ...) {
   return buf;
 }
 
-size_t __ok(
-  size_t       ok,
-  const char*  fn_name,
-  const char*  file,
-  const size_t line,
-  char*        msg
-);
+unsigned int __ok(unsigned int ok, const char* fn_name, const char* file, const unsigned int line, char* msg);
 
-void __skip(size_t num_skips, char* msg);
+void __skip(unsigned int num_skips, char* msg);
 
-ssize_t __write_shared_mem(ssize_t status);
+int __write_shared_mem(int status);
 
 void todo_start(const char* fmt, ...);
 
@@ -55,44 +49,28 @@ void todo_end(void);
 
 void diag(const char* fmt, ...);
 
-void plan(size_t num_tests);
+void plan(unsigned int num_tests);
 
-size_t exit_status(void);
+unsigned int exit_status(void);
 
-size_t bail_out(const char* fmt, ...);
+unsigned int bail_out(const char* fmt, ...);
 
-#define ok(test, ...) \
-  __ok(test ? 1 : 0, __func__, __FILE__, __LINE__, __s_fmt__(__VA_ARGS__))
+#define ok(test, ...)     __ok(test ? 1 : 0, __func__, __FILE__, __LINE__, __s_fmt__(__VA_ARGS__))
 
-#define eq_num(a, b, ...) \
-  __ok(a == b ? 1 : 0, __func__, __FILE__, __LINE__, __s_fmt__(__VA_ARGS__))
+#define eq_num(a, b, ...) __ok(a == b ? 1 : 0, __func__, __FILE__, __LINE__, __s_fmt__(__VA_ARGS__))
 
 #define neq_num(a, b, ...) \
   __ok(a != b ? 1 : 0, __func__, __FILE__, __LINE__, __s_fmt__(__VA_ARGS__))
 
-#define eq_str(a, b, ...)      \
-  __ok(                        \
-    strcmp(a, b) == 0 ? 1 : 0, \
-    __func__,                  \
-    __FILE__,                  \
-    __LINE__,                  \
-    __s_fmt__(__VA_ARGS__)     \
-  )
+#define eq_str(a, b, ...) \
+  __ok(strcmp(a, b) == 0 ? 1 : 0, __func__, __FILE__, __LINE__, __s_fmt__(__VA_ARGS__))
 
-#define neq_str(a, b, ...)     \
-  __ok(                        \
-    strcmp(a, b) == 0 ? 0 : 1, \
-    __func__,                  \
-    __FILE__,                  \
-    __LINE__,                  \
-    __s_fmt__(__VA_ARGS__)     \
-  )
+#define neq_str(a, b, ...) \
+  __ok(strcmp(a, b) == 0 ? 0 : 1, __func__, __FILE__, __LINE__, __s_fmt__(__VA_ARGS__))
 
-#define eq_null(a, ...) \
-  __ok(a == NULL, __func__, __FILE__, __LINE__, __s_fmt__(__VA_ARGS__))
+#define eq_null(a, ...)  __ok(a == NULL, __func__, __FILE__, __LINE__, __s_fmt__(__VA_ARGS__))
 
-#define neq_null(a, ...) \
-  __ok(a != NULL, __func__, __FILE__, __LINE__, __s_fmt__(__VA_ARGS__))
+#define neq_null(a, ...) __ok(a != NULL, __func__, __FILE__, __LINE__, __s_fmt__(__VA_ARGS__))
 
 #define is(actual, expected, ...)              \
   __ok(                                        \
@@ -124,42 +102,36 @@ size_t bail_out(const char* fmt, ...);
 #define lives(...)      _lives_or_dies(0, __VA_ARGS__)
 #define dies(...)       _lives_or_dies(1, __VA_ARGS__)
 
-#define _lives_or_dies(wants_death, code, ...)                  \
-  do {                                                          \
-    /* set shared memory to 1 */                                \
-    __write_shared_mem(1);                                      \
-                                                                \
-    pid_t pid = fork();                                         \
-    switch (pid) {                                              \
-      case -1: {                                                \
-        perror("fork");                                         \
-        exit(EXIT_FAILURE);                                     \
-      }                                                         \
-      case 0: {                                                 \
-        close(STDOUT_FILENO);                                   \
-        close(STDERR_FILENO);                                   \
-        /* execute test code, then set shared memory to zero */ \
-        code __write_shared_mem(0);                             \
-        exit(EXIT_SUCCESS);                                     \
-      }                                                         \
-    }                                                           \
-                                                                \
-    if (waitpid(pid, NULL, 0) < 0) {                            \
-      perror("waitpid");                                        \
-      exit(EXIT_FAILURE);                                       \
-    }                                                           \
-    /* grab prev value (and reset) - if 0, code succeeded */    \
-    ssize_t test_died = __write_shared_mem(0);                  \
-    if (!test_died) {                                           \
-      code                                                      \
-    }                                                           \
-    __ok(                                                       \
-      wants_death ? test_died : !test_died,                     \
-      __func__,                                                 \
-      __FILE__,                                                 \
-      __LINE__,                                                 \
-      __s_fmt__(__VA_ARGS__)                                    \
-    );                                                          \
+#define _lives_or_dies(wants_death, code, ...)                                                        \
+  do {                                                                                                \
+    /* set shared memory to 1 */                                                                      \
+    __write_shared_mem(1);                                                                            \
+                                                                                                      \
+    pid_t pid = fork();                                                                               \
+    switch (pid) {                                                                                    \
+      case -1: {                                                                                      \
+        perror("fork");                                                                               \
+        exit(EXIT_FAILURE);                                                                           \
+      }                                                                                               \
+      case 0: {                                                                                       \
+        close(STDOUT_FILENO);                                                                         \
+        close(STDERR_FILENO);                                                                         \
+        /* execute test code, then set shared memory to zero */                                       \
+        code __write_shared_mem(0);                                                                   \
+        exit(EXIT_SUCCESS);                                                                           \
+      }                                                                                               \
+    }                                                                                                 \
+                                                                                                      \
+    if (waitpid(pid, NULL, 0) < 0) {                                                                  \
+      perror("waitpid");                                                                              \
+      exit(EXIT_FAILURE);                                                                             \
+    }                                                                                                 \
+    /* grab prev value (and reset) - if 0, code succeeded */                                          \
+    int test_died = __write_shared_mem(0);                                                            \
+    if (!test_died) {                                                                                 \
+      code                                                                                            \
+    }                                                                                                 \
+    __ok(wants_death ? test_died : !test_died, __func__, __FILE__, __LINE__, __s_fmt__(__VA_ARGS__)); \
   } while (0)
 
 #ifdef __cplusplus

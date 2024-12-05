@@ -1,6 +1,8 @@
 # TODOs
 
 - [ ] GO ON A FREE SPREE
+- [ ] Prune size_ts
+- [ ] Utilize alloca where possible
 - [x] status bar
 - [x] file I/O
   - [ ] swap files
