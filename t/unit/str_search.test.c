@@ -33,7 +33,7 @@ test_str_search_basic (void) {
   FOR_EACH_TEST({
     string_finder_t sf;
     string_finder_init(&sf, tc.pattern);
-    ssize_t actual = string_finder_next(&sf, tc.text);
+    ssize_t actual = string_finder_next(&sf, tc.text, 0);
 
     eq_num(actual, tc.expect, "first index of '%s' is %d (got %d)", tc.pattern, tc.expect, actual);
   });
@@ -129,11 +129,13 @@ test_str_search_tables (void) {
 
 void
 run_str_search_tests (void) {
-  // test_str_search_basic();
+  test_str_search_basic();
   test_str_search_tables();
+  // TODO: Finish
+  // string_finder_t sf;
+  // string_finder_init(&sf, "pat");
+  // int actual = string_finder_next(&sf, "x paet ap a toh pattern pattern tap", 0);
+  // printf("1: %d\n", actual);
+  // actual = string_finder_next(&sf, "x paet ap a toh pattern pattern tap", 1);
+  // printf("2: %d\n", actual);
 }
-
-// func DumpTables(pattern string) ([]int, []int) {
-// 	finder := makeStringFinder(pattern)
-// 	return finder.badCharSkip[:], finder.goodSuffixSkip
-// }

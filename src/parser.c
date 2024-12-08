@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "globals.h"
 #include "lexer.h"
 #include "xmalloc.h"
 
@@ -26,6 +27,7 @@ parser_command_token_init (void) {
   ct->mods            = 0;
   ct->error           = NULL;
   ct->arg             = NULL;
+  ct->command         = COMMAND_INVALID;
 
   return ct;
 }
@@ -45,7 +47,6 @@ parser_init (parser_t* self) {
 
 static bool
 parser_parse_command (parser_t* self, array_t* tokens, command_token_t* ct) {
-  ct->arg               = NULL;
   bool ret              = true;
 
   token_t*     token    = (token_t*)array_get(tokens, 0);
@@ -131,6 +132,8 @@ parser_parse_command (parser_t* self, array_t* tokens, command_token_t* ct) {
     }
 
     default: {
+      logger.write(">>>2<<<\n");
+
       SET_ERROR("unknown command");
       break;
     }

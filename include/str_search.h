@@ -13,6 +13,6 @@ typedef struct {
 
 /* Implements Boyer-Moore search */
 void string_finder_init(string_finder_t *self, char *pattern);
-int  string_finder_next(string_finder_t *self, char *text);
+int  string_finder_next(string_finder_t *self, char *text, unsigned int find_n);
 
 #endif /* STR_SEARCH_H */

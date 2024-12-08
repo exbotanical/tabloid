@@ -9,7 +9,7 @@ typedef enum {
 } token_modifier_t;
 
 typedef enum {
-  COMMAND_WRITE,
+  COMMAND_WRITE = 1,
   COMMAND_QUIT,
   COMMAND_WRITE_QUIT,
 

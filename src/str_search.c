@@ -72,7 +72,7 @@ string_finder_init (string_finder_t *self, char *pattern) {
 }
 
 int
-string_finder_next (string_finder_t *self, char *text) {
+string_finder_next (string_finder_t *self, char *text, unsigned int find_n) {
   int    i        = self->pattern_len - 1;
   size_t text_len = strlen(text);
 

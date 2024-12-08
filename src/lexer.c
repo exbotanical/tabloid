@@ -16,6 +16,7 @@ lexer_tokenize (lexer_t* self) {
 
   while (true) {
     char c = scanner_next(&self->scanner);
+
     if (c == '\0') {
       break;
     }

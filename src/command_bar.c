@@ -49,12 +49,18 @@ command_bar_do_search (line_editor_t* self, command_token_t* command) {
 
   string_finder_t sf;
   string_finder_init(&sf, command->arg);
-  int found = string_finder_next(&sf, s);
-  // if (found != -1) {
-  //   line_buffer_get_xy_from_index(self, found, self->curs.x, self->curs.y);
-  // }
+  int found = string_finder_next(&sf, s, 0);
 
-  free(s);
+  if (found != -1) {
+    line_buffer_get_xy_from_index(
+      editor.line_ed.r,
+      found,
+      &editor.line_ed.curs.x,
+      &editor.line_ed.curs.y
+    );
+  }
+
+  // free(s);
 }
 
 void

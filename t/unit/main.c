@@ -6,7 +6,7 @@ file_handle_t logger;
 
 int
 main () {
-  plan(2018);
+  plan(2033);
 
   run_str_search_tests();
   run_calc_tests();
